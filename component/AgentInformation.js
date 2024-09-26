@@ -16,6 +16,7 @@ import {
   UploadOutlined,
   EditOutlined,
   DeleteOutlined,
+  SearchOutlined
 } from "@ant-design/icons";
 import { v4 as uuidv4 } from "uuid";
 import { useFormik } from "formik";
@@ -38,6 +39,7 @@ const AgentInformation = () => {
   const [users, setUsers] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [loading, setLoading] = useState(false);
+  
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -57,6 +59,19 @@ const AgentInformation = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // Global search function
+  const handleSearch = (event) => {
+    const value = event.target.value.toLowerCase();
+    setSearchText(value);
+
+    const filteredData = users?.users?.filter((user) =>
+      Object.values(user).some(
+        (val) => val && val.toString().toLowerCase().includes(value)
+      )
+    );
+    setFilteredUsers(filteredData);
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -178,6 +193,12 @@ const AgentInformation = () => {
       width: "15%", // Adjust width for compact design
     },
     {
+      title: "User ID",
+      dataIndex: "loginID",
+      key: "loginID",
+      width: "15%", // Adjust width for compact design
+    },
+    {
       title: "Email",
       dataIndex: "email",
       key: "email",
@@ -235,6 +256,14 @@ const AgentInformation = () => {
 
   return (
     <div className="">
+      {/* Search bar */}
+      <Input
+        placeholder="Search users..."
+        prefix={<SearchOutlined />}
+        value={searchText}
+        onChange={handleSearch}
+        style={{ marginBottom: 16, width: "100%" }}
+      />
       <Button
         type="primary"
         onClick={() => {
