@@ -11,9 +11,9 @@ const Login = () => {
   const router = useRouter();
 
   const validationSchema = Yup.object({
-    email: Yup.string().email("Invalid email address").required("Required"),
+    // email: Yup.string().email("Invalid email address").required("Required"),
     password: Yup.string()
-      .min(6, "Password must be at least 6 characters")
+      .min(4, "Password must be at least 4 characters")
       .required("Required"),
   });
 
@@ -21,7 +21,7 @@ const Login = () => {
     setSubmitting(true);
     try {
       const response = await fetch(
-        "https://archilawn-server.onrender.com/api/auth/login",
+        "http://localhost:8000/api/auth/login",
         {
           method: "POST",
           headers: {
@@ -69,20 +69,20 @@ const Login = () => {
             <Form className="space-y-8">
               <div>
                 <label
-                  htmlFor="email"
+                  htmlFor="loginID"
                   className="block text-gray-700 font-medium mb-2">
-                  Email
+                  User ID
                 </label>
                 <Field
-                  name="email"
-                  type="email"
+                  name="loginID"
+                  type="text"
                   as={Input}
-                  placeholder="Enter your email"
+                  placeholder="Enter your User loginIDID"
                   className="p-4 rounded-lg border-gray-300 focus:ring-2 focus:ring-[#8ABF55] focus:border-transparent w-full"
                   size="large"
                 />
                 <ErrorMessage
-                  name="email"
+                  name="loginID"
                   component="div"
                   className="text-red-500 text-sm mt-2"
                 />

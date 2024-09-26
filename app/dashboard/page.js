@@ -15,6 +15,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import DashboardHome from "@/component/DashboardHome";
+import AgentInformation from "@/component/AgentInformation";
 // import SliderPage from "@/components/SliderPage";
 
 // import ServicePage from "@/components/ServicePage";
@@ -68,8 +69,8 @@ const Dashboard = ({ sliders }) => {
     switch (selectedMenu) {
       case "1":
         return <DashboardHome />;
-      //   case "2":
-      //     return <SliderPage data={sliders} />;
+      case "2":
+        return <AgentInformation />;
       //   case "3":
       //     return <ServicePage />;
       //   case "4":
@@ -112,13 +113,13 @@ const Dashboard = ({ sliders }) => {
             key="1"
             icon={<DashboardOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">F</span>
+            <span className="text-[#8ABF55] font-medium">Dashboard</span>
           </Menu.Item>
           <Menu.Item
             key="2"
-            icon={<PictureOutlined style={{ color: "#8ABF55" }} />}
+            icon={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Sliders</span>
+            <span className="text-[#8ABF55] font-medium">User Information</span>
           </Menu.Item>
           <Menu.Item
             key="3"
@@ -171,9 +172,9 @@ const Dashboard = ({ sliders }) => {
           </Menu.Item>
           <Menu.Item
             key="2"
-            icon={<PictureOutlined style={{ color: "#8ABF55" }} />}
+            icon={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Sliders</span>
+            <span className="text-[#8ABF55] font-medium">User Info.</span>
           </Menu.Item>
           <Menu.Item
             key="3"
@@ -209,7 +210,9 @@ const Dashboard = ({ sliders }) => {
             className="lg:hidden"
             onClick={showDrawer}
           />
-          <h1 className="text-2xl font-bold text-[#8ABF55] px-2">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-[#8ABF55] px-2">
+            Fast Track Booking
+          </h1>
           <div className="flex items-center space-x-4">
             {userInfo && (
               <div className="relative flex items-center space-x-2">
