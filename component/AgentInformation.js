@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   Modal,
@@ -10,7 +10,8 @@ import {
   message,
   Input,
   Radio,
-} from "antd"; // Import Radio from Ant Design
+  Image,
+} from "antd";
 import {
   UploadOutlined,
   EditOutlined,
@@ -18,7 +19,6 @@ import {
 } from "@ant-design/icons";
 import { v4 as uuidv4 } from "uuid";
 import { useFormik } from "formik";
-import Image from "next/image";
 import axios from "axios";
 
 const roleInfo = [
@@ -31,6 +31,7 @@ const roleInfo = [
 ];
 
 const AgentInformation = () => {
+  const token = localStorage.getItem("token");
   const [visible, setVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingKey, setEditingKey] = useState(null);
@@ -38,18 +39,28 @@ const AgentInformation = () => {
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [loading, setLoading] = useState(false);
 
-  const convertToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("http://localhost:8000/api/auth/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUsers(response.data);
+    } catch (error) {
+      console.log("----", error);
+      message.error("Failed to fetch portfolios. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const formik = useFormik({
     initialValues: {
-      profilePicture: null, // Set as file
+      profilePicture: null,
       username: "",
       email: "",
       phoneNumber: "",
@@ -57,25 +68,16 @@ const AgentInformation = () => {
       nid: "",
       currentAddress: "",
       role: "",
-      gender: "", // Add gender to initial values
+      gender: "",
     },
     onSubmit: async (values, { resetForm }) => {
       setLoading(true);
       try {
-        // Upload the image to imgbb
-        const formData = new FormData();
-        formData.append("image", values.profilePicture);
-
-        const imgRes = await axios.post(
-          `https://api.imgbb.com/1/upload?key=0d928e97225b72fcd198fa40d99a15d5`,
-          formData
-        );
-
-        const imageUrl = imgRes.data.data.url;
+        const imageUrl = await handleImageUpload(values?.profilePicture);
 
         const newUser = {
           key: uuidv4(),
-          profilePicture: imageUrl, // Use imgbb image URL
+          image: imageUrl,
           username: values.username,
           email: values.email,
           phoneNumber: values.phoneNumber,
@@ -83,7 +85,7 @@ const AgentInformation = () => {
           password: values?.password,
           plainPassword: values?.password,
           currentAddress: values.currentAddress,
-          gender: values.gender, // Include gender in newUser
+          gender: values.gender,
           role: roleInfo.find((role) => role.value === values.role),
         };
 
@@ -92,9 +94,7 @@ const AgentInformation = () => {
             `https://your-server-endpoint.com/api/users/${editingKey}`,
             newUser
           );
-          setUsers((prev) =>
-            prev.map((user) => (user.key === editingKey ? newUser : user))
-          );
+
           message.success("User updated successfully!");
         } else {
           await axios.post("http://localhost:8000/api/auth/register", newUser, {
@@ -102,14 +102,14 @@ const AgentInformation = () => {
               "Content-Type": "application/json",
             },
           });
-          setUsers((prev) => [...prev, newUser]);
+
           message.success("User added successfully!");
         }
-
         resetForm();
         setVisible(false);
         setIsEditing(false);
         setEditingKey(null);
+        fetchUsers();
       } catch (error) {
         message.error("Failed to add/update user. Please try again.");
       } finally {
@@ -117,6 +117,23 @@ const AgentInformation = () => {
       }
     },
   });
+
+  const handleImageUpload = async (imageFile) => {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+
+    try {
+      const response = await axios.post(
+        `https://api.imgbb.com/1/upload?key=0d928e97225b72fcd198fa40d99a15d5`,
+        formData
+      );
+      return response.data.data.url;
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      message.error("Image upload failed. Please try again.");
+      return null;
+    }
+  };
 
   const handleEdit = (record) => {
     setEditingKey(record.key);
@@ -128,7 +145,7 @@ const AgentInformation = () => {
       nid: record.nid,
       currentAddress: record.currentAddress,
       role: record.role.value,
-      gender: record.gender, // Set gender for editing
+      gender: record.gender,
     });
     setVisible(true);
     setIsEditing(true);
@@ -141,47 +158,60 @@ const AgentInformation = () => {
 
   const columns = [
     {
-      title: "Profile Picture",
-      dataIndex: "profilePicture",
-      key: "profilePicture",
-      render: (text) => (
-        <Image src={text} alt="Profile" width={100} height={60} />
+      title: "Image",
+      dataIndex: "image",
+      key: "image",
+      render: (image) => (
+        <Image
+          src={image}
+          alt="Profile"
+          width={40} // Reduced width for smaller design
+          height={40} // Reduced height for smaller design
+          style={{ borderRadius: "50%" }} // Make image rounded
+        />
       ),
     },
     {
       title: "Username",
       dataIndex: "username",
       key: "username",
+      width: "15%", // Adjust width for compact design
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
+      width: "20%", // Adjust width for compact design
     },
     {
       title: "Phone Number",
       dataIndex: "phoneNumber",
       key: "phoneNumber",
+      width: "15%", // Adjust width for compact design
     },
     {
       title: "NID",
       dataIndex: "nid",
       key: "nid",
+      width: "15%", // Adjust width for compact design
     },
     {
       title: "Current Address",
       dataIndex: "currentAddress",
       key: "currentAddress",
+      width: "20%", // Adjust width for compact design
     },
     {
-      title: "Gender", // New column for Gender
+      title: "Gender",
       dataIndex: "gender",
       key: "gender",
+      width: "10%", // Adjust width for compact design
     },
     {
       title: "Role",
       dataIndex: ["role", "label"],
       key: "role",
+      width: "10%", // Adjust width for compact design
     },
     {
       title: "Actions",
@@ -217,13 +247,14 @@ const AgentInformation = () => {
       </Button>
       <Table
         columns={columns}
-        dataSource={users}
+        dataSource={users?.users}
         pagination={{
           ...pagination,
           onChange: (page, pageSize) =>
             setPagination({ current: page, pageSize }),
         }}
         scroll={{ x: "max-content" }}
+        size="small" // Set table size to small
       />
       <Modal
         title={isEditing ? "Edit User" : "Create User"}
@@ -282,7 +313,6 @@ const AgentInformation = () => {
               <div className="text-red-500">{formik.errors.email}</div>
             )}
           </div>
-
           <div>
             <label>Phone Number</label>
             <Input
@@ -294,7 +324,6 @@ const AgentInformation = () => {
               <div className="text-red-500">{formik.errors.phoneNumber}</div>
             )}
           </div>
-
           <div>
             <label>NID</label>
             <Input
@@ -306,7 +335,6 @@ const AgentInformation = () => {
               <div className="text-red-500">{formik.errors.nid}</div>
             )}
           </div>
-
           <div>
             <label>Current Address</label>
             <Input
@@ -320,12 +348,24 @@ const AgentInformation = () => {
           </div>
 
           <div>
+            <label>Role</label>
+            <Select
+              name="role"
+              onChange={formik.handleChange}
+              value={formik.values.role}
+              options={roleInfo.map((role) => ({
+                label: role.label,
+                value: role.value,
+              }))}
+            />
+          </div>
+
+          <div>
             <label>Gender</label>
             <Radio.Group
               name="gender"
               onChange={formik.handleChange}
-              value={formik.values.gender}
-              className="flex space-x-4">
+              value={formik.values.gender}>
               <Radio value="male">Male</Radio>
               <Radio value="female">Female</Radio>
               <Radio value="other">Other</Radio>
@@ -335,29 +375,12 @@ const AgentInformation = () => {
             )}
           </div>
 
-          <div>
-            <label>Role</label>
-            <Select
-              style={{ width: "100%" }}
-              name="role"
-              onChange={(value) => formik.setFieldValue("role", value)}
-              value={formik.values.role}
-              options={roleInfo.map((role) => ({
-                value: role.value,
-                label: role.label,
-              }))}
-            />
-            {formik.errors.role && (
-              <div className="text-red-500">{formik.errors.role}</div>
-            )}
-          </div>
-
           <Button
             type="primary"
             htmlType="submit"
             loading={loading}
-            className="mt-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
-            Submit
+            className="bg-[#8ABF55] hover:bg-[#7DA54E] text-white mt-4">
+            {isEditing ? "Update User" : "Create User"}
           </Button>
         </form>
       </Modal>
