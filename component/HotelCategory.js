@@ -78,7 +78,7 @@ const HotelCategory = () => {
           const res = await coreAxios.post("hotelCategory", newCategory);
           if (res?.status === 200) {
             setLoading(false);
-
+            message.success("Category created successfully!");
             fetchCategories();
           }
         }
