@@ -109,14 +109,14 @@ const Login = () => {
                 className="w-full py-4 bg-[#8ABF55] hover:bg-[#7DA54E] border-none text-white text-lg rounded-lg">
                 Login
               </Button>
-              <div className="text-center text-gray-600 mt-4">
+             {/*  <div className="text-center text-gray-600 mt-4">
                 {" Do not have an account?"}
                 <Link
                   href="/register"
                   className="text-[#8ABF55] font-medium hover:underline">
                   Register
                 </Link>
-              </div>
+              </div> */}
             </Form>
           )}
         </Formik>
