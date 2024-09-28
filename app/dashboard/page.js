@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import DashboardHome from "@/component/DashboardHome";
 import AgentInformation from "@/component/AgentInformation";
+import HotelCategory from "@/component/HotelCategory";
 // import SliderPage from "@/components/SliderPage";
 
 // import ServicePage from "@/components/ServicePage";
@@ -71,8 +72,8 @@ const Dashboard = ({ sliders }) => {
         return <DashboardHome />;
       case "2":
         return <AgentInformation />;
-      //   case "3":
-      //     return <ServicePage />;
+      case "3":
+        return <HotelCategory />;
       //   case "4":
       //     return <UserPage />;
       //   case "5":
@@ -119,20 +120,15 @@ const Dashboard = ({ sliders }) => {
             key="2"
             icon={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">User Information</span>
+            <span className="text-[#8ABF55] font-medium">Users</span>
           </Menu.Item>
           <Menu.Item
             key="3"
             icon={<AppstoreAddOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Services</span>
+            <span className="text-[#8ABF55] font-medium">Hotel Category</span>
           </Menu.Item>
-          <Menu.Item
-            key="4"
-            icon={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Users</span>
-          </Menu.Item>
+
           <Menu.Item
             key="5"
             icon={<FolderOpenOutlined style={{ color: "#8ABF55" }} />}
@@ -174,20 +170,15 @@ const Dashboard = ({ sliders }) => {
             key="2"
             icon={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">User Info.</span>
+            <span className="text-[#8ABF55] font-medium">Users</span>
           </Menu.Item>
           <Menu.Item
             key="3"
             icon={<AppstoreAddOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Services</span>
+            <span className="text-[#8ABF55] font-medium">Hotel Category</span>
           </Menu.Item>
-          <Menu.Item
-            key="4"
-            icon={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Users</span>
-          </Menu.Item>
+
           <Menu.Item
             key="5"
             icon={<FolderOpenOutlined style={{ color: "#8ABF55" }} />}

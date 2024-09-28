@@ -6,12 +6,15 @@ import { Input, Button } from "antd";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import coreAxios from "@/utils/axiosInstance";
+import { useState } from "react";
 
 const Login = () => {
   const router = useRouter();
+  const [buttonLoading, setButtonLoading] = useState(false); // Loading state for the button
 
   const validationSchema = Yup.object({
-    // email: Yup.string().email("Invalid email address").required("Required"),
+    loginID: Yup.string().required("Required"),
     password: Yup.string()
       .min(4, "Password must be at least 4 characters")
       .required("Required"),
@@ -19,36 +22,28 @@ const Login = () => {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     setSubmitting(true);
+    setButtonLoading(true); // Set button loading to true
     try {
-      const response = await fetch(
-        "http://localhost:8000/api/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        }
-      );
+      const response = await coreAxios.post(`auth/login`, values);
 
-      if (!response.ok) {
+      if (response.status === 200) {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("userInfo", JSON.stringify(response.data.user));
+        router.push("/dashboard");
+      } else {
         throw new Error("Login failed");
       }
-
-      const data = await response.json();
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userInfo", JSON.stringify(data.user));
-      router.push("/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
     } finally {
       setSubmitting(false);
+      setButtonLoading(false); // Set button loading to false
     }
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 relative">
-      <div className="absolute inset-0 z-0">
+      {/* <div className="absolute inset-0 z-0">
         <Image
           src="/images/bg-01.jpg"
           alt="Architecture Background"
@@ -56,13 +51,13 @@ const Login = () => {
           objectFit="cover"
           quality={100}
         />
-      </div>
+      </div> */}
       <div className="bg-white bg-opacity-90 p-8 rounded-lg shadow-lg max-w-lg w-full z-10">
         <h2 className="text-3xl font-semibold text-center text-gray-800 mb-8">
           Login
         </h2>
         <Formik
-          initialValues={{ email: "", password: "" }}
+          initialValues={{ loginID: "", password: "" }}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}>
           {({ isSubmitting }) => (
@@ -77,7 +72,7 @@ const Login = () => {
                   name="loginID"
                   type="text"
                   as={Input}
-                  placeholder="Enter your User loginIDID"
+                  placeholder="Enter your User loginID"
                   className="p-4 rounded-lg border-gray-300 focus:ring-2 focus:ring-[#8ABF55] focus:border-transparent w-full"
                   size="large"
                 />
@@ -110,7 +105,7 @@ const Login = () => {
               <Button
                 type="primary"
                 htmlType="submit"
-                loading={isSubmitting}
+                loading={buttonLoading} // Loading state for the button
                 className="w-full py-4 bg-[#8ABF55] hover:bg-[#7DA54E] border-none text-white text-lg rounded-lg">
                 Login
               </Button>
