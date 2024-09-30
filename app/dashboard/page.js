@@ -6,22 +6,20 @@ import {
   UsergroupAddOutlined,
   SettingOutlined,
   LogoutOutlined,
-  PictureOutlined,
   AppstoreAddOutlined,
-  FolderOpenOutlined,
+  FileTextOutlined,
+  ApartmentOutlined,
+  UnorderedListOutlined,
   MenuOutlined,
-} from "@ant-design/icons";
+} from "@ant-design/icons"; // Updated icons
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import DashboardHome from "@/component/DashboardHome";
 import AgentInformation from "@/component/AgentInformation";
 import HotelCategory from "@/component/HotelCategory";
-// import SliderPage from "@/components/SliderPage";
-
-// import ServicePage from "@/components/ServicePage";
-// import PortfolioPage from "@/components/PortfolioPage";
-// import UserPage from "@/components/UserPage";
+import HotelInformation from "@/component/HotelInformation";
+import HotelRoom from "@/component/HotelRoom";
 
 const { Header, Sider, Content } = Layout;
 
@@ -74,10 +72,10 @@ const Dashboard = ({ sliders }) => {
         return <AgentInformation />;
       case "3":
         return <HotelCategory />;
-      //   case "4":
-      //     return <UserPage />;
-      //   case "5":
-      //     return <PortfolioPage />;
+      case "4":
+        return <HotelRoom />;
+      case "5":
+        return <HotelInformation />;
       default:
         return (
           <div className="text-gray-900 text-lg font-medium">
@@ -120,20 +118,25 @@ const Dashboard = ({ sliders }) => {
             key="2"
             icon={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Users</span>
+            <span className="text-[#8ABF55] font-medium">Agents</span>
           </Menu.Item>
           <Menu.Item
             key="3"
-            icon={<AppstoreAddOutlined style={{ color: "#8ABF55" }} />}
+            icon={<ApartmentOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Hotel Category</span>
+            <span className="text-[#8ABF55] font-medium">Hotel Categories</span>
           </Menu.Item>
-
+          <Menu.Item
+            key="4"
+            icon={<UnorderedListOutlined style={{ color: "#8ABF55" }} />}
+            className="bg-white">
+            <span className="text-[#8ABF55] font-medium">Hotel Rooms</span>
+          </Menu.Item>
           <Menu.Item
             key="5"
-            icon={<FolderOpenOutlined style={{ color: "#8ABF55" }} />}
+            icon={<FileTextOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Portfolio</span>
+            <span className="text-[#8ABF55] font-medium">Hotel Info</span>
           </Menu.Item>
           <Menu.Item
             key="6"
@@ -164,26 +167,31 @@ const Dashboard = ({ sliders }) => {
             key="1"
             icon={<DashboardOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium ">Dashboard</span>
+            <span className="text-[#8ABF55] font-medium">Dashboard</span>
           </Menu.Item>
           <Menu.Item
             key="2"
             icon={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Users</span>
+            <span className="text-[#8ABF55] font-medium">Agents</span>
           </Menu.Item>
           <Menu.Item
             key="3"
-            icon={<AppstoreAddOutlined style={{ color: "#8ABF55" }} />}
+            icon={<ApartmentOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Hotel Category</span>
+            <span className="text-[#8ABF55] font-medium">Hotel Categories</span>
           </Menu.Item>
-
+          <Menu.Item
+            key="4"
+            icon={<UnorderedListOutlined style={{ color: "#8ABF55" }} />}
+            className="bg-white">
+            <span className="text-[#8ABF55] font-medium">Hotel Rooms</span>
+          </Menu.Item>
           <Menu.Item
             key="5"
-            icon={<FolderOpenOutlined style={{ color: "#8ABF55" }} />}
+            icon={<FileTextOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Portfolio</span>
+            <span className="text-[#8ABF55] font-medium">Hotel Info</span>
           </Menu.Item>
           <Menu.Item
             key="6"
@@ -207,13 +215,6 @@ const Dashboard = ({ sliders }) => {
           <div className="flex items-center space-x-4">
             {userInfo && (
               <div className="relative flex items-center space-x-2">
-                {/* <Avatar
-                  src={userInfo.image}
-                  alt={userInfo.username}
-                  size={40}
-                  className="lg:hidden"
-                /> */}
-
                 <div className="hidden lg:block xl:block">
                   <Avatar
                     src={userInfo.image}
@@ -230,7 +231,8 @@ const Dashboard = ({ sliders }) => {
               icon={<LogoutOutlined />}
               type="primary"
               className="bg-[#8ABF55] text-white border-none hover:bg-[#7DA54E]"
-              onClick={handleLogout}></Button>
+              onClick={handleLogout}
+            />
           </div>
         </Header>
 

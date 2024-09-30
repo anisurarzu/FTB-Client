@@ -20,34 +20,34 @@ import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import coreAxios from "@/utils/axiosInstance";
 
-const HotelCategory = () => {
+const HotelRoom = () => {
   const [visible, setVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingKey, setEditingKey] = useState(null);
-  const [sliders, setSliders] = useState([]);
+  const [room, setRoom] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem("token"); // Retrieve the token from localStorage
 
   // Fetch categories from API
-  const fetchCategories = async () => {
+  const fetchRooms = async () => {
     setLoading(true);
     try {
-      const response = await coreAxios.get("hotelCategory");
+      const response = await coreAxios.get("hotelRoom");
       if (response?.status === 200) {
         setLoading(false);
-        setSliders(response.data);
+        setRoom(response.data);
       }
     } catch (error) {
-      message.error("Failed to fetch categories. Please try again.");
+      message.error("Failed to fetch rooms. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCategories();
+    fetchRooms();
   }, []);
 
   const formik = useFormik({
@@ -58,28 +58,24 @@ const HotelCategory = () => {
     onSubmit: async (values, { resetForm }) => {
       try {
         setLoading(true);
-        const newCategory = {
-          key: uuidv4(),
+        const newRoom = {
           name: values.name,
           description: values.description,
         };
 
         if (isEditing) {
-          const res = await coreAxios.put(
-            `hotelCategory/${editingKey}`,
-            newCategory
-          );
+          const res = await coreAxios.put(`hotelRoom/${editingKey}`, newRoom);
           if (res?.status === 200) {
             setLoading(false);
-            message.success("Category updated successfully!");
-            fetchCategories();
+            message.success("Room updated successfully!");
+            fetchRooms();
           }
         } else {
-          const res = await coreAxios.post("hotelCategory", newCategory);
+          const res = await coreAxios.post("hotelRoom", newRoom);
           if (res?.status === 200) {
             setLoading(false);
-            message.success("Category created successfully!");
-            fetchCategories();
+            message.success("Room created successfully!");
+            fetchRooms();
           }
         }
 
@@ -88,8 +84,7 @@ const HotelCategory = () => {
         setIsEditing(false);
         setEditingKey(null);
       } catch (error) {
-        consol.log(error);
-        message.error("Failed to add/update category. Please try again.");
+        message.error("Failed to add/update room. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -99,8 +94,8 @@ const HotelCategory = () => {
   const handleEdit = (record) => {
     setEditingKey(record._id);
     formik.setValues({
-      name: record.name,
-      descripton: record.description,
+      name: record.mame,
+      description: record.description,
     });
     setVisible(true);
     setIsEditing(true);
@@ -109,15 +104,15 @@ const HotelCategory = () => {
   const handleDelete = async (key) => {
     setLoading(true);
     try {
-      const res = await coreAxios.delete(`hotelCategory/${key}`);
+      const res = await coreAxios.delete(`hotelRoom/${key}`);
       if (res?.status === 200) {
         setLoading(false);
-        message.success("Category deleted successfully!");
-        fetchCategories();
+        message.success("Room deleted successfully!");
+        fetchRooms();
       }
     } catch (error) {
       console.log("---", error);
-      message.error("Failed to delete category. Please try again.");
+      message.error("Failed to delete room. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -125,12 +120,12 @@ const HotelCategory = () => {
 
   const columns = [
     {
-      title: "Category Name",
+      title: "Room Name",
       dataIndex: "name",
       key: "name",
     },
     {
-      title: "Category Description",
+      title: "Room Description",
       dataIndex: "description",
       key: "description",
     },
@@ -148,7 +143,7 @@ const HotelCategory = () => {
             </Menu.Item>
             <Menu.Item key="delete" icon={<DeleteOutlined />}>
               <Popconfirm
-                title="Are you sure you want to delete this category?"
+                title="Are you sure you want to delete this room?"
                 onConfirm={() => handleDelete(record._id)}>
                 Delete
               </Popconfirm>
@@ -181,12 +176,12 @@ const HotelCategory = () => {
           setIsEditing(false);
         }}
         className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
-        Add New Category
+        Add New Room
       </Button>
       <Spin spinning={loading}>
         <Table
           columns={columns}
-          dataSource={sliders}
+          dataSource={room}
           pagination={false}
           rowKey="key"
           onChange={handleTableChange}
@@ -195,26 +190,26 @@ const HotelCategory = () => {
         <Pagination
           current={pagination.current}
           pageSize={pagination.pageSize}
-          total={sliders?.length}
+          total={room?.length}
           onChange={(page) => setPagination({ ...pagination, current: page })}
           className="mt-4"
         />
       </Spin>
 
       <Modal
-        title={isEditing ? "Edit Category" : "Create Category"}
+        title={isEditing ? "Edit Room" : "Create Room"}
         open={visible}
         onCancel={() => setVisible(false)}
         footer={null}>
         <Form onFinish={formik.handleSubmit} layout="vertical">
-          <Form.Item label="Category Name">
+          <Form.Item label="Room Name">
             <Input
               name="name"
               value={formik.values.name}
               onChange={formik.handleChange}
             />
           </Form.Item>
-          <Form.Item label="Category Description">
+          <Form.Item label="Room Description">
             <Input.TextArea
               name="description"
               value={formik.values.description}
@@ -237,4 +232,4 @@ const HotelCategory = () => {
   );
 };
 
-export default HotelCategory;
+export default HotelRoom;
