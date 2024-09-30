@@ -49,7 +49,7 @@ const AgentInformation = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await coreAxios.get("/auth/users",);
+      const response = await coreAxios.get("/auth/users");
       if (response.status === 200) {
         setLoading(false);
         setUsers(response.data);
@@ -104,32 +104,52 @@ const AgentInformation = () => {
             message.success("User updated successfully!");
           }
         } else {
-          const imageUrl = await handleImageUpload(values?.image);
+          if (values?.image) {
+            const imageUrl = await handleImageUpload(values?.image);
 
-          const newUser = {
-            key: uuidv4(),
-            image: imageUrl,
-            username: values.username,
-            email: values.email,
-            phoneNumber: values.phoneNumber,
-            nid: values.nid,
-            password: values?.password,
-            plainPassword: values?.password,
-            currentAddress: values.currentAddress,
-            gender: values.gender,
+            const newUser = {
+              key: uuidv4(),
+              image: imageUrl,
+              username: values.username,
+              email: values.email,
+              phoneNumber: values.phoneNumber,
+              nid: values.nid,
+              password: values?.password,
+              plainPassword: values?.password,
+              currentAddress: values.currentAddress,
+              gender: values.gender,
 
-            role: roleInfo.find((role) => role.value === values.role),
-          };
-          const response = await coreAxios.post(
-            "/auth/register",
-            newUser,
-           
-          );
+              role: roleInfo.find((role) => role.value === values.role),
+            };
+            const response = await coreAxios.post("/auth/register", newUser);
 
-          if (response?.status === 200) {
-            message.success("User added successfully!");
+            if (response?.status === 200) {
+              message.success("User added successfully!");
+            } else {
+              message.error(response?.error);
+            }
           } else {
-            message.error(response?.error);
+            const newUser = {
+              key: uuidv4(),
+              image: "",
+              username: values.username,
+              email: values.email,
+              phoneNumber: values.phoneNumber,
+              nid: values.nid,
+              password: values?.password,
+              plainPassword: values?.password,
+              currentAddress: values.currentAddress,
+              gender: values.gender,
+
+              role: roleInfo.find((role) => role.value === values.role),
+            };
+            const response = await coreAxios.post("/auth/register", newUser);
+
+            if (response?.status === 200) {
+              message.success("User added successfully!");
+            } else {
+              message.error(response?.error);
+            }
           }
         }
         resetForm();
@@ -156,8 +176,8 @@ const AgentInformation = () => {
       );
       return response.data.data.url;
     } catch (error) {
-      message.error("Image upload failed. Please try again.");
-      return null;
+      // message.error("Image upload failed. Please try again.");
+      // return null;
     }
   };
 

@@ -20,6 +20,7 @@ import AgentInformation from "@/component/AgentInformation";
 import HotelCategory from "@/component/HotelCategory";
 import HotelInformation from "@/component/HotelInformation";
 import HotelRoom from "@/component/HotelRoom";
+import BookingInfo from "@/component/BookingInfo";
 
 const { Header, Sider, Content } = Layout;
 
@@ -76,6 +77,8 @@ const Dashboard = ({ sliders }) => {
         return <HotelRoom />;
       case "5":
         return <HotelInformation />;
+      case "6":
+        return <BookingInfo />;
       default:
         return (
           <div className="text-gray-900 text-lg font-medium">
@@ -142,6 +145,12 @@ const Dashboard = ({ sliders }) => {
             key="6"
             icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
+            <span className="text-[#8ABF55] font-medium">Booking Info</span>
+          </Menu.Item>
+          <Menu.Item
+            key="7"
+            icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
+            className="bg-white">
             <span className="text-[#8ABF55] font-medium">Settings</span>
           </Menu.Item>
         </Menu>
@@ -193,8 +202,15 @@ const Dashboard = ({ sliders }) => {
             className="bg-white">
             <span className="text-[#8ABF55] font-medium">Hotel Info</span>
           </Menu.Item>
+
           <Menu.Item
             key="6"
+            icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
+            className="bg-white">
+            <span className="text-[#8ABF55] font-medium">Booking Info</span>
+          </Menu.Item>
+          <Menu.Item
+            key="7"
             icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
             <span className="text-[#8ABF55] font-medium">Settings</span>
