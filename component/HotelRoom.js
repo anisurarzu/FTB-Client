@@ -16,8 +16,6 @@ import {
 } from "antd";
 import { EditOutlined, DeleteOutlined, DownOutlined } from "@ant-design/icons";
 import { useFormik } from "formik";
-import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
 import coreAxios from "@/utils/axiosInstance";
 
 const HotelRoom = () => {
@@ -25,10 +23,10 @@ const HotelRoom = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingKey, setEditingKey] = useState(null);
   const [room, setRoom] = useState([]);
+  const [filteredRoom, setFilteredRoom] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [loading, setLoading] = useState(false);
-
-  const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+  const [searchText, setSearchText] = useState("");
 
   // Fetch categories from API
   const fetchRooms = async () => {
@@ -38,6 +36,7 @@ const HotelRoom = () => {
       if (response?.status === 200) {
         setLoading(false);
         setRoom(response.data);
+        setFilteredRoom(response.data); // Set filtered room initially to all rooms
       }
     } catch (error) {
       message.error("Failed to fetch rooms. Please try again.");
@@ -66,14 +65,12 @@ const HotelRoom = () => {
         if (isEditing) {
           const res = await coreAxios.put(`hotelRoom/${editingKey}`, newRoom);
           if (res?.status === 200) {
-            setLoading(false);
             message.success("Room updated successfully!");
             fetchRooms();
           }
         } else {
           const res = await coreAxios.post("hotelRoom", newRoom);
           if (res?.status === 200) {
-            setLoading(false);
             message.success("Room created successfully!");
             fetchRooms();
           }
@@ -94,7 +91,7 @@ const HotelRoom = () => {
   const handleEdit = (record) => {
     setEditingKey(record._id);
     formik.setValues({
-      name: record.mame,
+      name: record.name, // Fixed typo here, it was "mame"
       description: record.description,
     });
     setVisible(true);
@@ -106,7 +103,6 @@ const HotelRoom = () => {
     try {
       const res = await coreAxios.delete(`hotelRoom/${key}`);
       if (res?.status === 200) {
-        setLoading(false);
         message.success("Room deleted successfully!");
         fetchRooms();
       }
@@ -120,7 +116,7 @@ const HotelRoom = () => {
 
   const columns = [
     {
-      title: "Room Name",
+      title: "Flat No/Unit", // Updated the header name
       dataIndex: "name",
       key: "name",
     },
@@ -162,35 +158,73 @@ const HotelRoom = () => {
     },
   ];
 
+  // Paginate the filtered data
+  const paginatedRooms = filteredRoom.slice(
+    (pagination.current - 1) * pagination.pageSize,
+    pagination.current * pagination.pageSize
+  );
+
   const handleTableChange = (pagination) => {
     setPagination(pagination);
   };
 
+  // Global search
+  const handleSearch = (e) => {
+    const value = e.target.value.toLowerCase();
+    setSearchText(value);
+    const filteredData = room.filter(
+      (r) =>
+        r.name.toLowerCase().includes(value) ||
+        r.description.toLowerCase().includes(value)
+    );
+    setFilteredRoom(filteredData);
+    setPagination({ ...pagination, current: 1 }); // Reset to page 1 after filtering
+  };
+
+  // Set row styles to reduce height
+  const rowClassName = () => {
+    return "small-row-height";
+  };
+
   return (
-    <div className="">
-      <Button
+    <div>
+      {/* Global Search */}
+      
+
+     <div className='flex justify-between'>
+     <Button
         type="primary"
         onClick={() => {
           formik.resetForm();
           setVisible(true);
           setIsEditing(false);
         }}
-        className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
+        className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white mr-2">
         Add New Room
       </Button>
+
+      <Input
+        placeholder="Search by Flat No/Unit or Description"
+        value={searchText}
+        onChange={handleSearch}
+        style={{ marginBottom: 16, width: 300 }}
+      />
+      </div>
+
       <Spin spinning={loading}>
         <Table
           columns={columns}
-          dataSource={room}
-          pagination={false}
-          rowKey="key"
+          dataSource={paginatedRooms}
+          pagination={false} // Disable default pagination
+          rowKey="_id"
           onChange={handleTableChange}
           scroll={{ x: true }}
+          rowClassName={rowClassName} // Apply custom row class
         />
         <Pagination
           current={pagination.current}
           pageSize={pagination.pageSize}
-          total={room?.length}
+          total={filteredRoom?.length}
           onChange={(page) => setPagination({ ...pagination, current: page })}
           className="mt-4"
         />
@@ -228,6 +262,12 @@ const HotelRoom = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <style jsx>{`
+        .small-row-height td {
+          padding: 8px !important; /* Adjust the padding to reduce row height */
+        }
+      `}</style>
     </div>
   );
 };

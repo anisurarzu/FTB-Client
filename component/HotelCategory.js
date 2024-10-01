@@ -16,19 +16,17 @@ import {
 } from "antd";
 import { EditOutlined, DeleteOutlined, DownOutlined } from "@ant-design/icons";
 import { useFormik } from "formik";
-import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
 import coreAxios from "@/utils/axiosInstance";
 
 const HotelCategory = () => {
   const [visible, setVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingKey, setEditingKey] = useState(null);
-  const [sliders, setSliders] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [filteredCategories, setFilteredCategories] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [loading, setLoading] = useState(false);
-
-  const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+  const [searchText, setSearchText] = useState("");
 
   // Fetch categories from API
   const fetchCategories = async () => {
@@ -37,7 +35,8 @@ const HotelCategory = () => {
       const response = await coreAxios.get("hotelCategory");
       if (response?.status === 200) {
         setLoading(false);
-        setSliders(response.data);
+        setCategories(response.data);
+        setFilteredCategories(response.data); // Initially set filtered categories to all categories
       }
     } catch (error) {
       message.error("Failed to fetch categories. Please try again.");
@@ -59,7 +58,6 @@ const HotelCategory = () => {
       try {
         setLoading(true);
         const newCategory = {
-          key: uuidv4(),
           name: values.name,
           description: values.description,
         };
@@ -70,14 +68,12 @@ const HotelCategory = () => {
             newCategory
           );
           if (res?.status === 200) {
-            setLoading(false);
             message.success("Category updated successfully!");
             fetchCategories();
           }
         } else {
           const res = await coreAxios.post("hotelCategory", newCategory);
           if (res?.status === 200) {
-            setLoading(false);
             message.success("Category created successfully!");
             fetchCategories();
           }
@@ -88,7 +84,6 @@ const HotelCategory = () => {
         setIsEditing(false);
         setEditingKey(null);
       } catch (error) {
-        consol.log(error);
         message.error("Failed to add/update category. Please try again.");
       } finally {
         setLoading(false);
@@ -100,7 +95,7 @@ const HotelCategory = () => {
     setEditingKey(record._id);
     formik.setValues({
       name: record.name,
-      descripton: record.description,
+      description: record.description,
     });
     setVisible(true);
     setIsEditing(true);
@@ -111,12 +106,10 @@ const HotelCategory = () => {
     try {
       const res = await coreAxios.delete(`hotelCategory/${key}`);
       if (res?.status === 200) {
-        setLoading(false);
         message.success("Category deleted successfully!");
         fetchCategories();
       }
     } catch (error) {
-      console.log("---", error);
       message.error("Failed to delete category. Please try again.");
     } finally {
       setLoading(false);
@@ -167,12 +160,39 @@ const HotelCategory = () => {
     },
   ];
 
+  // Global search
+  const handleSearch = (e) => {
+    const value = e.target.value.toLowerCase();
+    setSearchText(value);
+    const filteredData = categories.filter(
+      (c) =>
+        c.name.toLowerCase().includes(value) ||
+        c.description.toLowerCase().includes(value)
+    );
+    setFilteredCategories(filteredData);
+    setPagination({ ...pagination, current: 1 }); // Reset to page 1 after filtering
+  };
+
+  // Paginate the filtered data
+  const paginatedCategories = filteredCategories.slice(
+    (pagination.current - 1) * pagination.pageSize,
+    pagination.current * pagination.pageSize
+  );
+
   const handleTableChange = (pagination) => {
     setPagination(pagination);
   };
 
   return (
-    <div className="">
+    <div>
+      {/* Global Search */}
+      <Input
+        placeholder="Search by Category Name or Description"
+        value={searchText}
+        onChange={handleSearch}
+        style={{ marginBottom: 16, width: 300 }}
+      />
+
       <Button
         type="primary"
         onClick={() => {
@@ -183,19 +203,20 @@ const HotelCategory = () => {
         className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
         Add New Category
       </Button>
+
       <Spin spinning={loading}>
         <Table
           columns={columns}
-          dataSource={sliders}
-          pagination={false}
-          rowKey="key"
+          dataSource={paginatedCategories}
+          pagination={false} // Disable default pagination
+          rowKey="_id"
           onChange={handleTableChange}
           scroll={{ x: true }}
         />
         <Pagination
           current={pagination.current}
           pageSize={pagination.pageSize}
-          total={sliders?.length}
+          total={filteredCategories?.length}
           onChange={(page) => setPagination({ ...pagination, current: page })}
           className="mt-4"
         />

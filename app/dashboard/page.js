@@ -124,19 +124,19 @@ const Dashboard = ({ sliders }) => {
             key="2"
             icon={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Agents</span>
+            <span className="text-[#8ABF55] font-medium">Users</span>
           </Menu.Item>
           <Menu.Item
             key="3"
             icon={<ApartmentOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Hotel Categories</span>
+            <span className="text-[#8ABF55] font-medium">Flat Type</span>
           </Menu.Item>
           <Menu.Item
             key="4"
             icon={<UnorderedListOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Hotel Rooms</span>
+            <span className="text-[#8ABF55] font-medium">Flat No/Unit</span>
           </Menu.Item>
           <Menu.Item
             key="5"
@@ -191,19 +191,19 @@ const Dashboard = ({ sliders }) => {
             key="2"
             icon={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Agents</span>
+            <span className="text-[#8ABF55] font-medium">Users</span>
           </Menu.Item>
           <Menu.Item
             key="3"
             icon={<ApartmentOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Hotel Categories</span>
+            <span className="text-[#8ABF55] font-medium">Flat Type</span>
           </Menu.Item>
           <Menu.Item
             key="4"
             icon={<UnorderedListOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Hotel Rooms</span>
+            <span className="text-[#8ABF55] font-medium">Flat No/Unit</span>
           </Menu.Item>
           <Menu.Item
             key="5"
