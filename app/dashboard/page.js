@@ -21,6 +21,7 @@ import HotelCategory from "@/component/HotelCategory";
 import HotelInformation from "@/component/HotelInformation";
 import HotelRoom from "@/component/HotelRoom";
 import BookingInfo from "@/component/BookingInfo";
+import Calender from "@/component/Calender";
 
 const { Header, Sider, Content } = Layout;
 
@@ -79,6 +80,8 @@ const Dashboard = ({ sliders }) => {
         return <HotelInformation />;
       case "6":
         return <BookingInfo />;
+      case "7":
+        return <Calender />;
       default:
         return (
           <div className="text-gray-900 text-lg font-medium">
@@ -151,6 +154,12 @@ const Dashboard = ({ sliders }) => {
             key="7"
             icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
+            <span className="text-[#8ABF55] font-medium">Calendar</span>
+          </Menu.Item>
+          <Menu.Item
+            key="8"
+            icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
+            className="bg-white">
             <span className="text-[#8ABF55] font-medium">Settings</span>
           </Menu.Item>
         </Menu>
@@ -211,6 +220,12 @@ const Dashboard = ({ sliders }) => {
           </Menu.Item>
           <Menu.Item
             key="7"
+            icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
+            className="bg-white">
+            <span className="text-[#8ABF55] font-medium">Calendar</span>
+          </Menu.Item>
+          <Menu.Item
+            key="8"
             icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
             className="bg-white">
             <span className="text-[#8ABF55] font-medium">Settings</span>
