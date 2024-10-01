@@ -5,6 +5,9 @@ import {
   ShoppingCartOutlined,
   DollarCircleOutlined,
   UsergroupAddOutlined,
+  InfoCircleOutlined,
+  FundOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import { Line } from "@ant-design/charts";
 
@@ -37,49 +40,81 @@ const DashboardHome = () => {
       {/* Title */}
       <Title
         level={2}
-        className="mb-4 lg:mb-6 text-[#8ABF55] text-center lg:text-left">
+        className="mb-4 lg:mb-6 text-[#8ABF55] text-center lg:text-left"
+      >
         Dashboard Overview
       </Title>
 
       {/* Statistics */}
-      <Row gutter={16} className="mb-6">
+      <Row gutter={[16, 24]}  className="mb-6">
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Card>
+          <Card style={{ backgroundColor: "#8ABF55" }}>
             <Statistic
-              title="Total Orders"
+              title={<span style={{ color: "white" }}>Total Orders</span>}
               value={1200}
-              prefix={<ShoppingCartOutlined style={{ color: "#8ABF55" }} />}
-              valueStyle={{ color: "#8ABF55" }}
+              prefix={<ShoppingCartOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white" }}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Card>
+          <Card style={{ backgroundColor: "#8ABF55" }}>
             <Statistic
-              title="Total Earnings"
+              title={<span style={{ color: "white" }}>Total Earnings</span>}
               value={54000}
-              prefix={<DollarCircleOutlined style={{ color: "#8ABF55" }} />}
-              valueStyle={{ color: "#8ABF55" }}
+              prefix={<DollarCircleOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white" }}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <Card>
+          <Card style={{ backgroundColor: "#8ABF55" }}>
             <Statistic
-              title="Total Users"
+              title={<span style={{ color: "white" }}>Total Users</span>}
               value={320}
-              prefix={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
-              valueStyle={{ color: "#8ABF55" }}
+              prefix={<UsergroupAddOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{ backgroundColor: "#8ABF55" }}>
+            <Statistic
+              title={<span style={{ color: "white" }}>Total Products</span>}
+              value={150}
+              prefix={<InfoCircleOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{ backgroundColor: "#8ABF55" }}>
+            <Statistic
+              title={<span style={{ color: "white" }}>Total Sales</span>}
+              value={800}
+              prefix={<FundOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{ backgroundColor: "#8ABF55" }}>
+            <Statistic
+              title={<span style={{ color: "white" }}>Total Teams</span>}
+              value={10}
+              prefix={<TeamOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white" }}
             />
           </Card>
         </Col>
       </Row>
 
       {/* Graph */}
-      <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg">
+      <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-2">
         <Title
           level={4}
-          className="text-[#8ABF55] mb-4 text-center lg:text-left">
+          className="text-[#8ABF55] mb-4 text-center lg:text-left"
+        >
           Sales Over Time
         </Title>
         <Line {...config} />
