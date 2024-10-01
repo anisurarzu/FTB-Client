@@ -8,7 +8,6 @@
 //   Descriptions,
 //   Table,
 //   Tag,
-//   Space,
 // } from "antd";
 // import moment from "moment";
 
@@ -28,7 +27,7 @@
 //                 guestName: "John Doe",
 //                 checkIn: "2024-10-05",
 //                 checkOut: "2024-10-06",
-//                 bookedBy: "Alice Johnson", // Added bookedBy
+//                 bookedBy: "Alice Johnson",
 //                 paymentDetails: {
 //                   totalBill: 2000,
 //                   advancePayment: 1000,
@@ -52,7 +51,7 @@
 //                 guestName: "Alice Smith",
 //                 checkIn: "2024-10-05",
 //                 checkOut: "2024-10-07",
-//                 bookedBy: "Bob Williams", // Added bookedBy
+//                 bookedBy: "Bob Williams",
 //                 paymentDetails: {
 //                   totalBill: 4000,
 //                   advancePayment: 2000,
@@ -76,7 +75,7 @@
 //                 guestName: "Michael Brown",
 //                 checkIn: "2024-10-05",
 //                 checkOut: "2024-10-06",
-//                 bookedBy: "Sarah Lee", // Added bookedBy
+//                 bookedBy: "Sarah Lee",
 //                 paymentDetails: {
 //                   totalBill: 1500,
 //                   advancePayment: 750,
@@ -110,7 +109,7 @@
 //                 guestName: "Emily Davis",
 //                 checkIn: "2024-10-05",
 //                 checkOut: "2024-10-06",
-//                 bookedBy: "David Smith", // Added bookedBy
+//                 bookedBy: "David Smith",
 //                 paymentDetails: {
 //                   totalBill: 2500,
 //                   advancePayment: 1250,
@@ -129,7 +128,7 @@
 //                 guestName: "David Johnson",
 //                 checkIn: "2024-10-07",
 //                 checkOut: "2024-10-08",
-//                 bookedBy: "Linda Adams", // Added bookedBy
+//                 bookedBy: "Linda Adams",
 //                 paymentDetails: {
 //                   totalBill: 2200,
 //                   advancePayment: 1100,
@@ -178,7 +177,7 @@
 //                 guestName: "Sophia Martinez",
 //                 checkIn: "2024-10-05",
 //                 checkOut: "2024-10-07",
-//                 bookedBy: "Tom Harris", // Added bookedBy
+//                 bookedBy: "Tom Harris",
 //                 paymentDetails: {
 //                   totalBill: 3000,
 //                   advancePayment: 1500,
@@ -207,7 +206,7 @@
 //                 guestName: "James Wilson",
 //                 checkIn: "2024-10-05",
 //                 checkOut: "2024-10-06",
-//                 bookedBy: "Nancy Scott", // Added bookedBy
+//                 bookedBy: "Nancy Scott",
 //                 paymentDetails: {
 //                   totalBill: 1800,
 //                   advancePayment: 900,
@@ -292,16 +291,24 @@
 //               <ul>
 //                 {hotel.categories.map((category, idx) => (
 //                   <li key={idx}>
-//                     {category.categoryName}:
-//                     <span style={{ color: "green" }}>
-//                       {" "}
-//                       Available: {category.availableRooms}{" "}
+//                     <Badge
+//                       count={category.bookedRooms}
+//                       style={{ backgroundColor: "#52c41a" }}
+//                     />
+//                     <span>{category.categoryName}:</span>
+//                     <span>
+//                       Available: {category.availableRooms} / Total:{" "}
+//                       {category.totalRooms}
 //                     </span>
-//                     |
-//                     <span style={{ color: "red" }}>
-//                       {" "}
-//                       Booked: {category.bookedRooms}{" "}
-//                     </span>
+//                     {category.bookedRooms > 0 && (
+//                       <Button
+//                         type="link"
+//                         onClick={
+//                           () => handleRoomClick(category.rooms[0]) // Get the first room for demo
+//                         }>
+//                         View Details
+//                       </Button>
+//                     )}
 //                   </li>
 //                 ))}
 //               </ul>
@@ -312,189 +319,106 @@
 //     );
 //   };
 
-//   // Define columns for the unified table
-//   const columns = [
-//     {
-//       title: "Detail",
-//       dataIndex: "detail",
-//       key: "detail",
-//     },
-//     {
-//       title: "Information",
-//       dataIndex: "info",
-//       key: "info",
-//     },
-//     {
-//       title: "Guest Name",
-//       dataIndex: "guestName",
-//       key: "guestName",
-//       render: (text) => <a>{text}</a>,
-//     },
-//     {
-//       title: "Check In",
-//       dataIndex: "checkIn",
-//       key: "checkIn",
-//     },
-//     {
-//       title: "Check Out",
-//       dataIndex: "checkOut",
-//       key: "checkOut",
-//     },
-//     {
-//       title: "Total Bill",
-//       dataIndex: "totalBill",
-//       key: "totalBill",
-//     },
-//     {
-//       title: "Advance Payment",
-//       dataIndex: "advancePayment",
-//       key: "advancePayment",
-//     },
-//     {
-//       title: "Due Payment",
-//       dataIndex: "duePayment",
-//       key: "duePayment",
-//     },
-//     {
-//       title: "Payment Method",
-//       dataIndex: "paymentMethod",
-//       key: "paymentMethod",
-//     },
-//     {
-//       title: "Transaction ID",
-//       dataIndex: "transactionId",
-//       key: "transactionId",
-//     },
-//     {
-//       title: "Booked By",
-//       dataIndex: "bookedBy",
-//       key: "bookedBy",
-//     },
-
-//     {
-//       title: "Action",
-//       key: "action",
-//       render: (_, record) => (
-//         <Space size="middle">
-//           <a>Invite {record.guestName}</a>
-//           <a>Delete</a>
-//         </Space>
-//       ),
-//     },
-//   ];
-
-//   // Prepare data for the table
-//   const dataSource = [];
-
-//   // Add room information to the data source
-//   if (selectedRoomInfo) {
-//     dataSource.push(
-//       {
-//         key: "roomInfo",
-//         detail: "Room Number",
-//         info: selectedRoomInfo.roomNumber,
-//       },
-//       {
-//         key: "bookingStatus",
-//         detail: "Booking Status",
-//         info: selectedRoomInfo.bookedDates.length > 0 ? "Booked" : "Available",
-//       }
-//     );
-
-//     // Add bookings to the data source
-//     selectedRoomInfo.bookings.forEach((booking, index) => {
-//       dataSource.push({
-//         key: `booking_${index}`,
-//         guestName: booking.guestName,
-//         checkIn: booking.checkIn,
-//         checkOut: booking.checkOut,
-//         totalBill: booking.paymentDetails.totalBill,
-//         advancePayment: booking.paymentDetails.advancePayment,
-//         duePayment: booking.paymentDetails.duePayment,
-//         paymentMethod: booking.paymentDetails.paymentMethod,
-//         transactionId: booking.paymentDetails.transactionId,
-//         bookedBy: booking.bookedBy,
-//          // Adjust if there's a tags field in your booking data
-//       });
-//     });
-//   }
-
 //   return (
 //     <>
 //       <Calendar dateCellRender={dateCellRender} onSelect={handleDateSelect} />
-
-//       {/* Modal to show detailed room availability for selected date */}
 //       <Modal
-//         title={`Room Availability on ${selectedDate}`}
+//         title={`Room Availability for ${selectedDate}`}
 //         visible={isModalVisible}
 //         onCancel={() => setIsModalVisible(false)}
-//         footer={null}>
+//         footer={[
+//           <Button key="close" onClick={() => setIsModalVisible(false)}>
+//             Close
+//           </Button>,
+//         ]}>
 //         <List
-//           itemLayout="vertical"
+//           itemLayout="horizontal"
 //           dataSource={roomAvailability}
 //           renderItem={(hotel) => (
 //             <List.Item>
-//               <h3>{hotel.hotelName}</h3>
-//               <ul>
-//                 {hotel.categories.map((category, idx) => (
-//                   <li key={idx}>
-//                     {category.categoryName}: Available:{" "}
-//                     <span style={{ color: "green" }}>
-//                       {category.availableRooms}
-//                     </span>
-//                     , Booked:{" "}
-//                     <span style={{ color: "red" }}>{category.bookedRooms}</span>
-//                     , Total: {category.totalRooms}
-//                     <ul>
-//                       {category.rooms.map((room, i) => (
-//                         <li key={i}>
-//                           <Badge
-//                             color={
-//                               room.bookedDates.length > 0 ? "yellow" : "green"
-//                             }
-//                             text={`Room ${room.roomNumber} (${
-//                               room.bookedDates.length > 0
-//                                 ? "Booked"
-//                                 : "Available"
-//                             })`}
-//                           />
-//                           <Button
-//                             type="link"
-//                             onClick={() => handleRoomClick(room)}>
-//                             View Details
-//                           </Button>
-//                         </li>
-//                       ))}
-//                     </ul>
-//                   </li>
-//                 ))}
-//               </ul>
+//               <List.Item.Meta
+//                 title={hotel.hotelName}
+//                 description={
+//                   <ul>
+//                     {hotel.categories.map((category, idx) => (
+//                       <li key={idx}>
+//                         <Tag color="blue">{category.categoryName}</Tag>:{" "}
+//                         {category.availableRooms} Available /{" "}
+//                         {category.bookedRooms} Booked
+//                       </li>
+//                     ))}
+//                   </ul>
+//                 }
+//               />
 //             </List.Item>
 //           )}
 //         />
 //       </Modal>
-
-//       {/* Modal for detailed room info */}
-//       {/* Modal for detailed room info */}
-//       {/* Modal for detailed room info */}
-//      <Modal
-//       title={`Room Details for Room ${selectedRoomInfo?.roomNumber}`}
-//       visible={roomInfoModalVisible}
-//       onCancel={() => setRoomInfoModalVisible(false)}
-//       footer={null}
-//       width="100%" // Set modal width to 100%
-//       style={{ maxWidth: '1200px' }} // Max width for larger screens
-//       bodyStyle={{ overflow: 'auto' }} // Make sure body is scrollable if needed
-//       className="responsive-modal" // Optional: Add a class for further styling
-//     >
-//       <Table
-//         columns={columns}
-//         dataSource={dataSource}
-//         pagination={false}
-//         bordered
-//         scroll={{ x: 'max-content' }} // Allow horizontal scrolling if necessary
-//       />
-//     </Modal>
+//       <Modal
+//         title={`Room Details`}
+//         visible={roomInfoModalVisible}
+//         onCancel={() => setRoomInfoModalVisible(false)}
+//         footer={[
+//           <Button key="close" onClick={() => setRoomInfoModalVisible(false)}>
+//             Close
+//           </Button>,
+//         ]}>
+//         {selectedRoomInfo && (
+//           <>
+//             <Descriptions title={`Room Number: ${selectedRoomInfo.roomNumber}`}>
+//               <Descriptions.Item label="Booked Dates">
+//                 {selectedRoomInfo.bookedDates.join(", ") || "Available"}
+//               </Descriptions.Item>
+//             </Descriptions>
+//             {selectedRoomInfo.bookings.length > 0 ? (
+//               <Table
+//                 dataSource={selectedRoomInfo.bookings}
+//                 rowKey={(record) => record.guestName}
+//                 columns={[
+//                   {
+//                     title: "Guest Name",
+//                     dataIndex: "guestName",
+//                   },
+//                   {
+//                     title: "Check In",
+//                     dataIndex: "checkIn",
+//                   },
+//                   {
+//                     title: "Check Out",
+//                     dataIndex: "checkOut",
+//                   },
+//                   {
+//                     title: "Booked By",
+//                     dataIndex: "bookedBy",
+//                   },
+//                   {
+//                     title: "Total Bill",
+//                     dataIndex: ["paymentDetails", "totalBill"],
+//                   },
+//                   {
+//                     title: "Advance Payment",
+//                     dataIndex: ["paymentDetails", "advancePayment"],
+//                   },
+//                   {
+//                     title: "Due Payment",
+//                     dataIndex: ["paymentDetails", "duePayment"],
+//                   },
+//                   {
+//                     title: "Payment Method",
+//                     dataIndex: ["paymentDetails", "paymentMethod"],
+//                   },
+//                   {
+//                     title: "Transaction ID",
+//                     dataIndex: ["paymentDetails", "transactionId"],
+//                   },
+//                 ]}
+//               />
+//             ) : (
+//               <p>No bookings found for this room.</p>
+//             )}
+//           </>
+//         )}
+//       </Modal>
 //     </>
 //   );
 // };
@@ -511,17 +435,16 @@ import {
   Descriptions,
   Table,
   Tag,
-  Space,
 } from "antd";
 import moment from "moment";
 
 // Sample booking data for 3 hotels
 const hotelData = [
   {
-    hotelName: "Hotel Paradise",
+    hotelName: "Samudra Bari",
     categories: [
       {
-        categoryName: "Deluxe Suite",
+        categoryName: "2 Bed Flat",
         rooms: [
           {
             roomNumber: "101",
@@ -795,16 +718,30 @@ const CustomCalendar = () => {
               <ul>
                 {hotel.categories.map((category, idx) => (
                   <li key={idx}>
-                    {category.categoryName}:
-                    <span style={{ color: "green" }}>
-                      {" "}
-                      Available: {category.availableRooms}{" "}
+                    <Badge
+                      count={category.availableRooms}
+                      style={{ backgroundColor: "#52c41a" }}
+                    />
+                    <Badge
+                      count={category.bookedRooms}
+                      style={{ backgroundColor: "#F8BD45" }}
+                    />
+                    <span>{category.categoryName}:</span>
+                    <span>
+                      Available: {category.availableRooms} / Total:{" "}
+                      {category.totalRooms}
                     </span>
-                    |
-                    <span style={{ color: "red" }}>
-                      {" "}
-                      Booked: {category.bookedRooms}{" "}
-                    </span>
+                    {category.rooms.map((room) => (
+                      <div key={room.roomNumber}>
+                        {room.bookedDates.length > 0 && (
+                          <Button
+                            type="link"
+                            onClick={() => handleRoomClick(room)}>
+                            View Details for Room {room.roomNumber}
+                          </Button>
+                        )}
+                      </div>
+                    ))}
                   </li>
                 ))}
               </ul>
@@ -815,160 +752,121 @@ const CustomCalendar = () => {
     );
   };
 
-  // Define columns for the unified table
-  const columns = [
-    {
-      title: "Detail",
-      dataIndex: "detail",
-      key: "detail",
-    },
-    {
-      title: "Information",
-      dataIndex: "info",
-      key: "info",
-    },
-    {
-      title: "Guest Name",
-      dataIndex: "guestName",
-      key: "guestName",
-      render: (text) => <a>{text}</a>,
-    },
-    {
-      title: "Check In",
-      dataIndex: "checkIn",
-      key: "checkIn",
-    },
-    {
-      title: "Check Out",
-      dataIndex: "checkOut",
-      key: "checkOut",
-    },
-    {
-      title: "Total Bill",
-      dataIndex: "totalBill",
-      key: "totalBill",
-    },
-    {
-      title: "Advance Payment",
-      dataIndex: "advancePayment",
-      key: "advancePayment",
-    },
-    {
-      title: "Due Payment",
-      dataIndex: "duePayment",
-      key: "duePayment",
-    },
-    {
-      title: "Payment Method",
-      dataIndex: "paymentMethod",
-      key: "paymentMethod",
-    },
-    {
-      title: "Transaction ID",
-      dataIndex: "transactionId",
-      key: "transactionId",
-    },
-  ];
-
-  const handleModalClose = () => {
-    setIsModalVisible(false);
-    setSelectedRoomInfo(null);
-  };
-
   return (
-    <div>
+    <>
+      {/* <h3 className="text-2xl text-center py-2 font-bold bangla-text">
+        Booking Calendar
+      </h3> */}
       <Calendar dateCellRender={dateCellRender} onSelect={handleDateSelect} />
-
       <Modal
-        title={`Room Availability on ${selectedDate}`}
+        title={`Room Availability for ${selectedDate}`}
         visible={isModalVisible}
-        onCancel={handleModalClose}
+        onCancel={() => setIsModalVisible(false)}
         footer={[
-          <Button key="close" onClick={handleModalClose}>
+          <Button key="close" onClick={() => setIsModalVisible(false)}>
             Close
           </Button>,
         ]}>
         <List
-          itemLayout="vertical"
+          itemLayout="horizontal"
           dataSource={roomAvailability}
           renderItem={(hotel) => (
-            <List.Item key={hotel.hotelName}>
+            <List.Item>
               <List.Item.Meta
                 title={hotel.hotelName}
-                description={hotel.categories.map((category) => (
-                  <div key={category.categoryName}>
-                    <h4>{category.categoryName}</h4>
-                    <div>
-                      <strong>Available Rooms: </strong>
-                      {category.availableRooms} |{" "}
-                      <strong>Booked Rooms: </strong>
-                      {category.bookedRooms}
-                    </div>
-                    <Button
-                      type="link"
-                      onClick={() => {
-                        handleRoomClick(category.rooms[0]); // Show first room details for demo
-                      }}>
-                      View Rooms
-                    </Button>
-                  </div>
-                ))}
+                description={
+                  <ul>
+                    {hotel.categories.map((category, idx) => (
+                      <li key={idx}>
+                        <Tag color="blue">{category.categoryName}</Tag>:{" "}
+                        {category.availableRooms} Available /{" "}
+                        {category.bookedRooms} Booked
+                        {category.rooms.map((room) => (
+                          <div key={room.roomNumber}>
+                            {room.bookedDates.length > 0 && (
+                              <Button
+                                type="link"
+                                onClick={() => handleRoomClick(room)}>
+                                View Details for Room {room.roomNumber}
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </li>
+                    ))}
+                  </ul>
+                }
               />
             </List.Item>
           )}
         />
       </Modal>
-
       <Modal
         title={`Room Details`}
         visible={roomInfoModalVisible}
         onCancel={() => setRoomInfoModalVisible(false)}
         footer={[
-          <Button key="back" onClick={() => setRoomInfoModalVisible(false)}>
+          <Button key="close" onClick={() => setRoomInfoModalVisible(false)}>
             Close
           </Button>,
         ]}>
         {selectedRoomInfo && (
-          <Descriptions bordered>
-            <Descriptions.Item label="Room Number">
-              {selectedRoomInfo.roomNumber}
-            </Descriptions.Item>
-            <Descriptions.Item label="Total Rooms">
-              {selectedRoomInfo.bookedDates.length > 0 ? (
-                <Badge
-                  count={selectedRoomInfo.bookedDates.length}
-                  style={{ backgroundColor: "#52c41a" }}
-                />
-              ) : (
-                <Badge count={0} style={{ backgroundColor: "#f5222d" }} />
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="Bookings">
-              {selectedRoomInfo.bookings.length > 0 ? (
-                <Table
-                  columns={columns}
-                  dataSource={selectedRoomInfo.bookings.map((booking) => ({
-                    detail: `Booking for ${booking.guestName}`,
-                    info: `${booking.checkIn} - ${booking.checkOut}`,
-                    guestName: booking.guestName,
-                    checkIn: booking.checkIn,
-                    checkOut: booking.checkOut,
-                    totalBill: booking.paymentDetails.totalBill,
-                    advancePayment: booking.paymentDetails.advancePayment,
-                    duePayment: booking.paymentDetails.duePayment,
-                    paymentMethod: booking.paymentDetails.paymentMethod,
-                    transactionId: booking.paymentDetails.transactionId,
-                  }))}
-                  pagination={false}
-                />
-              ) : (
-                <Tag color="green">No bookings available</Tag>
-              )}
-            </Descriptions.Item>
-          </Descriptions>
+          <>
+            <Descriptions title={`Room Number: ${selectedRoomInfo.roomNumber}`}>
+              <Descriptions.Item label="Booked Dates">
+                {selectedRoomInfo.bookedDates.join(", ") || "Available"}
+              </Descriptions.Item>
+            </Descriptions>
+            {selectedRoomInfo.bookings.length > 0 ? (
+              <Table
+                dataSource={selectedRoomInfo.bookings}
+                rowKey={(record) => record.guestName}
+                columns={[
+                  {
+                    title: "Guest Name",
+                    dataIndex: "guestName",
+                  },
+                  {
+                    title: "Check In",
+                    dataIndex: "checkIn",
+                  },
+                  {
+                    title: "Check Out",
+                    dataIndex: "checkOut",
+                  },
+                  {
+                    title: "Booked By",
+                    dataIndex: "bookedBy",
+                  },
+                  {
+                    title: "Total Bill",
+                    dataIndex: ["paymentDetails", "totalBill"],
+                  },
+                  {
+                    title: "Advance Payment",
+                    dataIndex: ["paymentDetails", "advancePayment"],
+                  },
+                  {
+                    title: "Due Payment",
+                    dataIndex: ["paymentDetails", "duePayment"],
+                  },
+                  {
+                    title: "Payment Method",
+                    dataIndex: ["paymentDetails", "paymentMethod"],
+                  },
+                  {
+                    title: "Transaction ID",
+                    dataIndex: ["paymentDetails", "transactionId"],
+                  },
+                ]}
+              />
+            ) : (
+              <p>No bookings found for this room.</p>
+            )}
+          </>
         )}
       </Modal>
-    </div>
+    </>
   );
 };
 
