@@ -444,10 +444,10 @@ const hotelData = [
     hotelName: "Samudra Bari",
     categories: [
       {
-        categoryName: "2 Bed Flat",
+        categoryName: "3 Bed Flat",
         rooms: [
           {
-            roomNumber: "101",
+            roomNumber: "A1",
             bookedDates: ["2024-10-05", "2024-10-06"],
             bookings: [
               {
@@ -466,12 +466,12 @@ const hotelData = [
             ],
           },
           {
-            roomNumber: "102",
+            roomNumber: "A2",
             bookedDates: [],
             bookings: [],
           },
           {
-            roomNumber: "103",
+            roomNumber: "A3",
             bookedDates: ["2024-10-05", "2024-10-07"],
             bookings: [
               {
@@ -492,10 +492,10 @@ const hotelData = [
         ],
       },
       {
-        categoryName: "Standard Room",
+        categoryName: "2 Bed Flat",
         rooms: [
           {
-            roomNumber: "201",
+            roomNumber: "B1",
             bookedDates: ["2024-10-05"],
             bookings: [
               {
@@ -514,7 +514,7 @@ const hotelData = [
             ],
           },
           {
-            roomNumber: "202",
+            roomNumber: "B2",
             bookedDates: [],
             bookings: [],
           },
@@ -754,9 +754,6 @@ const CustomCalendar = () => {
 
   return (
     <>
-      {/* <h3 className="text-2xl text-center py-2 font-bold bangla-text">
-        Booking Calendar
-      </h3> */}
       <Calendar dateCellRender={dateCellRender} onSelect={handleDateSelect} />
       <Modal
         title={`Room Availability for ${selectedDate}`}
@@ -805,6 +802,7 @@ const CustomCalendar = () => {
         title={`Room Details`}
         visible={roomInfoModalVisible}
         onCancel={() => setRoomInfoModalVisible(false)}
+        width={1200}
         footer={[
           <Button key="close" onClick={() => setRoomInfoModalVisible(false)}>
             Close
