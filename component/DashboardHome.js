@@ -8,6 +8,12 @@ import {
   InfoCircleOutlined,
   FundOutlined,
   TeamOutlined,
+  CheckCircleOutlined,
+  HomeOutlined,
+  FieldTimeOutlined,
+  UserDeleteOutlined,
+  MoneyCollectOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import { Line } from "@ant-design/charts";
 
@@ -46,13 +52,15 @@ const DashboardHome = () => {
       </Title>
 
       {/* Statistics */}
-      <Row gutter={[16, 24]}  className="mb-6">
+      <Row gutter={[16, 24]} className="mb-6">
         <Col xs={24} sm={12} md={8} lg={6}>
           <Card style={{ backgroundColor: "#8ABF55" }}>
             <Statistic
-              title={<span style={{ color: "white" }}>Total Orders</span>}
+              title={
+                <span style={{ color: "white" }}>Total booking for today</span>
+              }
               value={1200}
-              prefix={<ShoppingCartOutlined style={{ color: "white" }} />}
+              prefix={<CheckCircleOutlined style={{ color: "white" }} />}
               valueStyle={{ color: "white" }}
             />
           </Card>
@@ -60,9 +68,11 @@ const DashboardHome = () => {
         <Col xs={24} sm={12} md={8} lg={6}>
           <Card style={{ backgroundColor: "#8ABF55" }}>
             <Statistic
-              title={<span style={{ color: "white" }}>Total Earnings</span>}
+              title={
+                <span style={{ color: "white" }}>Total booking for all</span>
+              }
               value={54000}
-              prefix={<DollarCircleOutlined style={{ color: "white" }} />}
+              prefix={<CheckCircleOutlined style={{ color: "white" }} />}
               valueStyle={{ color: "white" }}
             />
           </Card>
@@ -70,8 +80,22 @@ const DashboardHome = () => {
         <Col xs={24} sm={12} md={8} lg={6}>
           <Card style={{ backgroundColor: "#8ABF55" }}>
             <Statistic
-              title={<span style={{ color: "white" }}>Total Users</span>}
+              title={
+                <span style={{ color: "white" }}>Room vacany for today</span>
+              }
               value={320}
+              prefix={<HomeOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{ backgroundColor: "#8ABF55" }}>
+            <Statistic
+              title={
+                <span style={{ color: "white" }}>Room Check in guest</span>
+              }
+              value={150}
               prefix={<UsergroupAddOutlined style={{ color: "white" }} />}
               valueStyle={{ color: "white" }}
             />
@@ -80,19 +104,11 @@ const DashboardHome = () => {
         <Col xs={24} sm={12} md={8} lg={6}>
           <Card style={{ backgroundColor: "#8ABF55" }}>
             <Statistic
-              title={<span style={{ color: "white" }}>Total Products</span>}
-              value={150}
-              prefix={<InfoCircleOutlined style={{ color: "white" }} />}
-              valueStyle={{ color: "white" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{ backgroundColor: "#8ABF55" }}>
-            <Statistic
-              title={<span style={{ color: "white" }}>Total Sales</span>}
+              title={
+                <span style={{ color: "white" }}>Room Check out guest</span>
+              }
               value={800}
-              prefix={<FundOutlined style={{ color: "white" }} />}
+              prefix={<UserDeleteOutlined style={{ color: "white" }} />}
               valueStyle={{ color: "white" }}
             />
           </Card>
@@ -100,9 +116,33 @@ const DashboardHome = () => {
         <Col xs={24} sm={12} md={8} lg={6}>
           <Card style={{ backgroundColor: "#8ABF55" }}>
             <Statistic
-              title={<span style={{ color: "white" }}>Total Teams</span>}
+              title={
+                <span style={{ color: "white" }}>
+                  Last 7 days/monthly booking amount
+                </span>
+              }
               value={10}
-              prefix={<TeamOutlined style={{ color: "white" }} />}
+              prefix={<FieldTimeOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{ backgroundColor: "#8ABF55" }}>
+            <Statistic
+              title={<span style={{ color: "white" }}>Total Earnings</span>}
+              value={10}
+              prefix={<MoneyCollectOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{ backgroundColor: "#8ABF55" }}>
+            <Statistic
+              title={<span style={{ color: "white" }}>Total Users</span>}
+              value={10}
+              prefix={<UserOutlined style={{ color: "white" }} />}
               valueStyle={{ color: "white" }}
             />
           </Card>
