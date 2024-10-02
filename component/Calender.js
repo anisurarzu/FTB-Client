@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import {
   Badge,
   Calendar,
@@ -8,8 +9,11 @@ import {
   Descriptions,
   Table,
   Tag,
+  Spin,
+  Alert,
 } from "antd";
 import moment from "moment";
+import coreAxios from "@/utils/axiosInstance";
 
 const CustomCalendar = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -18,16 +22,35 @@ const CustomCalendar = () => {
   const [roomAvailability, setRoomAvailability] = useState([]);
   const [selectedRoomInfo, setSelectedRoomInfo] = useState(null);
   const [highlightedDate, setHighlightedDate] = useState(null);
+  const [hotelData, setHotelData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const hotelData = [
+  useEffect(() => {
+    fetchHotelInformation();
+  }, []);
+
+  const fetchHotelInformation = async () => {
+    try {
+      setLoading(true);
+      const res = await coreAxios.get(`hotel`);
+      if (res?.status === 200) {
+        setLoading(false);
+        setHotelData(res?.data);
+      }
+    } catch (err) {
+      setLoading(false);
+    }
+  };
+
+  const hotelData2 = [
     {
       hotelName: "Samudra Bari",
-      categories: [
+      roomCategories: [
         {
-          categoryName: "3 Bed Flat",
-          rooms: [
+          name: "3 Bed Flat",
+          roomNumbers: [
             {
-              roomNumber: "A1",
+              name: "A1",
               bookedDates: ["2024-10-05", "2024-10-06"],
               bookings: [
                 {
@@ -46,12 +69,12 @@ const CustomCalendar = () => {
               ],
             },
             {
-              roomNumber: "A2",
+              name: "A2",
               bookedDates: [],
               bookings: [],
             },
             {
-              roomNumber: "A3",
+              name: "A3",
               bookedDates: ["2024-10-05", "2024-10-07"],
               bookings: [
                 {
@@ -72,10 +95,10 @@ const CustomCalendar = () => {
           ],
         },
         {
-          categoryName: "1 Bed Flat",
-          rooms: [
+          name: "1 Bed Flat",
+          roomNumbers: [
             {
-              roomNumber: "D1",
+              name: "D1",
               bookedDates: ["2024-10-05", "2024-10-06"],
               bookings: [
                 {
@@ -94,17 +117,17 @@ const CustomCalendar = () => {
               ],
             },
             {
-              roomNumber: "D2",
+              name: "D2",
               bookedDates: [],
               bookings: [],
             },
           ],
         },
         {
-          categoryName: "2 Bed Flat",
-          rooms: [
+          name: "2 Bed Flat",
+          roomNumbers: [
             {
-              roomNumber: "B1",
+              name: "B1",
               bookedDates: ["2024-10-05"],
               bookings: [
                 {
@@ -123,7 +146,7 @@ const CustomCalendar = () => {
               ],
             },
             {
-              roomNumber: "B2",
+              name: "B2",
               bookedDates: [],
               bookings: [],
             },
@@ -137,18 +160,22 @@ const CustomCalendar = () => {
     return hotelData.map((hotel) => {
       const hotelInfo = {
         hotelName: hotel.hotelName,
-        categories: [],
+        roomCategories: [],
       };
 
-      hotel.categories.forEach((category) => {
-        const availableRooms = category.rooms.filter(
+      hotel.roomCategories.forEach((category) => {
+        const availableroomNumbers = category.roomNumbers.filter(
           (room) => !room.bookedDates.includes(date)
         ).length;
+        const bookedroomNumbers = category.roomNumbers.filter((room) =>
+          room.bookedDates.includes(date)
+        ).length;
 
-        hotelInfo.categories.push({
-          categoryName: category.categoryName,
-          availableRooms,
-          rooms: category.rooms,
+        hotelInfo.roomCategories.push({
+          name: category.name,
+          availableroomNumbers,
+          bookedroomNumbers,
+          roomNumbers: category.roomNumbers,
         });
       });
 
@@ -193,7 +220,12 @@ const CustomCalendar = () => {
         onClick={() => handleDateSelect(value)} // Only open modal on date click
       >
         {/* Display custom formatted date */}
-        <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+        <div
+          style={{
+            fontWeight: "bold",
+            fontSize: "14px",
+            borderBottom: "1px solid #d9d9d9",
+          }}>
           {value.format("D MMM YYYY (ddd)")}
         </div>
 
@@ -202,11 +234,11 @@ const CustomCalendar = () => {
           {availability.map((hotel, index) => (
             <li key={index}>
               <ul>
-                {hotel.categories.map((category, idx) => (
+                {hotel.roomCategories.map((category, idx) => (
                   <li key={idx}>
-                    <span>{category.categoryName}: </span>
+                    <span>{category.name}: </span>
                     <Badge
-                      count={category.availableRooms}
+                      count={category.availableroomNumbers}
                       style={{ backgroundColor: "#52c41a" }}
                     />
                   </li>
@@ -221,127 +253,152 @@ const CustomCalendar = () => {
 
   return (
     <>
-      <Calendar
-        dateFullCellRender={dateFullCellRender}
-        onSelect={(date) => {
-          // Prevent modal from opening on month/year change
-          const selectedDate = date.format("YYYY-MM-DD");
-          if (
-            !highlightedDate ||
-            !moment(selectedDate).isSame(highlightedDate, "day")
-          ) {
-            handleDateSelect(date);
-          }
-        }}
-      />
+      <h3 className="text-green-400 font-bold text-left text-2xl ">
+        FTB Booking Calendar
+      </h3>
+      {loading ? (
+        <Spin
+          className="mt-4"
+          tip="Loading, please wait... / লোড হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...">
+          <Alert
+            message="Processing your request / আপনার অনুরোধ প্রক্রিয়াকরণ করা হচ্ছে"
+            description="This may take a moment, thank you for your patience. / এতে কিছু সময় লাগতে পারে, ধন্যবাদ আপনার ধৈর্যের জন্য।"
+            type="info"
+          />
+        </Spin>
+      ) : (
+        <div>
+          <Calendar
+            dateFullCellRender={dateFullCellRender}
+            onSelect={(date) => {
+              // Prevent modal from opening on month/year change
+              const selectedDate = date.format("YYYY-MM-DD");
+              if (
+                !highlightedDate ||
+                !moment(selectedDate).isSame(highlightedDate, "day")
+              ) {
+                handleDateSelect(date);
+              }
+            }}
+          />
 
-      {/* Modals for room availability and room details */}
-      <Modal
-        title={`Room Availability for ${selectedDate}`}
-        visible={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setIsModalVisible(false)}>
-            Close
-          </Button>,
-        ]}>
-        <List
-          itemLayout="horizontal"
-          dataSource={roomAvailability}
-          renderItem={(hotel) => (
-            <List.Item>
-              <List.Item.Meta
-                title={hotel.hotelName}
-                description={
-                  <ul>
-                    {hotel.categories.map((category, idx) => (
-                      <li key={idx}>
-                        <Tag color="blue">{category.categoryName}</Tag>:{" "}
-                        {category.availableRooms} Available /{" "}
-                        {category.bookedRooms} Booked
-                        {category.rooms.map((room) => (
-                          <div key={room.roomNumber}>
-                            {/* Corrected logic: Check if the room is booked on the selected date */}
-                            {room.bookedDates.includes(selectedDate) ? (
-                              <Button
-                                type="link"
-                                onClick={() => handleRoomClick(room)}>
-                                Room {room.roomNumber} is Booked
-                              </Button>
-                            ) : (
-                              <Button
-                                className="text-green-500 bg-green-50 rounded-sm"
-                                type="link"
-                                onClick={() => handleRoomClick(room)}>
-                                Room {room.roomNumber} is Available
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                      </li>
+          {/* Modals for room availability and room details */}
+          <Modal
+            title={`Room Availability for ${selectedDate}`}
+            visible={isModalVisible}
+            onCancel={() => setIsModalVisible(false)}
+            width={1200}
+            footer={[
+              <Button key="close" onClick={() => setIsModalVisible(false)}>
+                Close
+              </Button>,
+            ]}>
+            <div className="w-full">
+              {/* Iterate over the roomAvailability (hotels) */}
+              {roomAvailability.map((hotel, hotelIdx) => (
+                <div key={hotelIdx} className="mb-8">
+                  {/* Hotel Name */}
+                  <div className="text-lg font-bold mb-4">
+                    {hotel.hotelName}
+                  </div>
+
+                  {/* Room categories grid with 4 equal columns */}
+                  <div className="flex">
+                    {hotel.roomCategories.map((category, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-white p-4 rounded-md shadow-md">
+                        {/* Room Category and availability */}
+                        <Tag color="blue">{category.name}</Tag>:{" "}
+                        {category.availableroomNumbers} Available /{" "}
+                        {category.bookedroomNumbers} Booked
+                        <div className="mt-2 space-y-2">
+                          {/* Iterate over roomNumbers */}
+                          {category.roomNumbers.map((room) => (
+                            <div key={room.name}>
+                              {/* Check if the room is booked on the selected date */}
+                              {room.bookedDates.includes(selectedDate) ? (
+                                <Button
+                                  type="link"
+                                  onClick={() => handleRoomClick(room)}>
+                                  <Tag color="yellow">
+                                    Room {room.name} is Booked
+                                  </Tag>
+                                </Button>
+                              ) : (
+                                <Tag color="green">
+                                  Room {room.name} is Available
+                                </Tag>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     ))}
-                  </ul>
-                }
-              />
-            </List.Item>
-          )}
-        />
-      </Modal>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Modal>
 
-      <Modal
-        title={`Room Details`}
-        visible={roomInfoModalVisible}
-        onCancel={() => setRoomInfoModalVisible(false)}
-        width={1200}
-        footer={[
-          <Button key="close" onClick={() => setRoomInfoModalVisible(false)}>
-            Close
-          </Button>,
-        ]}>
-        {selectedRoomInfo && (
-          <>
-            <Descriptions title={`Room Number: ${selectedRoomInfo.roomNumber}`}>
-              <Descriptions.Item label="Booked Dates">
-                {selectedRoomInfo.bookedDates.join(", ") || "Available"}
-              </Descriptions.Item>
-            </Descriptions>
-            {selectedRoomInfo.bookings.length > 0 ? (
-              <Table
-                dataSource={selectedRoomInfo.bookings}
-                rowKey={(record) => record.guestName}
-                columns={[
-                  { title: "Guest Name", dataIndex: "guestName" },
-                  { title: "Check In", dataIndex: "checkIn" },
-                  { title: "Check Out", dataIndex: "checkOut" },
-                  { title: "Booked By", dataIndex: "bookedBy" },
-                  {
-                    title: "Total Bill",
-                    dataIndex: ["paymentDetails", "totalBill"],
-                  },
-                  {
-                    title: "Advance Payment",
-                    dataIndex: ["paymentDetails", "advancePayment"],
-                  },
-                  {
-                    title: "Due Payment",
-                    dataIndex: ["paymentDetails", "duePayment"],
-                  },
-                  {
-                    title: "Payment Method",
-                    dataIndex: ["paymentDetails", "paymentMethod"],
-                  },
-                  {
-                    title: "Transaction ID",
-                    dataIndex: ["paymentDetails", "transactionId"],
-                  },
-                ]}
-              />
-            ) : (
-              <p>No bookings found for this room.</p>
+          <Modal
+            title={`Room Details`}
+            visible={roomInfoModalVisible}
+            onCancel={() => setRoomInfoModalVisible(false)}
+            width={1200}
+            footer={[
+              <Button
+                key="close"
+                onClick={() => setRoomInfoModalVisible(false)}>
+                Close
+              </Button>,
+            ]}>
+            {selectedRoomInfo && (
+              <>
+                <Descriptions title={`Room Number: ${selectedRoomInfo.name}`}>
+                  <Descriptions.Item label="Booked Dates">
+                    {selectedRoomInfo.bookedDates.join(", ") || "Available"}
+                  </Descriptions.Item>
+                </Descriptions>
+                {selectedRoomInfo.bookings.length > 0 ? (
+                  <Table
+                    dataSource={selectedRoomInfo.bookings}
+                    rowKey={(record) => record.guestName}
+                    columns={[
+                      { title: "Guest Name", dataIndex: "guestName" },
+                      { title: "Check In", dataIndex: "checkIn" },
+                      { title: "Check Out", dataIndex: "checkOut" },
+                      { title: "Booked By", dataIndex: "bookedBy" },
+                      {
+                        title: "Total Bill",
+                        dataIndex: ["paymentDetails", "totalBill"],
+                      },
+                      {
+                        title: "Advance Payment",
+                        dataIndex: ["paymentDetails", "advancePayment"],
+                      },
+                      {
+                        title: "Due Payment",
+                        dataIndex: ["paymentDetails", "duePayment"],
+                      },
+                      {
+                        title: "Payment Method",
+                        dataIndex: ["paymentDetails", "paymentMethod"],
+                      },
+                      {
+                        title: "Transaction ID",
+                        dataIndex: ["paymentDetails", "transactionId"],
+                      },
+                    ]}
+                  />
+                ) : (
+                  <p>No bookings found for this room.</p>
+                )}
+              </>
             )}
-          </>
-        )}
-      </Modal>
+          </Modal>
+        </div>
+      )}
     </>
   );
 };

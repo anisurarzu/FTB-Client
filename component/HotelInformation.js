@@ -332,7 +332,7 @@ const HotelInformation = () => {
               <Select
                 mode="multiple"
                 placeholder="Select room numbers"
-                value={formik.values.roomNumbers[categoryId]?.map((r) => r.id)}
+                value={formik.values.roomNumbers[categoryId]?.map((r) => r._id)}
                 onChange={(selectedRoomNumbers) =>
                   handleRoomNumberChange(categoryId, selectedRoomNumbers)
                 }>

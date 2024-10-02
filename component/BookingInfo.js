@@ -14,9 +14,12 @@ import {
   Select,
   Row,
   Col,
+  Pagination,
 } from "antd";
 import { useFormik } from "formik";
 import axios from "axios";
+import dayjs from "dayjs";
+
 import { v4 as uuidv4 } from "uuid";
 import coreAxios from "@/utils/axiosInstance";
 
@@ -25,11 +28,17 @@ const BookingInfo = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingKey, setEditingKey] = useState(null);
   const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [guestInfo, setGuestInfo] = useState(null);
   const [hotelInfo, setHotelInfo] = useState([]);
   const [roomCategories, setRoomCategories] = useState([]);
   const [roomNumbers, setRoomNumbers] = useState([]);
+  const [filteredBookings, setFilteredBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+  });
+  const [searchText, setSearchText] = useState("");
 
   const fetchRoomCategories = async () => {
     try {
@@ -52,14 +61,14 @@ const BookingInfo = () => {
     // Filter the hotel data by hotelID
     const hotel = hotelInfo.find((hotel) => hotel.hotelID === value);
 
-    console.log("---------", hotel);
+    // console.log("---------", hotel);
     // Check if hotel is found and has roomCategories
     if (hotel && hotel.roomCategories) {
       // Set the roomCategories to the state
       setRoomCategories(hotel.roomCategories);
     } else {
       // Handle the case where the hotel is not found or no roomCategories exist
-      console.log("Hotel not found or no room categories available.");
+      // console.log("Hotel not found or no room categories available.");
       setRoomCategories([]);
     }
   };
@@ -67,14 +76,14 @@ const BookingInfo = () => {
   const fetchRoomNumbers = async (value) => {
     const room = roomCategories.find((room) => room.id === value);
 
-    console.log("---------2", room);
+    // console.log("---------2", room);
     // Check if hotel is found and has roomCategories
     if (room && room.roomNumbers) {
       // Set the roomCategories to the state
       setRoomNumbers(room.roomNumbers);
     } else {
       // Handle the case where the hotel is not found or no roomCategories exist
-      console.log("Room not found or no room numbers available.");
+      // console.log("Room not found or no room numbers available.");
       setRoomCategories([]);
     }
   };
@@ -102,6 +111,89 @@ const BookingInfo = () => {
     }
   };
 
+  // Retrieve the userInfo from localStorage
+  const userInfo = localStorage.getItem("userInfo")
+    ? JSON.parse(localStorage.getItem("userInfo"))
+    : null;
+
+  const updateRoomBookingStatus = async (values) => {
+    setLoading(true);
+    // Prepare the dynamic booking update payload based on form data
+    const bookingUpdatePayload = {
+      hotelID: values?.hotelID, // Now included in the body
+      categoryName: values?.roomCategoryName, // Use roomCategoryName to match your structure
+      roomName: values?.roomNumberName, // Now included in the body
+      booking: {
+        name: values.roomNumberName,
+        bookedDates: [
+          dayjs(values.checkInDate).format("YYYY-MM-DD"),
+          dayjs(values.checkOutDate).format("YYYY-MM-DD"),
+        ],
+        bookings: [
+          {
+            guestName: values.fullName,
+            checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
+            checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
+            bookedBy: values.bookedBy,
+            paymentDetails: {
+              totalBill: values.totalBill,
+              advancePayment: values.advancePayment,
+              duePayment: values.duePayment,
+              paymentMethod: values.paymentMethod,
+              transactionId: values.transactionId,
+            },
+          },
+        ],
+      },
+    };
+
+    // Make the API call to update the room booking
+
+    const updateBookingResponse = await coreAxios.put(
+      `/hotel/room/updateBooking`, // Same route as before
+      bookingUpdatePayload // Send full payload in request body
+    );
+    if (updateBookingResponse.status === 200) {
+      const newBooking = {
+        ...values,
+        checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
+        checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
+        key: uuidv4(), // Generate a unique key for this booking
+        bookingID: updateBookingResponse?.data?.hotel?._id, // Correctly extracting the bookingId from response
+      };
+
+      // First, create or update the booking in the booking collection
+      let response;
+      if (isEditing) {
+        response = await coreAxios.put(`booking/${editingKey}`, newBooking);
+        if (response.status === 200) {
+          setLoading(false);
+          message.success("Booking created/updated successfully!");
+        } else {
+          setLoading(false);
+          message.error("Failed to create/update booking.");
+        }
+      } else {
+        response = await coreAxios.post("booking", newBooking);
+        if (response.status === 200) {
+          setLoading(false);
+          message.success("Booking created/updated successfully!");
+        } else {
+          setLoading(false);
+          message.error("Failed to create/update booking.");
+        }
+      }
+
+      setVisible(false);
+      setIsEditing(false);
+      setEditingKey(null);
+      message.success("Room booking status updated successfully!");
+      fetchBookings(); // Fetch updated bookings after successful update
+    } else {
+      message.error("Failed to update room booking status.");
+    }
+  };
+
   const formik = useFormik({
     initialValues: {
       fullName: "",
@@ -109,11 +201,15 @@ const BookingInfo = () => {
       address: "",
       phone: "",
       email: "",
-      roomCategory: "",
-      roomNumber: "",
+      hotelID: 0,
+      hotelName: "",
+      roomCategoryID: 0,
+      roomCategoryName: "",
+      roomNumberID: 0,
+      roomNumberName: "",
       roomPrice: 0,
-      checkInDate: null,
-      checkOutDate: null,
+      checkInDate: dayjs(), // Set default to current date
+      checkOutDate: dayjs().add(1, "day"), // One day after the current date
       nights: 0,
       totalBill: 0,
       advancePayment: 0,
@@ -121,35 +217,17 @@ const BookingInfo = () => {
       paymentMethod: "",
       transactionId: "",
       note: "",
-      bookedBy: "",
+      bookedBy: userInfo ? userInfo?.username : "",
+      bookedByID: userInfo ? userInfo?.loginID : "",
       reference: "",
     },
+
     onSubmit: async (values, { resetForm }) => {
+      console.log("values", values);
       try {
         setLoading(true);
-        const newBooking = {
-          ...values,
-          key: uuidv4(),
-        };
-
-        if (isEditing) {
-          const res = await axios.put(`/api/booking/${editingKey}`, newBooking);
-          if (res.status === 200) {
-            message.success("Booking updated successfully!");
-            fetchBookings();
-          }
-        } else {
-          const res = await axios.post("/api/booking", newBooking);
-          if (res.status === 200) {
-            message.success("Booking created successfully!");
-            fetchBookings();
-          }
-        }
-
+        updateRoomBookingStatus(values);
         resetForm();
-        setVisible(false);
-        setIsEditing(false);
-        setEditingKey(null);
       } catch (error) {
         message.error("Failed to add/update booking.");
       } finally {
@@ -161,9 +239,10 @@ const BookingInfo = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("/api/bookings");
+      const response = await coreAxios.get("bookings");
       if (response.status === 200) {
-        setBookings(response.data);
+        setBookings(response?.data);
+        setFilteredBookings(response?.data);
       }
     } catch (error) {
       message.error("Failed to fetch bookings.");
@@ -179,19 +258,41 @@ const BookingInfo = () => {
   }, []);
 
   const handleHotelInfo = (value) => {
-    formik.setFieldValue("roomCategory", "");
-    formik.setFieldValue("roomNumber", "");
-    formik.setFieldValue("hotelName", value);
-    fetchHotelCategories(value);
+    // Find the selected hotel based on the value
+    const selectedHotel = hotelInfo.find((hotel) => hotel.hotelID === value);
+
+    // Update formik values
+    formik.setFieldValue("roomCategoryID", 0); // Reset room category
+    formik.setFieldValue("roomCategoryName", ""); // Reset room category name
+    formik.setFieldValue("roomNumberID", ""); // Reset room number
+    formik.setFieldValue("roomNumberName", ""); // Reset room number name
+    formik.setFieldValue("hotelID", value); // Set the selected hotel ID
+    formik.setFieldValue(
+      "hotelName",
+      selectedHotel ? selectedHotel.hotelName : ""
+    ); // Set the selected hotel name
+    fetchHotelCategories(value); // Fetch room categories for the selected hotel
   };
+
   const handleRoomCategoryChange = (value) => {
-    formik.setFieldValue("roomNumber", "");
-    formik.setFieldValue("roomCategory", value);
-    fetchRoomNumbers(value);
+    // Find the selected category based on the value
+    const selectedCategory = roomCategories.find(
+      (category) => category.id === value
+    );
+
+    // Update formik values
+    formik.setFieldValue("roomNumberID", 0); // Reset room number
+    formik.setFieldValue("roomNumberName", ""); // Reset room number name
+    formik.setFieldValue("roomCategoryID", value); // Set the selected category ID
+    formik.setFieldValue(
+      "roomCategoryName",
+      selectedCategory ? selectedCategory.name : ""
+    ); // Set the selected category name
+    fetchRoomNumbers(value); // Fetch room numbers for the selected category
   };
 
   const handleEdit = (record) => {
-    setEditingKey(record._id);
+    setEditingKey(record?._id);
     formik.setValues(record);
     setVisible(true);
     setIsEditing(true);
@@ -200,7 +301,7 @@ const BookingInfo = () => {
   const handleDelete = async (key) => {
     setLoading(true);
     try {
-      const res = await axios.delete(`/api/booking/${key}`);
+      const res = await coreAxios.delete(`booking/${key}`);
       if (res.status === 200) {
         message.success("Booking deleted successfully!");
         fetchBookings();
@@ -219,14 +320,14 @@ const BookingInfo = () => {
       key: "fullName",
     },
     {
-      title: "Room Category",
-      dataIndex: "roomCategory",
-      key: "roomCategory",
+      title: "Flat Type",
+      dataIndex: "roomCategoryName",
+      key: "roomCategoryName",
     },
     {
-      title: "Room Number",
-      dataIndex: "roomNumber",
-      key: "roomNumber",
+      title: "Flat No/Unit",
+      dataIndex: "roomNumberName",
+      key: "roomNumberName",
     },
     {
       title: "Check In",
@@ -258,81 +359,124 @@ const BookingInfo = () => {
 
   const handlePriceChange = (e) => {
     const { name, value } = e.target;
-  
+
     // Update the price or nights based on the changed input
     formik.setFieldValue(name, value);
-  
+
     // Calculate totalBill based on roomPrice and nights
     const roomPrice = name === "roomPrice" ? value : formik.values.roomPrice;
     const nights = name === "nights" ? value : formik.values.nights;
     const totalBill = roomPrice * nights;
-  
+
     // Calculate the due payment based on the advancePayment and totalBill
     const advancePayment = formik.values.advancePayment || 0;
     const duePayment = totalBill - advancePayment;
-  
+
     // Update totalBill and duePayment fields in formik
     formik.setFieldValue("totalBill", totalBill);
     formik.setFieldValue("duePayment", duePayment >= 0 ? duePayment : 0);
   };
-  
+
   const handleNightsChange = (e) => {
     const nights = parseInt(e.target.value) || 0; // Get the new value for nights
     formik.setFieldValue("nights", nights);
-  
+
     const roomPrice = formik.values.roomPrice || 0;
     const totalBill = roomPrice * nights;
-  
+
     // Get the current advance payment
     let advancePayment = parseFloat(formik.values.advancePayment) || 0;
-  
+
     // Adjust advance payment if it exceeds totalBill
     if (advancePayment > totalBill) {
       advancePayment = totalBill;
     }
-  
+
     // Calculate the due payment
     const duePayment = totalBill - advancePayment;
-  
+
     // Update totalBill, advancePayment, and duePayment in formik
     formik.setFieldValue("totalBill", totalBill);
     formik.setFieldValue("advancePayment", advancePayment);
     formik.setFieldValue("duePayment", duePayment >= 0 ? duePayment : 0);
   };
-  
+
   // Function to handle advance payment and calculate due payment
-const handleAdvancePaymentChange = (e) => {
-  const advancePayment = e.target.value;
-  const totalBill = formik.values.totalBill;
+  const handleAdvancePaymentChange = (e) => {
+    const advancePayment = e.target.value;
+    const totalBill = formik.values.totalBill;
 
-  // Calculate due payment
-  const duePayment = totalBill - advancePayment;
+    // Calculate due payment
+    const duePayment = totalBill - advancePayment;
 
-  // Set the field values in formik
-  formik.setFieldValue("advancePayment", advancePayment);
-  formik.setFieldValue("duePayment", duePayment >= 0 ? duePayment : 0); // Ensure due payment is non-negative
-};
+    // Set the field values in formik
+    formik.setFieldValue("advancePayment", advancePayment);
+    formik.setFieldValue("duePayment", duePayment >= 0 ? duePayment : 0); // Ensure due payment is non-negative
+  };
+  // Handle pagination
+  const handleTableChange = (newPagination) => {
+    setPagination(newPagination);
+  };
 
-  
+  // Handle global search
+  const handleSearch = (e) => {
+    const value = e.target.value.toLowerCase();
+    setSearchText(value);
+    const filteredData = bookings.filter(
+      (r) =>
+        r.fullName.toLowerCase().includes(value) ||
+        r.roomCategoryName.toLowerCase().includes(value) ||
+        r.roomNumberName.toLowerCase().includes(value)
+    );
+    setFilteredBookings(filteredData);
+    setPagination({ ...pagination, current: 1 }); // Reset to page 1 after filtering
+  };
+
+  // Paginate the filtered data
+  const paginatedRooms = filteredBookings.slice(
+    (pagination.current - 1) * pagination.pageSize,
+    pagination.current * pagination.pageSize
+  );
 
   return (
     <div className="">
-      <Button
-        type="primary"
-        onClick={() => {
-          formik.resetForm();
-          setVisible(true);
-          setIsEditing(false);
-        }}
-        className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
-        Add New Booking
-      </Button>
+      <div className="flex justify-between">
+        <Button
+          type="primary"
+          onClick={() => {
+            formik.resetForm();
+            setVisible(true);
+            setIsEditing(false);
+          }}
+          className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
+          Add New Booking
+        </Button>
+        {/* Global Search Input */}
+        <Input
+          placeholder="Search bookings..."
+          value={searchText}
+          onChange={handleSearch}
+          style={{ width: 300, marginBottom: 20 }}
+        />
+      </div>
+
       <Spin spinning={loading}>
         <Table
           columns={columns}
-          dataSource={bookings}
-          pagination={false}
+          dataSource={paginatedRooms}
+          pagination={false} // Disable default pagination
           rowKey="_id"
+          onChange={handleTableChange}
+        />
+        {/* Custom Pagination */}
+        <Pagination
+          current={pagination.current}
+          pageSize={pagination.pageSize}
+          total={filteredBookings.length}
+          onChange={(page, pageSize) =>
+            setPagination({ current: page, pageSize })
+          }
+          className="mt-4"
         />
       </Spin>
 
@@ -350,7 +494,7 @@ const handleAdvancePaymentChange = (e) => {
                   value={formik.values.fullName}
                   onChange={(e) => {
                     formik.handleChange(e);
-                    fetchGuestInfo(e.target.value);
+                    // fetchGuestInfo(e.target.value);
                   }}
                 />
               </Form.Item>
@@ -412,8 +556,8 @@ const handleAdvancePaymentChange = (e) => {
             <Col span={12}>
               <Form.Item label="Room Categories" className="mb-2">
                 <Select
-                  name="roomCategory"
-                  value={formik.values.roomCategory}
+                  name="roomCategoryID"
+                  value={formik.values.roomCategoryName}
                   onChange={handleRoomCategoryChange}>
                   {roomCategories.map((category) => (
                     <Select.Option key={category.id} value={category.id}>
@@ -428,11 +572,18 @@ const handleAdvancePaymentChange = (e) => {
             <Col span={12}>
               <Form.Item label="Room Number" className="mb-2">
                 <Select
-                  name="roomNumber"
-                  value={formik.values.roomNumber}
-                  onChange={(value) =>
-                    formik.setFieldValue("roomNumber", value)
-                  }>
+                  name="roomNumberID"
+                  value={formik.values.roomNumberID}
+                  onChange={(value) => {
+                    const selectedRoom = roomNumbers.find(
+                      (room) => room.id === value
+                    );
+                    formik.setFieldValue("roomNumberID", value);
+                    formik.setFieldValue(
+                      "roomNumberName",
+                      selectedRoom ? selectedRoom.name : ""
+                    ); // Update room name
+                  }}>
                   {roomNumbers.map((room) => (
                     <Select.Option key={room.id} value={room.id}>
                       {room.name}
@@ -441,18 +592,27 @@ const handleAdvancePaymentChange = (e) => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={12}>
-            <Form.Item label="Room Price" className="mb-2">
-  <Input
-    name="roomPrice"
-    value={formik.values.roomPrice}
-    onChange={handlePriceChange} // Call handlePriceChange on price change
-  />
-</Form.Item>
 
+            <Col span={12}>
+              <Form.Item label="Room Price" className="mb-2">
+                <Input
+                  name="roomPrice"
+                  value={formik.values.roomPrice}
+                  onChange={handlePriceChange} // Call handlePriceChange on price change
+                />
+              </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Check In Date" className="mb-2">
+                <DatePicker
+                  name="checkInDate"
+                  value={formik.values.checkInDate}
+                  onChange={(date) => formik.setFieldValue("checkInDate", date)}
+                />
+              </Form.Item>
+            </Col>
             <Col span={12}>
               <Form.Item label="Check Out Date" className="mb-2">
                 <DatePicker
@@ -461,15 +621,6 @@ const handleAdvancePaymentChange = (e) => {
                   onChange={(date) =>
                     formik.setFieldValue("checkOutDate", date)
                   }
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Check In Date" className="mb-2">
-                <DatePicker
-                  name="checkInDate"
-                  value={formik.values.checkInDate}
-                  onChange={(date) => formik.setFieldValue("checkInDate", date)}
                 />
               </Form.Item>
             </Col>
@@ -499,24 +650,23 @@ const handleAdvancePaymentChange = (e) => {
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-            <Form.Item label="Advance Payment" className="mb-2">
-  <Input
-    name="advancePayment"
-    value={formik.values.advancePayment}
-    onChange={handleAdvancePaymentChange} // Calculate duePayment when advance payment changes
-  />
-</Form.Item>
-
+              <Form.Item label="Advance Payment" className="mb-2">
+                <Input
+                  name="advancePayment"
+                  value={formik.values.advancePayment}
+                  onChange={handleAdvancePaymentChange} // Calculate duePayment when advance payment changes
+                />
+              </Form.Item>
             </Col>
             <Col span={12}>
-            <Form.Item label="Due Payment" className="mb-2">
-  <Input
-    name="duePayment"
-    disabled
-    value={formik.values.duePayment}
-    readOnly // Make this field read-only since it's calculated automatically
-  />
-</Form.Item>
+              <Form.Item label="Due Payment" className="mb-2">
+                <Input
+                  name="duePayment"
+                  disabled
+                  value={formik.values.duePayment}
+                  readOnly // Make this field read-only since it's calculated automatically
+                />
+              </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item label="Payment Method" className="mb-2">
