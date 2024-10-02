@@ -11,291 +11,155 @@ import {
 } from "antd";
 import moment from "moment";
 
-// Sample booking data for 3 hotels
-const hotelData = [
-  {
-    hotelName: "Samudra Bari",
-    categories: [
-      {
-        categoryName: "3 Bed Flat",
-        rooms: [
-          {
-            roomNumber: "A1",
-            bookedDates: ["2024-10-05", "2024-10-06"],
-            bookings: [
-              {
-                guestName: "John Doe",
-                checkIn: "2024-10-05",
-                checkOut: "2024-10-06",
-                bookedBy: "Alice Johnson",
-                paymentDetails: {
-                  totalBill: 2000,
-                  advancePayment: 1000,
-                  duePayment: 1000,
-                  paymentMethod: "BKASH",
-                  transactionId: "TX123456",
-                },
-              },
-            ],
-          },
-          {
-            roomNumber: "A2",
-            bookedDates: [],
-            bookings: [],
-          },
-          {
-            roomNumber: "A3",
-            bookedDates: ["2024-10-05", "2024-10-07"],
-            bookings: [
-              {
-                guestName: "Alice Smith",
-                checkIn: "2024-10-05",
-                checkOut: "2024-10-07",
-                bookedBy: "Bob Williams",
-                paymentDetails: {
-                  totalBill: 4000,
-                  advancePayment: 2000,
-                  duePayment: 2000,
-                  paymentMethod: "NAGAD",
-                  transactionId: "TX987654",
-                },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        categoryName: "2 Bed Flat",
-        rooms: [
-          {
-            roomNumber: "B1",
-            bookedDates: ["2024-10-05"],
-            bookings: [
-              {
-                guestName: "Michael Brown",
-                checkIn: "2024-10-05",
-                checkOut: "2024-10-06",
-                bookedBy: "Sarah Lee",
-                paymentDetails: {
-                  totalBill: 1500,
-                  advancePayment: 750,
-                  duePayment: 750,
-                  paymentMethod: "BANK",
-                  transactionId: "TX456789",
-                },
-              },
-            ],
-          },
-          {
-            roomNumber: "B2",
-            bookedDates: [],
-            bookings: [],
-          },
-        ],
-      },
-      {
-        categoryName: "1 Bed Flat",
-        rooms: [
-          {
-            roomNumber: "B1",
-            bookedDates: ["2024-10-05"],
-            bookings: [
-              {
-                guestName: "Michael Brown",
-                checkIn: "2024-10-05",
-                checkOut: "2024-10-06",
-                bookedBy: "Sarah Lee",
-                paymentDetails: {
-                  totalBill: 1500,
-                  advancePayment: 750,
-                  duePayment: 750,
-                  paymentMethod: "BANK",
-                  transactionId: "TX456789",
-                },
-              },
-            ],
-          },
-          {
-            roomNumber: "B2",
-            bookedDates: [],
-            bookings: [],
-          },
-        ],
-      },
-    ],
-  },
-  // {
-  //   hotelName: "City Inn",
-  //   categories: [
-  //     {
-  //       categoryName: "Executive Room",
-  //       rooms: [
-  //         {
-  //           roomNumber: "301",
-  //           bookedDates: ["2024-10-05"],
-  //           bookings: [
-  //             {
-  //               guestName: "Emily Davis",
-  //               checkIn: "2024-10-05",
-  //               checkOut: "2024-10-06",
-  //               bookedBy: "David Smith",
-  //               paymentDetails: {
-  //                 totalBill: 2500,
-  //                 advancePayment: 1250,
-  //                 duePayment: 1250,
-  //                 paymentMethod: "BKASH",
-  //                 transactionId: "TX753951",
-  //               },
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           roomNumber: "302",
-  //           bookedDates: ["2024-10-07"],
-  //           bookings: [
-  //             {
-  //               guestName: "David Johnson",
-  //               checkIn: "2024-10-07",
-  //               checkOut: "2024-10-08",
-  //               bookedBy: "Linda Adams",
-  //               paymentDetails: {
-  //                 totalBill: 2200,
-  //                 advancePayment: 1100,
-  //                 duePayment: 1100,
-  //                 paymentMethod: "NAGAD",
-  //                 transactionId: "TX159357",
-  //               },
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           roomNumber: "303",
-  //           bookedDates: [],
-  //           bookings: [],
-  //         },
-  //       ],
-  //     },
-  //     {
-  //       categoryName: "Economy Room",
-  //       rooms: [
-  //         {
-  //           roomNumber: "401",
-  //           bookedDates: [],
-  //           bookings: [],
-  //         },
-  //         {
-  //           roomNumber: "402",
-  //           bookedDates: [],
-  //           bookings: [],
-  //         },
-  //       ],
-  //     },
-  //   ],
-  // },
-  // {
-  //   hotelName: "Seaside Resort",
-  //   categories: [
-  //     {
-  //       categoryName: "Ocean View",
-  //       rooms: [
-  //         {
-  //           roomNumber: "501",
-  //           bookedDates: ["2024-10-05", "2024-10-06", "2024-10-07"],
-  //           bookings: [
-  //             {
-  //               guestName: "Sophia Martinez",
-  //               checkIn: "2024-10-05",
-  //               checkOut: "2024-10-07",
-  //               bookedBy: "Tom Harris",
-  //               paymentDetails: {
-  //                 totalBill: 3000,
-  //                 advancePayment: 1500,
-  //                 duePayment: 1500,
-  //                 paymentMethod: "BANK",
-  //                 transactionId: "TX654321",
-  //               },
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           roomNumber: "502",
-  //           bookedDates: [],
-  //           bookings: [],
-  //         },
-  //       ],
-  //     },
-  //     {
-  //       categoryName: "Garden View",
-  //       rooms: [
-  //         {
-  //           roomNumber: "601",
-  //           bookedDates: ["2024-10-05"],
-  //           bookings: [
-  //             {
-  //               guestName: "James Wilson",
-  //               checkIn: "2024-10-05",
-  //               checkOut: "2024-10-06",
-  //               bookedBy: "Nancy Scott",
-  //               paymentDetails: {
-  //                 totalBill: 1800,
-  //                 advancePayment: 900,
-  //                 duePayment: 900,
-  //                 paymentMethod: "NAGAD",
-  //                 transactionId: "TX951753",
-  //               },
-  //             },
-  //           ],
-  //         },
-  //         {
-  //           roomNumber: "602",
-  //           bookedDates: [],
-  //           bookings: [],
-  //         },
-  //       ],
-  //     },
-  //   ],
-  // },
-];
-
-// Helper function to calculate available and booked rooms
-const getRoomAvailability = (date) => {
-  return hotelData.map((hotel) => {
-    const hotelInfo = {
-      hotelName: hotel.hotelName,
-      categories: [],
-    };
-
-    hotel.categories.forEach((category) => {
-      const availableRooms = category.rooms.filter(
-        (room) => !room.bookedDates.includes(date)
-      ).length;
-
-      const bookedRooms = category.rooms.filter((room) =>
-        room.bookedDates.includes(date)
-      ).length;
-
-      hotelInfo.categories.push({
-        categoryName: category.categoryName,
-        availableRooms,
-        bookedRooms,
-        totalRooms: category.rooms.length,
-        rooms: category.rooms, // Add rooms to display room numbers
-      });
-    });
-
-    return hotelInfo;
-  });
-};
-
 const CustomCalendar = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [roomInfoModalVisible, setRoomInfoModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [roomAvailability, setRoomAvailability] = useState([]);
   const [selectedRoomInfo, setSelectedRoomInfo] = useState(null);
+  const [highlightedDate, setHighlightedDate] = useState(null);
 
+  const hotelData = [
+    {
+      hotelName: "Samudra Bari",
+      categories: [
+        {
+          categoryName: "3 Bed Flat",
+          rooms: [
+            {
+              roomNumber: "A1",
+              bookedDates: ["2024-10-05", "2024-10-06"],
+              bookings: [
+                {
+                  guestName: "John Doe",
+                  checkIn: "2024-10-05",
+                  checkOut: "2024-10-06",
+                  bookedBy: "Alice Johnson",
+                  paymentDetails: {
+                    totalBill: 2000,
+                    advancePayment: 1000,
+                    duePayment: 1000,
+                    paymentMethod: "BKASH",
+                    transactionId: "TX123456",
+                  },
+                },
+              ],
+            },
+            {
+              roomNumber: "A2",
+              bookedDates: [],
+              bookings: [],
+            },
+            {
+              roomNumber: "A3",
+              bookedDates: ["2024-10-05", "2024-10-07"],
+              bookings: [
+                {
+                  guestName: "Alice Smith",
+                  checkIn: "2024-10-05",
+                  checkOut: "2024-10-07",
+                  bookedBy: "Bob Williams",
+                  paymentDetails: {
+                    totalBill: 4000,
+                    advancePayment: 2000,
+                    duePayment: 2000,
+                    paymentMethod: "NAGAD",
+                    transactionId: "TX987654",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          categoryName: "1 Bed Flat",
+          rooms: [
+            {
+              roomNumber: "D1",
+              bookedDates: ["2024-10-05", "2024-10-06"],
+              bookings: [
+                {
+                  guestName: "Michael Brown",
+                  checkIn: "2024-10-05",
+                  checkOut: "2024-10-06",
+                  bookedBy: "Sarah Lee",
+                  paymentDetails: {
+                    totalBill: 1500,
+                    advancePayment: 750,
+                    duePayment: 750,
+                    paymentMethod: "BANK",
+                    transactionId: "TX456789",
+                  },
+                },
+              ],
+            },
+            {
+              roomNumber: "D2",
+              bookedDates: [],
+              bookings: [],
+            },
+          ],
+        },
+        {
+          categoryName: "2 Bed Flat",
+          rooms: [
+            {
+              roomNumber: "B1",
+              bookedDates: ["2024-10-05"],
+              bookings: [
+                {
+                  guestName: "Michael Brown",
+                  checkIn: "2024-10-05",
+                  checkOut: "2024-10-06",
+                  bookedBy: "Sarah Lee",
+                  paymentDetails: {
+                    totalBill: 1500,
+                    advancePayment: 750,
+                    duePayment: 750,
+                    paymentMethod: "BANK",
+                    transactionId: "TX456789",
+                  },
+                },
+              ],
+            },
+            {
+              roomNumber: "B2",
+              bookedDates: [],
+              bookings: [],
+            },
+          ],
+        },
+      ],
+    },
+  ];
+
+  const getRoomAvailability = (date) => {
+    return hotelData.map((hotel) => {
+      const hotelInfo = {
+        hotelName: hotel.hotelName,
+        categories: [],
+      };
+
+      hotel.categories.forEach((category) => {
+        const availableRooms = category.rooms.filter(
+          (room) => !room.bookedDates.includes(date)
+        ).length;
+
+        hotelInfo.categories.push({
+          categoryName: category.categoryName,
+          availableRooms,
+          rooms: category.rooms,
+        });
+      });
+
+      return hotelInfo;
+    });
+  };
+
+  // Open the modal only when a date is clicked
   const handleDateSelect = (value) => {
     const date = value.format("YYYY-MM-DD");
+    setHighlightedDate(value); // Highlight the selected date
     const availability = getRoomAvailability(date);
     setSelectedDate(date);
     setRoomAvailability(availability);
@@ -307,18 +171,36 @@ const CustomCalendar = () => {
     setRoomInfoModalVisible(true);
   };
 
-  const dateCellRender = (value) => {
+  // Customize the full cell render to highlight selected date and show availability
+  const dateFullCellRender = (value) => {
     const date = value.format("YYYY-MM-DD");
-    // Format the date to "1 Oct 2024"
-    // const formattedDate = value.format("D MMM YYYY");
     const availability = getRoomAvailability(date);
 
+    // Highlight the selected date
+    const isSelected = highlightedDate
+      ? value.isSame(highlightedDate, "day")
+      : false;
+
     return (
-      <div style={{ padding: "5px" }}>
-        <ul>
+      <div
+        style={{
+          padding: "5px",
+          textAlign: "center",
+          border: "1px solid #d9d9d9",
+          backgroundColor: isSelected ? "#e6f7ff" : "transparent", // Highlight color
+          borderRadius: "4px",
+        }}
+        onClick={() => handleDateSelect(value)} // Only open modal on date click
+      >
+        {/* Display custom formatted date */}
+        <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+          {value.format("D MMM YYYY (ddd)")}
+        </div>
+
+        {/* Display room availability information */}
+        <ul style={{ listStyle: "none", padding: 0 }}>
           {availability.map((hotel, index) => (
             <li key={index}>
-              {/* <strong>{hotel.hotelName}</strong> */}
               <ul>
                 {hotel.categories.map((category, idx) => (
                   <li key={idx}>
@@ -327,26 +209,6 @@ const CustomCalendar = () => {
                       count={category.availableRooms}
                       style={{ backgroundColor: "#52c41a" }}
                     />
-                    {/* <Badge
-                      count={category.bookedRooms}
-                      style={{ backgroundColor: "#F8BD45" }}
-                    /> */}
-
-                    {/* <span>
-                      Available: {category.availableRooms} / Total:{" "}
-                      {category.totalRooms}
-                    </span> */}
-                    {/* {category.rooms.map((room) => (
-                      <div key={room.roomNumber}>
-                        {room.bookedDates.length > 0 && (
-                          <Button
-                            type="link"
-                            onClick={() => handleRoomClick(room)}>
-                            View Details for Room {room.roomNumber}
-                          </Button>
-                        )}
-                      </div>
-                    ))} */}
                   </li>
                 ))}
               </ul>
@@ -359,7 +221,21 @@ const CustomCalendar = () => {
 
   return (
     <>
-      <Calendar dateCellRender={dateCellRender} onSelect={handleDateSelect} />
+      <Calendar
+        dateFullCellRender={dateFullCellRender}
+        onSelect={(date) => {
+          // Prevent modal from opening on month/year change
+          const selectedDate = date.format("YYYY-MM-DD");
+          if (
+            !highlightedDate ||
+            !moment(selectedDate).isSame(highlightedDate, "day")
+          ) {
+            handleDateSelect(date);
+          }
+        }}
+      />
+
+      {/* Modals for room availability and room details */}
       <Modal
         title={`Room Availability for ${selectedDate}`}
         visible={isModalVisible}
@@ -385,15 +261,14 @@ const CustomCalendar = () => {
                         {category.bookedRooms} Booked
                         {category.rooms.map((room) => (
                           <div key={room.roomNumber}>
-                            {/* Display booked room details */}
-                            {room.bookedDates.length > 0 ? (
+                            {/* Corrected logic: Check if the room is booked on the selected date */}
+                            {room.bookedDates.includes(selectedDate) ? (
                               <Button
                                 type="link"
                                 onClick={() => handleRoomClick(room)}>
-                                View Details for Room {room.roomNumber}
+                                Room {room.roomNumber} is Booked
                               </Button>
                             ) : (
-                              /* Display available room details */
                               <Button
                                 className="text-green-500 bg-green-50 rounded-sm"
                                 type="link"
@@ -435,22 +310,10 @@ const CustomCalendar = () => {
                 dataSource={selectedRoomInfo.bookings}
                 rowKey={(record) => record.guestName}
                 columns={[
-                  {
-                    title: "Guest Name",
-                    dataIndex: "guestName",
-                  },
-                  {
-                    title: "Check In",
-                    dataIndex: "checkIn",
-                  },
-                  {
-                    title: "Check Out",
-                    dataIndex: "checkOut",
-                  },
-                  {
-                    title: "Booked By",
-                    dataIndex: "bookedBy",
-                  },
+                  { title: "Guest Name", dataIndex: "guestName" },
+                  { title: "Check In", dataIndex: "checkIn" },
+                  { title: "Check Out", dataIndex: "checkOut" },
+                  { title: "Booked By", dataIndex: "bookedBy" },
                   {
                     title: "Total Bill",
                     dataIndex: ["paymentDetails", "totalBill"],
