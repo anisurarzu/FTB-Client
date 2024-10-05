@@ -24,6 +24,8 @@ import moment from "moment";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { v4 as uuidv4 } from "uuid";
 import coreAxios from "@/utils/axiosInstance";
+import { CopyOutlined } from "@ant-design/icons";
+import Link from "next/link"; // For routing
 
 const BookingInfo = () => {
   const [visible, setVisible] = useState(false);
@@ -36,6 +38,7 @@ const BookingInfo = () => {
   const [roomNumbers, setRoomNumbers] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [reportData,setReportData]=useState([])
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -45,19 +48,29 @@ const BookingInfo = () => {
   const fetchRoomCategories = async () => {
     try {
       const response = await coreAxios.get("hotelCategory");
-      setRoomCategories(response.data);
+      if (Array.isArray(response.data)) {
+        setRoomCategories(response.data);
+      } else {
+        setRoomCategories([]);  // or handle appropriately
+      }
     } catch (error) {
       message.error("Failed to fetch room categories.");
     }
   };
+  
   const fetchHotelInfo = async () => {
     try {
       const response = await coreAxios.get("hotel");
-      setHotelInfo(response.data);
+      if (Array.isArray(response.data)) {
+        setHotelInfo(response.data);
+      } else {
+        setHotelInfo([]);  // or handle appropriately
+      }
     } catch (error) {
-      message.error("Failed to fetch room categories.");
+      message.error("Failed to fetch hotel information.");
     }
   };
+  
 
   const fetchHotelCategories = async (value) => {
     // Filter the hotel data by hotelID
@@ -137,8 +150,8 @@ const BookingInfo = () => {
             checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
             checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
             bookedBy: values.bookedBy,
-            adults:values?.adults,
-            children:values?.children,
+            adults: values?.adults,
+            children: values?.children,
             paymentDetails: {
               totalBill: values.totalBill,
               advancePayment: values.advancePayment,
@@ -224,12 +237,11 @@ const BookingInfo = () => {
       bookedBy: userInfo ? userInfo?.username : "",
       bookedByID: userInfo ? userInfo?.loginID : "",
       reference: "",
-      adults:0,
-      children:0,
+      adults: 0,
+      children: 0,
     },
 
     onSubmit: async (values, { resetForm }) => {
-
       try {
         setLoading(true);
         updateRoomBookingStatus(values);
@@ -256,11 +268,26 @@ const BookingInfo = () => {
       setLoading(false);
     }
   };
+  const fetchBookingsReportByBookingNo = async (bookingNo) => {
+    setLoading(true);
+    try {
+      const response = await coreAxios.get(`bookings/bookingNo/${'FTB-01'}`);
+      if (response.status === 200) {
+        setReportData(response?.data);
+
+      }
+    } catch (error) {
+      message.error("Failed to fetch bookings report.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchHotelInfo();
     fetchBookings();
     fetchRoomCategories();
+
   }, []);
 
   const handleHotelInfo = (value) => {
@@ -321,63 +348,86 @@ const BookingInfo = () => {
     }
   };
 
-  const columns = [
-    {
-      title: "Booking No.",
-      dataIndex: "bookingNo",
-      key: "bookingNo",
-      render: (text) => (
-        <Tooltip title="Click to copy">
-          <CopyToClipboard text={text} onCopy={() => message.success("Copied!")}>
-            <span style={{ cursor: "pointer", color: "#1890ff" }}>{text}</span>
-          </CopyToClipboard>
-        </Tooltip>
-      ),
-    },
-    {
-      title: "Guest Name",
-      dataIndex: "fullName",
-      key: "fullName",
-    },
-    {
-      title: "Flat Type",
-      dataIndex: "roomCategoryName",
-      key: "roomCategoryName",
-    },
-    {
-      title: "Flat No/Unit",
-      dataIndex: "roomNumberName",
-      key: "roomNumberName",
-    },
-    {
-      title: "Check In",
-      dataIndex: "checkInDate",
-      key: "checkInDate",
-      render: (text) => moment(text).format("D MMM YYYY"), // Format Check In date
-    },
-    {
-      title: "Check Out",
-      dataIndex: "checkOutDate",
-      key: "checkOutDate",
-      render: (text) => moment(text).format("D MMM YYYY"), // Format Check Out date
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => (
-        <span>
-          <Button onClick={() => handleEdit(record)}>Edit</Button>
-          <Popconfirm
-            title="Are you sure to delete this booking?"
-            onConfirm={() => handleDelete(record._id)}>
-            <Button type="link" danger>
-              Delete
-            </Button>
-          </Popconfirm>
-        </span>
-      ),
-    },
-  ];
+  // const columns = [
+  //   {
+  //     title: "Booking No.",
+  //     dataIndex: "bookingNo",
+  //     key: "bookingNo",
+  //     render: (text, record) => (
+  //       <span style={{ display: "flex", alignItems: "center" }}>
+  //         <Link href={`/dashboard/${record.bookingNo}`} passHref>
+  //           <p style={{ color: "#1890ff", cursor: "pointer", marginRight: 8 }}>
+  //             {text}
+  //           </p>
+  //         </Link>
+  
+  //         <Tooltip title="Click to copy">
+  //           <CopyToClipboard text={text} onCopy={() => message.success("Copied!")}>
+  //             <CopyOutlined style={{ cursor: "pointer", color: "#1890ff" }} />
+  //           </CopyToClipboard>
+  //         </Tooltip>
+  //       </span>
+  //     ),
+  //   },
+  //   {
+  //     title: "Booked By",
+  //     dataIndex: "bookedBy",
+  //     key: "bookedBy",
+  //   },
+  //   {
+  //     title: "Guest Name",
+  //     dataIndex: "fullName",
+  //     key: "fullName",
+  //   },
+  //   {
+  //     title: "Flat Type",
+  //     dataIndex: "roomCategoryName",
+  //     key: "roomCategoryName",
+  //   },
+  //   {
+  //     title: "Flat No/Unit",
+  //     dataIndex: "roomNumberName",
+  //     key: "roomNumberName",
+  //   },
+  //   {
+  //     title: "Check In",
+  //     dataIndex: "checkInDate",
+  //     key: "checkInDate",
+  //     render: (text) => moment(text).format("D MMM YYYY"),
+  //   },
+  //   {
+  //     title: "Check Out",
+  //     dataIndex: "checkOutDate",
+  //     key: "checkOutDate",
+  //     render: (text) => moment(text).format("D MMM YYYY"),
+  //   },
+  //   {
+  //     title: "Nights",
+  //     dataIndex: "nights",
+  //     key: "nights",
+  //   },
+  //   {
+  //     title: "Total",
+  //     dataIndex: "totalBill",
+  //     key: "totalBill",
+  //   },
+  //   {
+  //     title: "Actions",
+  //     key: "actions",
+  //     render: (_, record) => (
+  //       <span>
+  //         <Button onClick={() => handleEdit(record)}>Edit</Button>
+  //         <Popconfirm
+  //           title="Are you sure to delete this booking?"
+  //           onConfirm={() => handleDelete(record._id)}>
+  //           <Button type="link" danger>
+  //             Delete
+  //           </Button>
+  //         </Popconfirm>
+  //       </span>
+  //     ),
+  //   },
+  // ];
 
   const handlePriceChange = (e) => {
     const { name, value } = e.target;
@@ -482,25 +532,107 @@ const BookingInfo = () => {
         />
       </div>
 
-      <Spin spinning={loading}>
-        <Table
-          columns={columns}
-          dataSource={paginatedRooms}
-          pagination={false} // Disable default pagination
-          rowKey="_id"
-          onChange={handleTableChange}
-        />
-        {/* Custom Pagination */}
-        <Pagination
-          current={pagination.current}
-          pageSize={pagination.pageSize}
-          total={filteredBookings.length}
-          onChange={(page, pageSize) =>
-            setPagination({ current: page, pageSize })
-          }
-          className="mt-4"
-        />
-      </Spin>
+       
+    <div className="relative overflow-x-auto shadow-md">
+  <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+    {/* Table Header */}
+    <thead className="text-sm text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+      <tr>
+        <th className="border border-tableBorder text-center p-2">Booking No.</th>
+        <th className="border border-tableBorder text-center p-2">Booked By</th>
+        <th className="border border-tableBorder text-center p-2">Guest Name</th>
+        <th className="border border-tableBorder text-center p-2">Flat Type</th>
+        <th className="border border-tableBorder text-center p-2">Flat No/Unit</th>
+        <th className="border border-tableBorder text-center p-2">Check In</th>
+        <th className="border border-tableBorder text-center p-2">Check Out</th>
+        <th className="border border-tableBorder text-center p-2">Nights</th>
+        <th className="border border-tableBorder text-center p-2">Total</th>
+        <th className="border border-tableBorder text-center p-2">Actions</th>
+      </tr>
+    </thead>
+
+    {/* Table Body */}
+    <tbody>
+      {bookings?.map((booking) => (
+        <tr key={booking.bookingNo} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+          {/* Booking No with Link and Copy Feature */}
+          <td className="border border-tableBorder text-center p-2">
+            <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Link href={`/dashboard/${booking.bookingNo}`} passHref>
+                <p style={{ color: "#1890ff", cursor: "pointer", marginRight: 8 }}>
+                  {booking.bookingNo}
+                </p>
+              </Link>
+              <Tooltip title="Click to copy">
+                <CopyToClipboard text={booking.bookingNo} onCopy={() => message.success("Copied!")}>
+                  <CopyOutlined style={{ cursor: "pointer", color: "#1890ff" }} />
+                </CopyToClipboard>
+              </Tooltip>
+            </span>
+          </td>
+
+          {/* Booked By */}
+          <td className="border border-tableBorder text-center p-2">{booking.bookedBy}</td>
+
+          {/* Guest Name */}
+          <td className="border border-tableBorder text-center p-2">{booking.fullName}</td>
+
+          {/* Flat Type */}
+          <td className="border border-tableBorder text-center p-2">{booking.roomCategoryName}</td>
+
+          {/* Flat No/Unit */}
+          <td className="border border-tableBorder text-center p-2">{booking.roomNumberName}</td>
+
+          {/* Check In */}
+          <td className="border border-tableBorder text-center p-2">
+            {moment(booking.checkInDate).format("D MMM YYYY")}
+          </td>
+
+          {/* Check Out */}
+          <td className="border border-tableBorder text-center p-2">
+            {moment(booking.checkOutDate).format("D MMM YYYY")}
+          </td>
+
+          {/* Nights */}
+          <td className="border border-tableBorder text-center p-2">{booking.nights}</td>
+
+          {/* Total Bill */}
+          <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
+            {booking.totalBill}
+          </td>
+
+          {/* Actions */}
+          <td className="border border-tableBorder text-center p-2">
+
+             <div className='flex'> <Button onClick={() => handleEdit(booking)}>Edit</Button>
+              <Popconfirm
+                title="Are you sure to delete this booking?"
+                onConfirm={() => handleDelete(booking._id)}>
+                <Button type="link" danger>
+                  Delete
+                </Button>
+              </Popconfirm></div>
+
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  {/* Pagination (commented out) */}
+  {/* 
+  <div className="flex justify-center p-2">
+    <Pagination
+      showQuickJumper
+      current={currentPage}
+      total={filteredBookings?.length}
+      pageSize={itemsPerPage}
+      onChange={onChange}
+    />
+  </div> 
+  */}
+</div>
+
 
       <Modal
         title={isEditing ? "Edit Booking" : "Create Booking"}
@@ -635,10 +767,10 @@ const BookingInfo = () => {
             </div>
             <div style={{ flex: 1 }}>
               <Form.Item label="Room Price" className="mb-2">
-                <Input
+              <Input
                   name="roomPrice"
                   value={formik.values.roomPrice}
-                  onChange={handlePriceChange}
+                  onChange={formik.handleChange}
                   required={true}
                 />
               </Form.Item>
@@ -673,25 +805,21 @@ const BookingInfo = () => {
           <div style={{ display: "flex", gap: "16px" }}>
             <div style={{ flex: 1 }}>
               <Form.Item label="Number of Adults" className="mb-2">
-                <Input
-                  type="number"
+              <Input
                   name="adults"
-                  required={true}
                   value={formik.values.adults}
-                  onChange={(e) => {
-                    formik.handleChange(e);
-                    handleNightsChange(e);
-                  }}
+                  onChange={formik.handleChange}
+                  required={true}
                 />
               </Form.Item>
             </div>
             <div style={{ flex: 1 }}>
               <Form.Item label="Numbers of Children" className="mb-2">
-                <Input
-                  type="number"
-                  required={true}
+              <Input
                   name="children"
                   value={formik.values.children}
+                  onChange={formik.handleChange}
+                  required={true}
                 />
               </Form.Item>
             </div>
@@ -705,17 +833,18 @@ const BookingInfo = () => {
                   value={formik.values.nights}
                   onChange={(e) => {
                     formik.handleChange(e);
-                    handleNightsChange(e);
+                    // handleNightsChange(e);
                   }}
                 />
               </Form.Item>
             </div>
             <div style={{ flex: 1 }}>
               <Form.Item label="Total Bill" className="mb-2">
-                <Input
-                  required={true}
+              <Input
                   name="totalBill"
                   value={formik.values.totalBill}
+                  onChange={formik.handleChange}
+                  required={true}
                 />
               </Form.Item>
             </div>

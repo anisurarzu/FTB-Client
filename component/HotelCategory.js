@@ -118,12 +118,12 @@ const HotelCategory = () => {
 
   const columns = [
     {
-      title: "Category Name",
+      title: "Flat/Room Type",
       dataIndex: "name",
       key: "name",
     },
     {
-      title: "Category Description",
+      title: "Description",
       dataIndex: "description",
       key: "description",
     },
@@ -187,7 +187,7 @@ const HotelCategory = () => {
     <div>
       {/* Global Search */}
       <Input
-        placeholder="Search by Category Name or Description"
+        placeholder="Search by Flat/Room Name or Description"
         value={searchText}
         onChange={handleSearch}
         style={{ marginBottom: 16, width: 300 }}
@@ -201,7 +201,7 @@ const HotelCategory = () => {
           setIsEditing(false);
         }}
         className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
-        Add New Category
+        Add New Falt/Room Type
       </Button>
 
       <Spin spinning={loading}>
@@ -228,14 +228,14 @@ const HotelCategory = () => {
         onCancel={() => setVisible(false)}
         footer={null}>
         <Form onFinish={formik.handleSubmit} layout="vertical">
-          <Form.Item label="Category Name">
+          <Form.Item label="Flat/Room Type">
             <Input
               name="name"
               value={formik.values.name}
               onChange={formik.handleChange}
             />
           </Form.Item>
-          <Form.Item label="Category Description">
+          <Form.Item label="Description">
             <Input.TextArea
               name="description"
               value={formik.values.description}
