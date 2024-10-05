@@ -11,6 +11,7 @@ import {
   Form,
   Input,
   DatePicker,
+  Tooltip,
   Select,
   Row,
   Col,
@@ -19,7 +20,8 @@ import {
 import { useFormik } from "formik";
 import axios from "axios";
 import dayjs from "dayjs";
-
+import moment from "moment";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 import { v4 as uuidv4 } from "uuid";
 import coreAxios from "@/utils/axiosInstance";
 
@@ -74,7 +76,7 @@ const BookingInfo = () => {
   };
 
   const fetchRoomNumbers = async (value) => {
-    const room = roomCategories.find((room) => room.id === value);
+    const room = roomCategories.find((room) => room._id === value);
 
     // console.log("---------2", room);
     // Check if hotel is found and has roomCategories
@@ -135,6 +137,8 @@ const BookingInfo = () => {
             checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
             checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
             bookedBy: values.bookedBy,
+            adults:values?.adults,
+            children:values?.children,
             paymentDetails: {
               totalBill: values.totalBill,
               advancePayment: values.advancePayment,
@@ -220,10 +224,12 @@ const BookingInfo = () => {
       bookedBy: userInfo ? userInfo?.username : "",
       bookedByID: userInfo ? userInfo?.loginID : "",
       reference: "",
+      adults:0,
+      children:0,
     },
 
     onSubmit: async (values, { resetForm }) => {
-      console.log("values", values);
+
       try {
         setLoading(true);
         updateRoomBookingStatus(values);
@@ -258,6 +264,7 @@ const BookingInfo = () => {
   }, []);
 
   const handleHotelInfo = (value) => {
+    console.log("hotel_value", value);
     // Find the selected hotel based on the value
     const selectedHotel = hotelInfo.find((hotel) => hotel.hotelID === value);
 
@@ -275,9 +282,10 @@ const BookingInfo = () => {
   };
 
   const handleRoomCategoryChange = (value) => {
+    console.log("cat_value", value);
     // Find the selected category based on the value
     const selectedCategory = roomCategories.find(
-      (category) => category.id === value
+      (category) => category._id === value
     );
 
     // Update formik values
@@ -292,8 +300,8 @@ const BookingInfo = () => {
   };
 
   const handleEdit = (record) => {
-    setEditingKey(record?._id);
-    formik.setValues(record);
+    // setEditingKey(record?._id);
+    // formik.setValues(record);
     setVisible(true);
     setIsEditing(true);
   };
@@ -315,6 +323,18 @@ const BookingInfo = () => {
 
   const columns = [
     {
+      title: "Booking No.",
+      dataIndex: "bookingNo",
+      key: "bookingNo",
+      render: (text) => (
+        <Tooltip title="Click to copy">
+          <CopyToClipboard text={text} onCopy={() => message.success("Copied!")}>
+            <span style={{ cursor: "pointer", color: "#1890ff" }}>{text}</span>
+          </CopyToClipboard>
+        </Tooltip>
+      ),
+    },
+    {
       title: "Guest Name",
       dataIndex: "fullName",
       key: "fullName",
@@ -333,11 +353,13 @@ const BookingInfo = () => {
       title: "Check In",
       dataIndex: "checkInDate",
       key: "checkInDate",
+      render: (text) => moment(text).format("D MMM YYYY"), // Format Check In date
     },
     {
       title: "Check Out",
       dataIndex: "checkOutDate",
       key: "checkOutDate",
+      render: (text) => moment(text).format("D MMM YYYY"), // Format Check Out date
     },
     {
       title: "Actions",
@@ -486,60 +508,78 @@ const BookingInfo = () => {
         onCancel={() => setVisible(false)}
         footer={null}>
         <Form onFinish={formik.handleSubmit} layout="vertical">
-          <Row gutter={16}>
-            <Col span={12}>
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
+              <Form.Item label="Prev Booking No." className="mb-2">
+                <Input
+                  name="reference"
+                  value={formik.values.reference}
+                  onChange={(e) => {
+                    formik.handleChange(e);
+                  }}
+                />
+              </Form.Item>
+            </div>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Full Name" className="mb-2">
                 <Input
                   name="fullName"
                   value={formik.values.fullName}
-                  onChange={(e) => {
-                    formik.handleChange(e);
-                    // fetchGuestInfo(e.target.value);
-                  }}
+                  onChange={formik.handleChange}
+                  required={true}
                 />
               </Form.Item>
-            </Col>
-            <Col span={12}>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
               <Form.Item label="NID/Passport" className="mb-2">
                 <Input
                   name="nidPassport"
                   value={formik.values.nidPassport}
                   onChange={formik.handleChange}
+                  required={true}
                 />
               </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
+            </div>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Address" className="mb-2">
                 <Input
                   name="address"
                   value={formik.values.address}
                   onChange={formik.handleChange}
+                  required={true}
                 />
               </Form.Item>
-            </Col>
-            <Col span={12}>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Phone Number" className="mb-2">
                 <Input
                   name="phone"
                   value={formik.values.phone}
                   onChange={formik.handleChange}
+                  required={true}
                 />
               </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
+            </div>
+            <div style={{ flex: 1 }}>
               <Form.Item label="E-mail" className="mb-2">
                 <Input
                   name="email"
                   value={formik.values.email}
                   onChange={formik.handleChange}
+                  required={false}
                 />
               </Form.Item>
-            </Col>
-            <Col span={12}>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Hotel Name" className="mb-2">
                 <Select
                   name="hotelName"
@@ -552,84 +592,116 @@ const BookingInfo = () => {
                   ))}
                 </Select>
               </Form.Item>
-            </Col>
-            <Col span={12}>
+            </div>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Room Categories" className="mb-2">
                 <Select
                   name="roomCategoryID"
                   value={formik.values.roomCategoryName}
                   onChange={handleRoomCategoryChange}>
                   {roomCategories.map((category) => (
-                    <Select.Option key={category.id} value={category.id}>
+                    <Select.Option key={category._id} value={category._id}>
                       {category.name}
                     </Select.Option>
                   ))}
                 </Select>
               </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Room Number" className="mb-2">
                 <Select
                   name="roomNumberID"
                   value={formik.values.roomNumberID}
                   onChange={(value) => {
                     const selectedRoom = roomNumbers.find(
-                      (room) => room.id === value
+                      (room) => room._id === value
                     );
                     formik.setFieldValue("roomNumberID", value);
                     formik.setFieldValue(
                       "roomNumberName",
                       selectedRoom ? selectedRoom.name : ""
-                    ); // Update room name
+                    );
                   }}>
                   {roomNumbers.map((room) => (
-                    <Select.Option key={room.id} value={room.id}>
+                    <Select.Option key={room._id} value={room._id}>
                       {room.name}
                     </Select.Option>
                   ))}
                 </Select>
               </Form.Item>
-            </Col>
-
-            <Col span={12}>
+            </div>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Room Price" className="mb-2">
                 <Input
                   name="roomPrice"
                   value={formik.values.roomPrice}
-                  onChange={handlePriceChange} // Call handlePriceChange on price change
+                  onChange={handlePriceChange}
+                  required={true}
                 />
               </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Check In Date" className="mb-2">
                 <DatePicker
                   name="checkInDate"
                   value={formik.values.checkInDate}
+                  required={true}
                   onChange={(date) => formik.setFieldValue("checkInDate", date)}
                 />
               </Form.Item>
-            </Col>
-            <Col span={12}>
+            </div>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Check Out Date" className="mb-2">
                 <DatePicker
                   name="checkOutDate"
+                  required={true}
                   value={formik.values.checkOutDate}
                   onChange={(date) =>
                     formik.setFieldValue("checkOutDate", date)
                   }
                 />
               </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
+              <Form.Item label="Number of Adults" className="mb-2">
+                <Input
+                  type="number"
+                  name="adults"
+                  required={true}
+                  value={formik.values.adults}
+                  onChange={(e) => {
+                    formik.handleChange(e);
+                    handleNightsChange(e);
+                  }}
+                />
+              </Form.Item>
+            </div>
+            <div style={{ flex: 1 }}>
+              <Form.Item label="Numbers of Children" className="mb-2">
+                <Input
+                  type="number"
+                  required={true}
+                  name="children"
+                  value={formik.values.children}
+                />
+              </Form.Item>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Number of Nights" className="mb-2">
                 <Input
                   name="nights"
+                  required={true}
                   value={formik.values.nights}
                   onChange={(e) => {
                     formik.handleChange(e);
@@ -637,40 +709,45 @@ const BookingInfo = () => {
                   }}
                 />
               </Form.Item>
-            </Col>
-            <Col span={12}>
+            </div>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Total Bill" className="mb-2">
                 <Input
+                  required={true}
                   name="totalBill"
                   value={formik.values.totalBill}
-                  disabled // Calculate this based on room price and nights
                 />
               </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Advance Payment" className="mb-2">
                 <Input
                   name="advancePayment"
+                  required={true}
                   value={formik.values.advancePayment}
-                  onChange={handleAdvancePaymentChange} // Calculate duePayment when advance payment changes
+                  onChange={handleAdvancePaymentChange}
                 />
               </Form.Item>
-            </Col>
-            <Col span={12}>
+            </div>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Due Payment" className="mb-2">
                 <Input
                   name="duePayment"
-                  disabled
                   value={formik.values.duePayment}
-                  readOnly // Make this field read-only since it's calculated automatically
+                  readOnly
                 />
               </Form.Item>
-            </Col>
-            <Col span={12}>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
               <Form.Item label="Payment Method" className="mb-2">
                 <Select
+                  required={true}
                   name="paymentMethod"
                   value={formik.values.paymentMethod}
                   onChange={(value) =>
@@ -681,30 +758,31 @@ const BookingInfo = () => {
                   <Select.Option value="BANK">BANK</Select.Option>
                 </Select>
               </Form.Item>
-            </Col>
-          </Row>
-          <Form.Item label="Transaction ID" className="mb-2">
-            <Input
-              name="transactionId"
-              value={formik.values.transactionId}
-              onChange={formik.handleChange}
-            />
-          </Form.Item>
-          <Form.Item label="Note" className="mb-2">
-            <Input
-              name="note"
-              value={formik.values.note}
-              onChange={formik.handleChange}
-            />
-          </Form.Item>
+            </div>
+            <div style={{ flex: 1 }}>
+              <Form.Item label="Transaction ID" className="mb-2">
+                <Input
+                  required={true}
+                  name="transactionId"
+                  value={formik.values.transactionId}
+                  onChange={formik.handleChange}
+                />
+              </Form.Item>
+            </div>
+          </div>
 
-          <Form.Item label="Reference" className="mb-2">
-            <Input
-              name="reference"
-              value={formik.values.reference}
-              onChange={formik.handleChange}
-            />
-          </Form.Item>
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
+              <Form.Item label="Note" className="mb-2">
+                <Input
+                  name="note"
+                  value={formik.values.note}
+                  onChange={formik.handleChange}
+                />
+              </Form.Item>
+            </div>
+          </div>
+
           <Button
             type="primary"
             htmlType="submit"
