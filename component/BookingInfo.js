@@ -16,10 +16,12 @@ import {
   Row,
   Col,
   Pagination,
+  Alert,
 } from "antd";
 import { useFormik } from "formik";
 import axios from "axios";
 import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
 import moment from "moment";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { v4 as uuidv4 } from "uuid";
@@ -38,7 +40,7 @@ const BookingInfo = () => {
   const [roomNumbers, setRoomNumbers] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [reportData,setReportData]=useState([])
+  const [reportData, setReportData] = useState([]);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -51,26 +53,25 @@ const BookingInfo = () => {
       if (Array.isArray(response.data)) {
         setRoomCategories(response.data);
       } else {
-        setRoomCategories([]);  // or handle appropriately
+        setRoomCategories([]); // or handle appropriately
       }
     } catch (error) {
       message.error("Failed to fetch room categories.");
     }
   };
-  
+
   const fetchHotelInfo = async () => {
     try {
       const response = await coreAxios.get("hotel");
       if (Array.isArray(response.data)) {
         setHotelInfo(response.data);
       } else {
-        setHotelInfo([]);  // or handle appropriately
+        setHotelInfo([]); // or handle appropriately
       }
     } catch (error) {
       message.error("Failed to fetch hotel information.");
     }
   };
-  
 
   const fetchHotelCategories = async (value) => {
     // Filter the hotel data by hotelID
@@ -88,18 +89,50 @@ const BookingInfo = () => {
     }
   };
 
+  // Function to check if two date ranges overlap
+  // Function to check if two date ranges overlap
+  const areDatesOverlapping = (checkInDate, checkOutDate, bookedDates) => {
+    return bookedDates.some((bookedDate) => {
+      const booked = dayjs(bookedDate);
+      const checkIn = dayjs(checkInDate);
+      const checkOut = dayjs(checkOutDate);
+
+      // Check if the booked date is within the range [checkInDate, checkOutDate]
+      return (
+        (booked.isAfter(checkIn, "day") && booked.isBefore(checkOut, "day")) ||
+        booked.isSame(checkIn, "day") ||
+        booked.isSame(checkOut, "day")
+      );
+    });
+  };
+
   const fetchRoomNumbers = async (value) => {
     const room = roomCategories.find((room) => room._id === value);
 
-    // console.log("---------2", room);
-    // Check if hotel is found and has roomCategories
     if (room && room.roomNumbers) {
-      // Set the roomCategories to the state
-      setRoomNumbers(room.roomNumbers);
+      const availableRooms = room.roomNumbers.filter((roomNumber) => {
+        // Check if the room has any bookedDates
+        if (roomNumber.bookedDates.length > 0) {
+          // If bookedDates exist, check for overlapping dates
+          const isOverlapping = areDatesOverlapping(
+            formik.values.checkInDate,
+            formik.values.checkOutDate,
+            roomNumber.bookedDates
+          );
+
+          // If there's an overlap, exclude the room from available rooms
+          return !isOverlapping;
+        }
+
+        // If no bookedDates exist, the room is available
+        return true;
+      });
+
+      // Set the filtered available rooms to state
+      setRoomNumbers(availableRooms);
     } else {
-      // Handle the case where the hotel is not found or no roomCategories exist
-      // console.log("Room not found or no room numbers available.");
-      setRoomCategories([]);
+      // Handle the case where the room or room numbers are not available
+      setRoomNumbers([]);
     }
   };
 
@@ -244,7 +277,7 @@ const BookingInfo = () => {
     onSubmit: async (values, { resetForm }) => {
       try {
         setLoading(true);
-        updateRoomBookingStatus(values);
+        await updateRoomBookingStatus(values);
         resetForm();
       } catch (error) {
         message.error("Failed to add/update booking.");
@@ -271,10 +304,9 @@ const BookingInfo = () => {
   const fetchBookingsReportByBookingNo = async (bookingNo) => {
     setLoading(true);
     try {
-      const response = await coreAxios.get(`bookings/bookingNo/${'FTB-01'}`);
+      const response = await coreAxios.get(`bookings/bookingNo/${"FTB-01"}`);
       if (response.status === 200) {
         setReportData(response?.data);
-
       }
     } catch (error) {
       message.error("Failed to fetch bookings report.");
@@ -287,7 +319,6 @@ const BookingInfo = () => {
     fetchHotelInfo();
     fetchBookings();
     fetchRoomCategories();
-
   }, []);
 
   const handleHotelInfo = (value) => {
@@ -327,13 +358,69 @@ const BookingInfo = () => {
   };
 
   const handleEdit = (record) => {
-    // setEditingKey(record?._id);
+    console.log("editeddata", record);
+    setEditingKey(record?._id);
     // formik.setValues(record);
+
+    const checkInDate = dayjs(record.checkInDate);
+    const checkOutDate = dayjs(record.checkOutDate);
+    if (record) {
+      formik.setValues({
+        ...formik.values,
+        fullName: record.fullName,
+        nidPassport: record.nidPassport,
+        address: record.address,
+        phone: record.phone,
+        email: record.email,
+        hotelName: record.hotelName,
+        roomCategoryName: record.roomCategoryName,
+        roomNumberID: record.roomNumberID,
+        roomNumberName: record?.roomNumberName,
+        roomPrice: record.roomPrice,
+        checkInDate: checkInDate,
+        checkOutDate: checkOutDate,
+        adults: record.adults,
+        children: record.children,
+        nights: record.nights,
+        totalBill: record.totalBill,
+        advancePayment: record.advancePayment,
+        duePayment: record.duePayment,
+        paymentMethod: record.paymentMethod,
+        transactionId: record.transactionId,
+        note: record.note,
+      });
+    }
     setVisible(true);
     setIsEditing(true);
   };
 
-  const handleDelete = async (key) => {
+  const handleDelete = async (value) => {
+    console.log("value", value);
+    setLoading(true);
+    try {
+      // Now, proceed to delete the booking using the delete API
+      const deleteResponse = await coreAxios.delete("/api/bookings/delete", {
+        data: {
+          hotelID: value?.hotelID,
+          categoryName: value?.roomCategoryName,
+          roomName: value?.roomNumberName,
+          bookingID: value?.bookingID,
+        },
+      });
+
+      if (deleteResponse.status === 200) {
+        // message.success("Booking deleted successfully!");
+        handleDelete2(value?._id);
+        // fetchBookings(); // Refresh the bookings list after deletion
+      }
+    } catch (error) {
+      message.error("Failed to delete booking.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete2 = async (key) => {
     setLoading(true);
     try {
       const res = await coreAxios.delete(`booking/${key}`);
@@ -347,87 +434,6 @@ const BookingInfo = () => {
       setLoading(false);
     }
   };
-
-  // const columns = [
-  //   {
-  //     title: "Booking No.",
-  //     dataIndex: "bookingNo",
-  //     key: "bookingNo",
-  //     render: (text, record) => (
-  //       <span style={{ display: "flex", alignItems: "center" }}>
-  //         <Link href={`/dashboard/${record.bookingNo}`} passHref>
-  //           <p style={{ color: "#1890ff", cursor: "pointer", marginRight: 8 }}>
-  //             {text}
-  //           </p>
-  //         </Link>
-  
-  //         <Tooltip title="Click to copy">
-  //           <CopyToClipboard text={text} onCopy={() => message.success("Copied!")}>
-  //             <CopyOutlined style={{ cursor: "pointer", color: "#1890ff" }} />
-  //           </CopyToClipboard>
-  //         </Tooltip>
-  //       </span>
-  //     ),
-  //   },
-  //   {
-  //     title: "Booked By",
-  //     dataIndex: "bookedBy",
-  //     key: "bookedBy",
-  //   },
-  //   {
-  //     title: "Guest Name",
-  //     dataIndex: "fullName",
-  //     key: "fullName",
-  //   },
-  //   {
-  //     title: "Flat Type",
-  //     dataIndex: "roomCategoryName",
-  //     key: "roomCategoryName",
-  //   },
-  //   {
-  //     title: "Flat No/Unit",
-  //     dataIndex: "roomNumberName",
-  //     key: "roomNumberName",
-  //   },
-  //   {
-  //     title: "Check In",
-  //     dataIndex: "checkInDate",
-  //     key: "checkInDate",
-  //     render: (text) => moment(text).format("D MMM YYYY"),
-  //   },
-  //   {
-  //     title: "Check Out",
-  //     dataIndex: "checkOutDate",
-  //     key: "checkOutDate",
-  //     render: (text) => moment(text).format("D MMM YYYY"),
-  //   },
-  //   {
-  //     title: "Nights",
-  //     dataIndex: "nights",
-  //     key: "nights",
-  //   },
-  //   {
-  //     title: "Total",
-  //     dataIndex: "totalBill",
-  //     key: "totalBill",
-  //   },
-  //   {
-  //     title: "Actions",
-  //     key: "actions",
-  //     render: (_, record) => (
-  //       <span>
-  //         <Button onClick={() => handleEdit(record)}>Edit</Button>
-  //         <Popconfirm
-  //           title="Are you sure to delete this booking?"
-  //           onConfirm={() => handleDelete(record._id)}>
-  //           <Button type="link" danger>
-  //             Delete
-  //           </Button>
-  //         </Popconfirm>
-  //       </span>
-  //     ),
-  //   },
-  // ];
 
   const handlePriceChange = (e) => {
     const { name, value } = e.target;
@@ -505,422 +511,528 @@ const BookingInfo = () => {
   };
 
   // Paginate the filtered data
-  const paginatedRooms = filteredBookings.slice(
+  const paginatedBookings = filteredBookings.slice(
     (pagination.current - 1) * pagination.pageSize,
     pagination.current * pagination.pageSize
   );
 
+  const fetchBookingDetails = async (bookingNo) => {
+    try {
+      const response = await coreAxios.get(`/bookings/bookingNo/${bookingNo}`);
+      return response.data;
+    } catch (error) {
+      message.error(
+        "Failed to fetch booking details. Please check the booking number."
+      );
+      return null;
+    }
+  };
+
+  const handleBlur = async (e) => {
+    const { value } = e.target;
+    if (value) {
+      const bookings = await fetchBookingDetails(value);
+      const bookingDetails = bookings[0];
+
+      const checkInDate = dayjs(bookingDetails.checkInDate);
+      const checkOutDate = dayjs(bookingDetails.checkOutDate);
+      if (bookingDetails) {
+        formik.setValues({
+          ...formik.values,
+          fullName: bookingDetails.fullName,
+          nidPassport: bookingDetails.nidPassport,
+          address: bookingDetails.address,
+          phone: bookingDetails.phone,
+          email: bookingDetails.email,
+          // hotelName: bookingDetails.hotelName,
+          // roomCategoryName: bookingDetails.roomCategoryID,
+          // roomNumberID: bookingDetails.roomNumberID,
+          // roomPrice: bookingDetails.roomPrice,
+          // checkInDate: checkInDate,
+          // checkOutDate: checkOutDate,
+          // adults: bookingDetails.adults,
+          // children: bookingDetails.children,
+          // nights: bookingDetails.nights,
+          // totalBill: bookingDetails.totalBill,
+          // advancePayment: bookingDetails.advancePayment,
+          // duePayment: bookingDetails.duePayment,
+          // paymentMethod: bookingDetails.paymentMethod,
+          // transactionId: bookingDetails.transactionId,
+          // note: bookingDetails.note,
+        });
+        message.success("Booking details loaded successfully!");
+      }
+    }
+  };
+
   return (
-    <div className="">
-      <div className="flex justify-between">
-        <Button
-          type="primary"
-          onClick={() => {
-            formik.resetForm();
-            setVisible(true);
-            setIsEditing(false);
-          }}
-          className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
-          Add New Booking
-        </Button>
-        {/* Global Search Input */}
-        <Input
-          placeholder="Search bookings..."
-          value={searchText}
-          onChange={handleSearch}
-          style={{ width: 300, marginBottom: 20 }}
-        />
-      </div>
+    <div>
+      {loading ? (
+        <Spin tip="Loading...">
+          <Alert
+            message="Alert message title"
+            description="Further details about the context of this alert."
+            type="info"
+          />
+        </Spin>
+      ) : (
+        <div className="">
+          <div className="flex justify-between">
+            <Button
+              type="primary"
+              onClick={() => {
+                formik.resetForm();
+                setVisible(true);
+                setIsEditing(false);
+              }}
+              className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
+              Add New Booking
+            </Button>
+            {/* Global Search Input */}
+            <Input
+              placeholder="Search bookings..."
+              value={searchText}
+              onChange={handleSearch}
+              style={{ width: 300, marginBottom: 20 }}
+            />
+          </div>
 
-       
-    <div className="relative overflow-x-auto shadow-md">
-  <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-    {/* Table Header */}
-    <thead className="text-sm text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-      <tr>
-        <th className="border border-tableBorder text-center p-2">Booking No.</th>
-        <th className="border border-tableBorder text-center p-2">Booked By</th>
-        <th className="border border-tableBorder text-center p-2">Guest Name</th>
-        <th className="border border-tableBorder text-center p-2">Flat Type</th>
-        <th className="border border-tableBorder text-center p-2">Flat No/Unit</th>
-        <th className="border border-tableBorder text-center p-2">Check In</th>
-        <th className="border border-tableBorder text-center p-2">Check Out</th>
-        <th className="border border-tableBorder text-center p-2">Nights</th>
-        <th className="border border-tableBorder text-center p-2">Total</th>
-        <th className="border border-tableBorder text-center p-2">Actions</th>
-      </tr>
-    </thead>
+          <div className="relative overflow-x-auto shadow-md">
+            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+              {/* Table Header */}
+              <thead className="text-sm text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                  <th className="border border-tableBorder text-center p-2">
+                    Booking No.
+                  </th>
+                  <th className="border border-tableBorder text-center p-2">
+                    Booked By
+                  </th>
+                  <th className="border border-tableBorder text-center p-2">
+                    Guest Name
+                  </th>
+                  <th className="border border-tableBorder text-center p-2">
+                    Hotel
+                  </th>
+                  <th className="border border-tableBorder text-center p-2">
+                    Flat Type
+                  </th>
+                  <th className="border border-tableBorder text-center p-2">
+                    Flat No/Unit
+                  </th>
+                  <th className="border border-tableBorder text-center p-2">
+                    Check In
+                  </th>
+                  <th className="border border-tableBorder text-center p-2">
+                    Check Out
+                  </th>
+                  <th className="border border-tableBorder text-center p-2">
+                    Nights
+                  </th>
+                  <th className="border border-tableBorder text-center p-2">
+                    Total
+                  </th>
+                  <th className="border border-tableBorder text-center p-2">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
 
-    {/* Table Body */}
-    <tbody>
-      {bookings?.map((booking) => (
-        <tr key={booking.bookingNo} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-          {/* Booking No with Link and Copy Feature */}
-          <td className="border border-tableBorder text-center p-2">
-            <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Link href={`/dashboard/${booking.bookingNo}`} passHref>
-                <p style={{ color: "#1890ff", cursor: "pointer", marginRight: 8 }}>
-                  {booking.bookingNo}
-                </p>
-              </Link>
-              <Tooltip title="Click to copy">
-                <CopyToClipboard text={booking.bookingNo} onCopy={() => message.success("Copied!")}>
-                  <CopyOutlined style={{ cursor: "pointer", color: "#1890ff" }} />
-                </CopyToClipboard>
-              </Tooltip>
-            </span>
-          </td>
+              {/* Table Body */}
+              <tbody>
+                {filteredBookings?.map((booking) => (
+                  <tr
+                    key={booking.bookingNo}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                    {/* Booking No with Link and Copy Feature */}
+                    <td className="border border-tableBorder text-center p-2">
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}>
+                        <Link href={`/dashboard/${booking.bookingNo}`} passHref>
+                          <p
+                            style={{
+                              color: "#1890ff",
+                              cursor: "pointer",
+                              marginRight: 8,
+                            }}>
+                            {booking.bookingNo}
+                          </p>
+                        </Link>
+                        <Tooltip title="Click to copy">
+                          <CopyToClipboard
+                            text={booking.bookingNo}
+                            onCopy={() => message.success("Copied!")}>
+                            <CopyOutlined
+                              style={{ cursor: "pointer", color: "#1890ff" }}
+                            />
+                          </CopyToClipboard>
+                        </Tooltip>
+                      </span>
+                    </td>
 
-          {/* Booked By */}
-          <td className="border border-tableBorder text-center p-2">{booking.bookedBy}</td>
+                    {/* Booked By */}
+                    <td className="border border-tableBorder text-center p-2">
+                      {booking.bookedBy}
+                    </td>
 
-          {/* Guest Name */}
-          <td className="border border-tableBorder text-center p-2">{booking.fullName}</td>
+                    {/* Guest Name */}
+                    <td className="border border-tableBorder text-center p-2">
+                      {booking.fullName}
+                    </td>
+                    {/* Hotel Name */}
+                    <td className="border border-tableBorder text-center p-2">
+                      {booking.hotelName}
+                    </td>
 
-          {/* Flat Type */}
-          <td className="border border-tableBorder text-center p-2">{booking.roomCategoryName}</td>
+                    {/* Flat Type */}
+                    <td className="border border-tableBorder text-center p-2">
+                      {booking.roomCategoryName}
+                    </td>
 
-          {/* Flat No/Unit */}
-          <td className="border border-tableBorder text-center p-2">{booking.roomNumberName}</td>
+                    {/* Flat No/Unit */}
+                    <td className="border border-tableBorder text-center p-2">
+                      {booking.roomNumberName}
+                    </td>
 
-          {/* Check In */}
-          <td className="border border-tableBorder text-center p-2">
-            {moment(booking.checkInDate).format("D MMM YYYY")}
-          </td>
+                    {/* Check In */}
+                    <td className="border border-tableBorder text-center p-2">
+                      {moment(booking.checkInDate).format("D MMM YYYY")}
+                    </td>
 
-          {/* Check Out */}
-          <td className="border border-tableBorder text-center p-2">
-            {moment(booking.checkOutDate).format("D MMM YYYY")}
-          </td>
+                    {/* Check Out */}
+                    <td className="border border-tableBorder text-center p-2">
+                      {moment(booking.checkOutDate).format("D MMM YYYY")}
+                    </td>
 
-          {/* Nights */}
-          <td className="border border-tableBorder text-center p-2">{booking.nights}</td>
+                    {/* Nights */}
+                    <td className="border border-tableBorder text-center p-2">
+                      {booking.nights}
+                    </td>
 
-          {/* Total Bill */}
-          <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
-            {booking.totalBill}
-          </td>
+                    {/* Total Bill */}
+                    <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
+                      {booking.totalBill}
+                    </td>
 
-          {/* Actions */}
-          <td className="border border-tableBorder text-center p-2">
+                    {/* Actions */}
+                    <td className="border border-tableBorder text-center p-2">
+                      <div className="flex">
+                        {" "}
+                        <Button onClick={() => handleEdit(booking)}>
+                          Edit
+                        </Button>
+                        <Popconfirm
+                          title="Are you sure to delete this booking?"
+                          onConfirm={() => handleDelete(booking)}>
+                          <Button type="link" danger>
+                            Delete
+                          </Button>
+                        </Popconfirm>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-             <div className='flex'> <Button onClick={() => handleEdit(booking)}>Edit</Button>
-              <Popconfirm
-                title="Are you sure to delete this booking?"
-                onConfirm={() => handleDelete(booking._id)}>
-                <Button type="link" danger>
-                  Delete
-                </Button>
-              </Popconfirm></div>
+            {/* Pagination (commented out) */}
 
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-
-  {/* Pagination (commented out) */}
-  {/* 
-  <div className="flex justify-center p-2">
-    <Pagination
-      showQuickJumper
-      current={currentPage}
-      total={filteredBookings?.length}
-      pageSize={itemsPerPage}
-      onChange={onChange}
-    />
-  </div> 
-  */}
-</div>
-
-
-      <Modal
-        title={isEditing ? "Edit Booking" : "Create Booking"}
-        open={visible}
-        onCancel={() => setVisible(false)}
-        footer={null}>
-        <Form onFinish={formik.handleSubmit} layout="vertical">
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Prev Booking No." className="mb-2">
-                <Input
-                  name="reference"
-                  value={formik.values.reference}
-                  onChange={(e) => {
-                    formik.handleChange(e);
-                  }}
-                />
-              </Form.Item>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Full Name" className="mb-2">
-                <Input
-                  name="fullName"
-                  value={formik.values.fullName}
-                  onChange={formik.handleChange}
-                  required={true}
-                />
-              </Form.Item>
+            <div className="flex justify-center p-2">
+              <Pagination
+                current={pagination.current}
+                pageSize={pagination.pageSize}
+                total={filteredBookings?.length}
+                onChange={(page) =>
+                  setPagination({ ...pagination, current: page })
+                }
+                className="mt-4"
+              />
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="NID/Passport" className="mb-2">
-                <Input
-                  name="nidPassport"
-                  value={formik.values.nidPassport}
-                  onChange={formik.handleChange}
-                  required={true}
-                />
-              </Form.Item>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Address" className="mb-2">
-                <Input
-                  name="address"
-                  value={formik.values.address}
-                  onChange={formik.handleChange}
-                  required={true}
-                />
-              </Form.Item>
-            </div>
-          </div>
+          <Modal
+            title={isEditing ? "Edit Booking" : "Create Booking"}
+            open={visible}
+            onCancel={() => setVisible(false)}
+            footer={null}
+            width={800}>
+            <Form onFinish={formik.handleSubmit} layout="vertical">
+              <div style={{ display: "flex", gap: "16px" }}>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Prev Booking No." className="mb-2">
+                    <Input
+                      name="reference"
+                      value={formik.values.reference}
+                      onChange={formik.handleChange}
+                      onBlur={handleBlur} // Call API when the user leaves the input
+                    />
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Full Name" className="mb-2">
+                    <Input
+                      name="fullName"
+                      value={formik.values.fullName}
+                      onChange={formik.handleChange}
+                      required={true}
+                    />
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="NID/Passport" className="mb-2">
+                    <Input
+                      name="nidPassport"
+                      value={formik.values.nidPassport}
+                      onChange={formik.handleChange}
+                      required={true}
+                    />
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Address" className="mb-2">
+                    <Input
+                      name="address"
+                      value={formik.values.address}
+                      onChange={formik.handleChange}
+                      required={true}
+                    />
+                  </Form.Item>
+                </div>
+              </div>
 
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Phone Number" className="mb-2">
-                <Input
-                  name="phone"
-                  value={formik.values.phone}
-                  onChange={formik.handleChange}
-                  required={true}
-                />
-              </Form.Item>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="E-mail" className="mb-2">
-                <Input
-                  name="email"
-                  value={formik.values.email}
-                  onChange={formik.handleChange}
-                  required={false}
-                />
-              </Form.Item>
-            </div>
-          </div>
+              <div style={{ display: "flex", gap: "16px" }}>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Phone Number" className="mb-2">
+                    <Input
+                      name="phone"
+                      value={formik.values.phone}
+                      onChange={formik.handleChange}
+                      required={true}
+                    />
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="E-mail" className="mb-2">
+                    <Input
+                      name="email"
+                      value={formik.values.email}
+                      onChange={formik.handleChange}
+                      required={false}
+                    />
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Check In Date" className="mb-2">
+                    <DatePicker
+                      name="checkInDate"
+                      value={formik.values.checkInDate}
+                      required={true}
+                      onChange={(date) =>
+                        formik.setFieldValue("checkInDate", date)
+                      }
+                    />
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Check Out Date" className="mb-2">
+                    <DatePicker
+                      name="checkOutDate"
+                      required={true}
+                      value={formik.values.checkOutDate}
+                      onChange={(date) =>
+                        formik.setFieldValue("checkOutDate", date)
+                      }
+                    />
+                  </Form.Item>
+                </div>
+              </div>
 
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Hotel Name" className="mb-2">
-                <Select
-                  name="hotelName"
-                  value={formik.values.hotelName}
-                  onChange={handleHotelInfo}>
-                  {hotelInfo.map((hotel) => (
-                    <Select.Option key={hotel.hotelID} value={hotel.hotelID}>
-                      {hotel.hotelName}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Room Categories" className="mb-2">
-                <Select
-                  name="roomCategoryID"
-                  value={formik.values.roomCategoryName}
-                  onChange={handleRoomCategoryChange}>
-                  {roomCategories.map((category) => (
-                    <Select.Option key={category._id} value={category._id}>
-                      {category.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </div>
-          </div>
+              <div style={{ display: "flex", gap: "16px" }}>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Hotel Name" className="mb-2">
+                    <Select
+                      name="hotelName"
+                      value={formik.values.hotelName}
+                      onChange={handleHotelInfo}>
+                      {hotelInfo.map((hotel) => (
+                        <Select.Option
+                          key={hotel.hotelID}
+                          value={hotel.hotelID}>
+                          {hotel.hotelName}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Room Categories" className="mb-2">
+                    <Select
+                      name="roomCategoryID"
+                      value={formik.values.roomCategoryName}
+                      onChange={handleRoomCategoryChange}>
+                      {roomCategories.map((category) => (
+                        <Select.Option key={category._id} value={category._id}>
+                          {category.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Room Number" className="mb-2">
+                    <Select
+                      name="roomNumberID"
+                      value={formik.values.roomNumberID}
+                      onChange={(value) => {
+                        const selectedRoom = roomNumbers.find(
+                          (room) => room._id === value
+                        );
+                        formik.setFieldValue("roomNumberID", value);
+                        formik.setFieldValue(
+                          "roomNumberName",
+                          selectedRoom ? selectedRoom.name : ""
+                        );
+                      }}>
+                      {roomNumbers.map((room) => (
+                        <Select.Option key={room._id} value={room._id}>
+                          {room.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Room Price" className="mb-2">
+                    <Input
+                      name="roomPrice"
+                      value={formik.values.roomPrice}
+                      onChange={formik.handleChange}
+                      required={true}
+                    />
+                  </Form.Item>
+                </div>
+              </div>
 
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Room Number" className="mb-2">
-                <Select
-                  name="roomNumberID"
-                  value={formik.values.roomNumberID}
-                  onChange={(value) => {
-                    const selectedRoom = roomNumbers.find(
-                      (room) => room._id === value
-                    );
-                    formik.setFieldValue("roomNumberID", value);
-                    formik.setFieldValue(
-                      "roomNumberName",
-                      selectedRoom ? selectedRoom.name : ""
-                    );
-                  }}>
-                  {roomNumbers.map((room) => (
-                    <Select.Option key={room._id} value={room._id}>
-                      {room.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Room Price" className="mb-2">
-              <Input
-                  name="roomPrice"
-                  value={formik.values.roomPrice}
-                  onChange={formik.handleChange}
-                  required={true}
-                />
-              </Form.Item>
-            </div>
-          </div>
+              <div style={{ display: "flex", gap: "16px" }}>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Number of Adults" className="mb-2">
+                    <Input
+                      name="adults"
+                      value={formik.values.adults}
+                      onChange={formik.handleChange}
+                      required={true}
+                    />
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Numbers of Children" className="mb-2">
+                    <Input
+                      name="children"
+                      value={formik.values.children}
+                      onChange={formik.handleChange}
+                      required={true}
+                    />
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Number of Nights" className="mb-2">
+                    <Input
+                      name="nights"
+                      required={true}
+                      value={formik.values.nights}
+                      onChange={(e) => {
+                        formik.handleChange(e);
+                        // handleNightsChange(e);
+                      }}
+                    />
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Total Bill" className="mb-2">
+                    <Input
+                      name="totalBill"
+                      value={formik.values.totalBill}
+                      onChange={formik.handleChange}
+                      required={true}
+                    />
+                  </Form.Item>
+                </div>
+              </div>
 
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Check In Date" className="mb-2">
-                <DatePicker
-                  name="checkInDate"
-                  value={formik.values.checkInDate}
-                  required={true}
-                  onChange={(date) => formik.setFieldValue("checkInDate", date)}
-                />
-              </Form.Item>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Check Out Date" className="mb-2">
-                <DatePicker
-                  name="checkOutDate"
-                  required={true}
-                  value={formik.values.checkOutDate}
-                  onChange={(date) =>
-                    formik.setFieldValue("checkOutDate", date)
-                  }
-                />
-              </Form.Item>
-            </div>
-          </div>
+              <div style={{ display: "flex", gap: "16px" }}>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Advance Payment" className="mb-2">
+                    <Input
+                      name="advancePayment"
+                      required={true}
+                      value={formik.values.advancePayment}
+                      onChange={handleAdvancePaymentChange}
+                    />
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Due Payment" className="mb-2">
+                    <Input
+                      name="duePayment"
+                      value={formik.values.duePayment}
+                      readOnly
+                    />
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Payment Method" className="mb-2">
+                    <Select
+                      required={true}
+                      name="paymentMethod"
+                      value={formik.values.paymentMethod}
+                      onChange={(value) =>
+                        formik.setFieldValue("paymentMethod", value)
+                      }>
+                      <Select.Option value="BKASH">BKASH</Select.Option>
+                      <Select.Option value="NAGAD">NAGAD</Select.Option>
+                      <Select.Option value="BANK">BANK</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Transaction ID" className="mb-2">
+                    <Input
+                      required={true}
+                      name="transactionId"
+                      value={formik.values.transactionId}
+                      onChange={formik.handleChange}
+                    />
+                  </Form.Item>
+                </div>
+              </div>
 
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Number of Adults" className="mb-2">
-              <Input
-                  name="adults"
-                  value={formik.values.adults}
-                  onChange={formik.handleChange}
-                  required={true}
-                />
-              </Form.Item>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Numbers of Children" className="mb-2">
-              <Input
-                  name="children"
-                  value={formik.values.children}
-                  onChange={formik.handleChange}
-                  required={true}
-                />
-              </Form.Item>
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Number of Nights" className="mb-2">
-                <Input
-                  name="nights"
-                  required={true}
-                  value={formik.values.nights}
-                  onChange={(e) => {
-                    formik.handleChange(e);
-                    // handleNightsChange(e);
-                  }}
-                />
-              </Form.Item>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Total Bill" className="mb-2">
-              <Input
-                  name="totalBill"
-                  value={formik.values.totalBill}
-                  onChange={formik.handleChange}
-                  required={true}
-                />
-              </Form.Item>
-            </div>
-          </div>
+              <div style={{ display: "flex", gap: "16px" }}>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Note" className="mb-2">
+                    <Input
+                      name="note"
+                      value={formik.values.note}
+                      onChange={formik.handleChange}
+                    />
+                  </Form.Item>
+                </div>
+              </div>
 
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Advance Payment" className="mb-2">
-                <Input
-                  name="advancePayment"
-                  required={true}
-                  value={formik.values.advancePayment}
-                  onChange={handleAdvancePaymentChange}
-                />
-              </Form.Item>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Due Payment" className="mb-2">
-                <Input
-                  name="duePayment"
-                  value={formik.values.duePayment}
-                  readOnly
-                />
-              </Form.Item>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Payment Method" className="mb-2">
-                <Select
-                  required={true}
-                  name="paymentMethod"
-                  value={formik.values.paymentMethod}
-                  onChange={(value) =>
-                    formik.setFieldValue("paymentMethod", value)
-                  }>
-                  <Select.Option value="BKASH">BKASH</Select.Option>
-                  <Select.Option value="NAGAD">NAGAD</Select.Option>
-                  <Select.Option value="BANK">BANK</Select.Option>
-                </Select>
-              </Form.Item>
-            </div>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Transaction ID" className="mb-2">
-                <Input
-                  required={true}
-                  name="transactionId"
-                  value={formik.values.transactionId}
-                  onChange={formik.handleChange}
-                />
-              </Form.Item>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1 }}>
-              <Form.Item label="Note" className="mb-2">
-                <Input
-                  name="note"
-                  value={formik.values.note}
-                  onChange={formik.handleChange}
-                />
-              </Form.Item>
-            </div>
-          </div>
-
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={loading}
-            className="bg-[#8ABF55] hover:bg-[#7DA54E]">
-            {isEditing ? "Update Booking" : "Create Booking"}
-          </Button>
-        </Form>
-      </Modal>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                className="bg-[#8ABF55] hover:bg-[#7DA54E]">
+                {isEditing ? "Update Booking" : "Create Booking"}
+              </Button>
+            </Form>
+          </Modal>
+        </div>
+      )}
     </div>
   );
 };
