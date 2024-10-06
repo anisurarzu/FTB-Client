@@ -15,19 +15,10 @@ import {
   Dropdown,
 } from "antd";
 import { useFormik } from "formik";
-import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
 import coreAxios from "@/utils/axiosInstance";
 import { DeleteOutlined, DownOutlined, EditOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
-
-const hotelRoom = [
-  { id: 1, number: "101" },
-  { id: 2, number: "102" },
-  { id: 3, number: "201" },
-  { id: 4, number: "202" },
-];
 
 const HotelInformation = () => {
   const [visible, setVisible] = useState(false);
@@ -41,7 +32,7 @@ const HotelInformation = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedRoomNumbers, setSelectedRoomNumbers] = useState([]);
 
-  // Fetch hotel information from API
+  // Fetch hotel category and room data
   const fetchHotelCategoryInformation = async () => {
     setLoading(true);
     try {
@@ -55,6 +46,7 @@ const HotelInformation = () => {
       setLoading(false);
     }
   };
+
   const fetchHotelRoomInformation = async () => {
     setLoading(true);
     try {
@@ -68,6 +60,7 @@ const HotelInformation = () => {
       setLoading(false);
     }
   };
+
   const fetchHotelInformation = async () => {
     setLoading(true);
     try {
@@ -88,6 +81,7 @@ const HotelInformation = () => {
     fetchHotelInformation();
   }, []);
 
+  // Formik for handling form data and submission
   const formik = useFormik({
     initialValues: {
       hotelName: "",
@@ -135,24 +129,30 @@ const HotelInformation = () => {
     },
   });
 
-  const handleEdit = (hotel) => {
-    setIsEditing(true);
-    setVisible(true);
-    setEditId(hotel._id);
+  // Handle Edit action
+  // Handle Edit action
+const handleEdit = (hotel) => {
+  setIsEditing(true);
+  setVisible(true);
+  setEditId(hotel._id);
 
-    const roomNumbers = {};
-    hotel.roomCategories.forEach((category) => {
-      roomNumbers[category.id] = category.roomNumbers;
-    });
+  // Extract roomCategories and roomNumbers for pre-filling the form
+  const roomNumbers = {};
+  hotel.roomCategories.forEach((category) => {
+    // For each category, set the selected room numbers
+    roomNumbers[category._id] = category.roomNumbers.map((room) => room._id);
+  });
 
-    formik.setValues({
-      hotelName: hotel.hotelName,
-      hotelDescription: hotel.hotelDescription,
-      roomCategories: hotel.roomCategories.map((category) => category.id),
-      roomNumbers: roomNumbers,
-    });
-  };
+  // Pre-fill the form with hotel data
+  formik.setValues({
+    hotelName: hotel.hotelName,
+    hotelDescription: hotel.hotelDescription,
+    roomCategories: hotel.roomCategories.map((category) => category.name), // Extract category IDs
+    roomNumbers: roomNumbers, // Pre-fill room numbers for each category
+  });
+};
 
+  // Handle Delete action
   const handleDelete = async (id) => {
     setLoading(true);
     try {
@@ -166,6 +166,7 @@ const HotelInformation = () => {
     }
   };
 
+  // Handle Category Change for multi-select
   const handleCategoryChange = (selectedCategories) => {
     const updatedRoomNumbers = { ...formik.values.roomNumbers };
     selectedCategories.forEach((categoryId) => {
@@ -177,21 +178,22 @@ const HotelInformation = () => {
     formik.setFieldValue("roomNumbers", updatedRoomNumbers);
   };
 
+  // Handle Room Number Change for specific category
   const handleRoomNumberChange = (categoryId, selectedRoomNumbers) => {
     const updatedRoomNumbers = { ...formik.values.roomNumbers };
 
-    // Set the room numbers directly for the category
+    // Update selected room numbers for the category
     updatedRoomNumbers[categoryId] = hotelRoom
-      .filter((room) => selectedRoomNumbers?.includes(room?.id))
+      .filter((room) => selectedRoomNumbers.includes(room._id))
       .map((room) => ({
-        id: room.id,
+        id: room._id,
         name: room.name,
       }));
 
-    // Update the formik field value
     formik.setFieldValue("roomNumbers", updatedRoomNumbers);
   };
 
+  // Handle room category click
   const handleRoomCategoryClick = (category) => {
     setSelectedCategory(category);
     const rooms =
@@ -287,90 +289,71 @@ const HotelInformation = () => {
 
       {/* Modal for Hotel Info */}
       <Modal
-        title={
-          isEditing ? "Edit Hotel Information" : "Create Hotel Information"
-        }
-        open={visible}
-        onCancel={() => setVisible(false)}
-        footer={null}>
-        <Form onFinish={formik.handleSubmit} layout="vertical">
-          <Form.Item label="Hotel Name">
-            <Input
-              name="hotelName"
-              value={formik.values.hotelName}
-              onChange={formik.handleChange}
-            />
-          </Form.Item>
-          <Form.Item label="Hotel Description">
-            <Input.TextArea
-              name="hotelDescription"
-              value={formik.values.hotelDescription}
-              onChange={formik.handleChange}
-              rows={4}
-            />
-          </Form.Item>
-          <Form.Item label="Room Categories">
-            <Select
-              mode="multiple"
-              placeholder="Select room categories"
-              value={formik.values.roomCategories}
-              onChange={handleCategoryChange}>
-              {hotelCategory.map((category) => (
-                <Option key={category.id} value={category.id}>
-                  {category.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+  title={isEditing ? "Edit Hotel Information" : "Create Hotel Information"}
+  open={visible}
+  onCancel={() => setVisible(false)}
+  footer={null}>
+  <Form onFinish={formik.handleSubmit} layout="vertical">
+    <Form.Item label="Hotel Name">
+      <Input
+        name="hotelName"
+        value={formik.values.hotelName}
+        onChange={formik.handleChange}
+        placeholder="Enter hotel name"
+      />
+    </Form.Item>
+    <Form.Item label="Hotel Description">
+      <Input.TextArea
+        name="hotelDescription"
+        value={formik.values.hotelDescription}
+        onChange={formik.handleChange}
+        placeholder="Enter hotel description"
+      />
+    </Form.Item>
 
-          {formik.values.roomCategories.map((categoryId) => (
-            <Form.Item
-              key={categoryId}
-              label={`Room Numbers for ${
-                hotelCategory.find((cat) => cat.id === categoryId)?.name
-              }`}>
-              <Select
-                mode="multiple"
-                placeholder="Select room numbers"
-                value={formik.values.roomNumbers[categoryId]?.map((r) => r._id)}
-                onChange={(selectedRoomNumbers) =>
-                  handleRoomNumberChange(categoryId, selectedRoomNumbers)
-                }>
-                {hotelRoom.map((room) => (
-                  <Option key={room.id} value={room.id}>
-                    {room.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
+    <Form.Item label="Room Categories">
+      <Select
+        mode="multiple"
+        value={formik.values.roomCategories}
+        onChange={handleCategoryChange}
+        placeholder="Select room categories">
+        {hotelCategory?.map((category) => (
+          <Option key={category._id} value={category._id}>
+            {category.name}
+          </Option>
+        ))}
+      </Select>
+    </Form.Item>
+
+    {/* Room Number Selection for each Category */}
+    {formik.values.roomCategories.map((categoryId) => (
+      <Form.Item key={categoryId} label={`Room Numbers for Category`}>
+        <Select
+          mode="multiple"
+          value={formik.values.roomNumbers[categoryId]?.map((r) => r)} // Map room IDs for the category
+          onChange={(selectedRoomNumbers) =>
+            handleRoomNumberChange(categoryId, selectedRoomNumbers)
+          }
+          placeholder="Select room numbers">
+          {hotelRoom.map((room) => (
+            <Option key={room._id} value={room._id}>
+              {room.name}
+            </Option>
           ))}
+        </Select>
+      </Form.Item>
+    ))}
 
-          <Form.Item>
-            <Button
-              loading={loading}
-              type="primary"
-              htmlType="submit"
-              className="bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
-              {isEditing ? "Update" : "Create"}
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+    <Form.Item>
+      <Button
+        htmlType="submit"
+        className="bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
+        Submit
+      </Button>
+    </Form.Item>
+  </Form>
+</Modal>
 
-      {/* Mini Modal for Room Details */}
-      <Modal
-        title={`Room Numbers for ${selectedCategory?.name}`}
-        open={miniModalVisible}
-        onCancel={() => setMiniModalVisible(false)}
-        footer={null}>
-        {selectedRoomNumbers.length > 0 ? (
-          selectedRoomNumbers.map((room) => (
-            <div key={room.id}>{room.name}</div>
-          ))
-        ) : (
-          <div>No rooms available for this category.</div>
-        )}
-      </Modal>
     </div>
   );
 };

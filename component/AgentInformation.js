@@ -73,10 +73,10 @@ const AgentInformation = () => {
       email: "",
       phoneNumber: "",
       password: "",
-      nid: "",
       currentAddress: "",
       role: "",
       gender: "",
+      loginID: "",
     },
     onSubmit: async (values, { resetForm }) => {
       setLoading(true);
@@ -88,12 +88,12 @@ const AgentInformation = () => {
             username: values.username,
             email: values.email,
             phoneNumber: values.phoneNumber,
-            nid: values.nid,
+
             password: values?.password,
             plainPassword: values?.password,
             currentAddress: values.currentAddress,
             gender: values.gender,
-
+            loginID: values.loginID,
             role: roleInfo.find((role) => role.value === values.role),
           };
           const response = await coreAxios.put(
@@ -113,12 +113,12 @@ const AgentInformation = () => {
               username: values.username,
               email: values.email,
               phoneNumber: values.phoneNumber,
-              nid: values.nid,
+
               password: values?.password,
               plainPassword: values?.password,
               currentAddress: values.currentAddress,
               gender: values.gender,
-
+              loginID: values.loginID,
               role: roleInfo.find((role) => role.value === values.role),
             };
             const response = await coreAxios.post("/auth/register", newUser);
@@ -135,12 +135,12 @@ const AgentInformation = () => {
               username: values.username,
               email: values.email,
               phoneNumber: values.phoneNumber,
-              nid: values.nid,
+
               password: values?.password,
               plainPassword: values?.password,
               currentAddress: values.currentAddress,
               gender: values.gender,
-
+              loginID:values.loginID,
               role: roleInfo.find((role) => role.value === values.role),
             };
             const response = await coreAxios.post("/auth/register", newUser);
@@ -188,10 +188,11 @@ const AgentInformation = () => {
       username: record.username,
       email: record.email,
       phoneNumber: record.phoneNumber,
-      nid: record.nid,
+
       currentAddress: record.currentAddress,
       role: record.role.value,
       gender: record.gender,
+      loginID:record.loginID,
       status: "",
     });
     setVisible(true);
@@ -268,12 +269,7 @@ const AgentInformation = () => {
       key: "phoneNumber",
       width: "15%", // Adjust width for compact design
     },
-    {
-      title: "NID",
-      dataIndex: "nid",
-      key: "nid",
-      width: "15%", // Adjust width for compact design
-    },
+   
     {
       title: "Address",
       dataIndex: "currentAddress",
@@ -376,6 +372,20 @@ const AgentInformation = () => {
               placeholder="Enter username"
               value={formik.values.username}
               onChange={formik.handleChange}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="loginID" className="block mb-1">
+              User ID
+            </label>
+            <Input
+              id="loginID"
+              name="loginID"
+              placeholder="Enter User ID"
+              value={formik.values.loginID}
+              onChange={formik.handleChange}
+              required
             />
           </div>
           <div className="mb-4">
@@ -388,6 +398,7 @@ const AgentInformation = () => {
               placeholder="Enter email"
               value={formik.values.email}
               onChange={formik.handleChange}
+              required
             />
           </div>
           <div className="mb-4">
@@ -413,22 +424,12 @@ const AgentInformation = () => {
                 name="password"
                 placeholder="Enter password"
                 value={formik.values.password}
+                required
                 onChange={formik.handleChange}
               />
             </div>
           )}
-          <div className="mb-4">
-            <label htmlFor="nid" className="block mb-1">
-              NID
-            </label>
-            <Input
-              id="nid"
-              name="nid"
-              placeholder="Enter NID"
-              value={formik.values.nid}
-              onChange={formik.handleChange}
-            />
-          </div>
+          
           <div className="mb-4">
             <label htmlFor="currentAddress" className="block mb-1">
               Current Address
@@ -449,6 +450,7 @@ const AgentInformation = () => {
             <Radio.Group
               id="gender"
               name="gender"
+              required
               onChange={(e) => formik.setFieldValue("gender", e.target.value)}
               value={formik.values.gender}>
               <Radio value="male">Male</Radio>

@@ -4,20 +4,19 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Input, Button } from "antd";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
 import coreAxios from "@/utils/axiosInstance";
 import { useState } from "react";
+import { UserOutlined, LockOutlined } from "@ant-design/icons";
 
 const Login = () => {
   const router = useRouter();
   const [buttonLoading, setButtonLoading] = useState(false); // Loading state for the button
 
   const validationSchema = Yup.object({
-    loginID: Yup.string().required("Required"),
+    loginID: Yup.string().required("User ID is required"),
     password: Yup.string()
       .min(4, "Password must be at least 4 characters")
-      .required("Required"),
+      .required("Password is required"),
   });
 
   const handleSubmit = async (values, { setSubmitting }) => {
@@ -42,84 +41,94 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 relative">
-      {/* <div className="absolute inset-0 z-0">
-        <Image
-          src="/images/bg-01.jpg"
-          alt="Architecture Background"
-          layout="fill"
-          objectFit="cover"
-          quality={100}
-        />
-      </div> */}
-      <div className="bg-white bg-opacity-90 p-8 rounded-lg shadow-lg max-w-lg w-full z-10">
-        <h2 className="text-3xl font-semibold text-center text-gray-800 mb-8">
-          Login
-        </h2>
-        <Formik
-          initialValues={{ loginID: "", password: "" }}
-          validationSchema={validationSchema}
-          onSubmit={handleSubmit}>
-          {({ isSubmitting }) => (
-            <Form className="space-y-8">
-              <div>
-                <label
-                  htmlFor="loginID"
-                  className="block text-gray-700 font-medium mb-2">
-                  User ID
-                </label>
-                <Field
-                  name="loginID"
-                  type="text"
-                  as={Input}
-                  placeholder="Enter your User loginID"
-                  className="p-4 rounded-lg border-gray-300 focus:ring-2 focus:ring-[#8ABF55] focus:border-transparent w-full"
-                  size="large"
-                />
-                <ErrorMessage
-                  name="loginID"
-                  component="div"
-                  className="text-red-500 text-sm mt-2"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-gray-700 font-medium mb-2">
-                  Password
-                </label>
-                <Field
-                  name="password"
-                  type="password"
-                  as={Input.Password}
-                  placeholder="Enter your password"
-                  className="p-4 rounded-lg border-gray-300 focus:ring-2 focus:ring-[#8ABF55] focus:border-transparent w-full"
-                  size="large"
-                />
-                <ErrorMessage
-                  name="password"
-                  component="div"
-                  className="text-red-500 text-sm mt-2"
-                />
-              </div>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={buttonLoading} // Loading state for the button
-                className="w-full py-4 bg-[#8ABF55] hover:bg-[#7DA54E] border-none text-white text-lg rounded-lg">
-                Login
-              </Button>
-             {/*  <div className="text-center text-gray-600 mt-4">
-                {" Do not have an account?"}
-                <Link
-                  href="/register"
-                  className="text-[#8ABF55] font-medium hover:underline">
-                  Register
-                </Link>
-              </div> */}
-            </Form>
-          )}
-        </Formik>
+    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
+      {/* Left Section with Gradient and Branding */}
+      <div className="relative hidden md:flex w-full md:w-1/2 bg-gradient-to-br from-green-400 to-blue-500 items-center justify-center">
+        <div className="absolute inset-0 bg-black opacity-30 z-0"></div>
+        <div className="z-10 text-center text-white px-10 space-y-6">
+          <h1 className="text-5xl font-bold">Welcome to Fast Track</h1>
+          <h3 className="text-2xl font-semibold">Booking System</h3>
+          <p className="text-lg font-light">
+            Efficient, Reliable, and Fast Booking Management System for your
+            convenience.
+          </p>
+        </div>
+        <div className="absolute bottom-5 left-5 text-white z-10">
+          <p className="font-semibold">Developed by:</p>
+          <p>Anisur Rahman & Zihadi</p>
+          <p>Contact: 01840452081</p>
+        </div>
+      </div>
+
+      {/* Right Section - Login Form with Gradient Border */}
+      <div className="flex flex-col justify-center items-center w-full md:w-1/2 py-12 px-8 md:px-16">
+        <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg relative">
+          {/* Gradient Border */}
+          <div className="absolute inset-0 border-2 border-transparent rounded-lg bg-clip-border bg-gradient-to-br from-green-400 to-blue-500 p-1 z-[-1]"></div>
+          <div className="bg-white rounded-lg p-8">
+            <h2 className="text-3xl font-semibold text-center text-gray-800 mb-8">
+              Login
+            </h2>
+            <Formik
+              initialValues={{ loginID: "", password: "" }}
+              validationSchema={validationSchema}
+              onSubmit={handleSubmit}>
+              {({ isSubmitting }) => (
+                <Form className="space-y-6">
+                  <div>
+                    <label
+                      htmlFor="loginID"
+                      className="block text-gray-700 font-medium mb-2">
+                      User ID
+                    </label>
+                    <Field
+                      name="loginID"
+                      type="text"
+                      as={Input}
+                      prefix={<UserOutlined />}
+                      placeholder="Enter your User ID"
+                      className="p-4 rounded-lg border-gray-300 focus:ring-2 focus:ring-green-400 focus:border-transparent w-full"
+                      size="large"
+                    />
+                    <ErrorMessage
+                      name="loginID"
+                      component="div"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="password"
+                      className="block text-gray-700 font-medium mb-2">
+                      Password
+                    </label>
+                    <Field
+                      name="password"
+                      type="password"
+                      as={Input.Password}
+                      prefix={<LockOutlined />}
+                      placeholder="Enter your password"
+                      className="p-4 rounded-lg border-gray-300 focus:ring-2 focus:ring-green-400 focus:border-transparent w-full"
+                      size="large"
+                    />
+                    <ErrorMessage
+                      name="password"
+                      component="div"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={buttonLoading} // Loading state for the button
+                    className="w-full py-4 bg-green-500 hover:bg-green-600 border-none text-white text-lg rounded-lg">
+                    Login
+                  </Button>
+                </Form>
+              )}
+            </Formik>
+          </div>
+        </div>
       </div>
     </div>
   );
