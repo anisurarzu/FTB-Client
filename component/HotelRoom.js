@@ -24,7 +24,7 @@ const HotelRoom = () => {
   const [editingKey, setEditingKey] = useState(null);
   const [room, setRoom] = useState([]);
   const [filteredRoom, setFilteredRoom] = useState([]);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 50 });
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
 
@@ -116,7 +116,7 @@ const HotelRoom = () => {
 
   const columns = [
     {
-      title: "Flat No/Unit", // Updated the header name
+      title: "Flat/Room No.", // Updated the header name
       dataIndex: "name",
       key: "name",
     },
@@ -189,26 +189,25 @@ const HotelRoom = () => {
   return (
     <div>
       {/* Global Search */}
-      
 
-     <div className='flex justify-between'>
-     <Button
-        type="primary"
-        onClick={() => {
-          formik.resetForm();
-          setVisible(true);
-          setIsEditing(false);
-        }}
-        className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white mr-2">
-        Add New Room
-      </Button>
+      <div className="flex justify-between">
+        <Button
+          type="primary"
+          onClick={() => {
+            formik.resetForm();
+            setVisible(true);
+            setIsEditing(false);
+          }}
+          className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white mr-2">
+          Add New Room
+        </Button>
 
-      <Input
-        placeholder="Search by Flat No/Unit or Description"
-        value={searchText}
-        onChange={handleSearch}
-        style={{ marginBottom: 16, width: 300 }}
-      />
+        <Input
+          placeholder="Search by Flat No/Unit or Description"
+          value={searchText}
+          onChange={handleSearch}
+          style={{ marginBottom: 16, width: 300 }}
+        />
       </div>
 
       <Spin spinning={loading}>
@@ -225,7 +224,9 @@ const HotelRoom = () => {
           current={pagination.current}
           pageSize={pagination.pageSize}
           total={filteredRoom?.length}
-          onChange={(page) => setPagination({ ...pagination, current: page })}
+          onChange={(page, pageSize) =>
+            setPagination({ current: page, pageSize })
+          } // Update both current page and pageSize
           className="mt-4"
         />
       </Spin>

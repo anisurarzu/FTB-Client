@@ -295,6 +295,7 @@ const BookingInfo = () => {
       if (response.status === 200) {
         // setBookings(response?.data);
         setFilteredBookings(response?.data);
+        setLoading(false)
       }
     } catch (error) {
       message.error("Failed to fetch bookings.");

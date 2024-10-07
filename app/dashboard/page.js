@@ -6,12 +6,11 @@ import {
   UsergroupAddOutlined,
   SettingOutlined,
   LogoutOutlined,
-  AppstoreAddOutlined,
   FileTextOutlined,
   ApartmentOutlined,
   UnorderedListOutlined,
   MenuOutlined,
-} from "@ant-design/icons"; // Updated icons
+} from "@ant-design/icons"; // Icons
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -24,6 +23,127 @@ import BookingInfo from "@/component/BookingInfo";
 import Calender from "@/component/Calender";
 
 const { Header, Sider, Content } = Layout;
+
+// Define a permissions object mapping roles to allowed pages
+const rolePermissions = {
+  superadmin: [
+    {
+      key: "1",
+      label: "Dashboard",
+      icon: <DashboardOutlined />,
+      component: <DashboardHome />,
+    },
+    {
+      key: "2",
+      label: "Users",
+      icon: <UsergroupAddOutlined />,
+      component: <AgentInformation />,
+    },
+    {
+      key: "3",
+      label: "Flat/Room Type",
+      icon: <ApartmentOutlined />,
+      component: <HotelCategory />,
+    },
+    {
+      key: "4",
+      label: "Flat/Room No",
+      icon: <UnorderedListOutlined />,
+      component: <HotelRoom />,
+    },
+    {
+      key: "5",
+      label: "Hotel Info",
+      icon: <FileTextOutlined />,
+      component: <HotelInformation />,
+    },
+    {
+      key: "6",
+      label: "Booking Info",
+      icon: <SettingOutlined />,
+      component: <BookingInfo />,
+    },
+    {
+      key: "7",
+      label: "Calendar",
+      icon: <SettingOutlined />,
+      component: <Calender />,
+    },
+    { key: "8", label: "Settings", icon: <SettingOutlined />, component: null },
+  ],
+  agentadmin: [
+    {
+      key: "1",
+      label: "Dashboard",
+      icon: <DashboardOutlined />,
+      component: <DashboardHome />,
+    },
+    {
+      key: "6",
+      label: "Booking Info",
+      icon: <SettingOutlined />,
+      component: <BookingInfo />,
+    },
+    {
+      key: "7",
+      label: "Calendar",
+      icon: <SettingOutlined />,
+      component: <Calender />,
+    },
+  ],
+  hoteladmin: [
+    {
+      key: "1",
+      label: "Dashboard",
+      icon: <DashboardOutlined />,
+      component: <DashboardHome />,
+    },
+    {
+      key: "6",
+      label: "Booking Info",
+      icon: <SettingOutlined />,
+      component: <BookingInfo />,
+    },
+    {
+      key: "7",
+      label: "Calendar",
+      icon: <SettingOutlined />,
+      component: <Calender />,
+    },
+  ],
+  admin: [
+    {
+      key: "1",
+      label: "Dashboard",
+      icon: <DashboardOutlined />,
+      component: <DashboardHome />,
+    },
+    {
+      key: "2",
+      label: "Users",
+      icon: <UsergroupAddOutlined />,
+      component: <AgentInformation />,
+    },
+    {
+      key: "5",
+      label: "Hotel Info",
+      icon: <FileTextOutlined />,
+      component: <HotelInformation />,
+    },
+    {
+      key: "6",
+      label: "Booking Info",
+      icon: <SettingOutlined />,
+      component: <BookingInfo />,
+    },
+    {
+      key: "7",
+      label: "Calendar",
+      icon: <SettingOutlined />,
+      component: <Calender />,
+    },
+  ],
+};
 
 const Dashboard = ({ sliders }) => {
   const router = useRouter();
@@ -42,7 +162,8 @@ const Dashboard = ({ sliders }) => {
 
     const storedUserInfo = localStorage.getItem("userInfo");
     if (storedUserInfo) {
-      setUserInfo(JSON.parse(storedUserInfo));
+      const parsedUserInfo = JSON.parse(storedUserInfo);
+      setUserInfo(parsedUserInfo);
     }
 
     const timer = setTimeout(() => {
@@ -67,29 +188,32 @@ const Dashboard = ({ sliders }) => {
   };
 
   const renderContent = () => {
-    switch (selectedMenu) {
-      case "1":
-        return <DashboardHome />;
-      case "2":
-        return <AgentInformation />;
-      case "3":
-        return <HotelCategory />;
-      case "4":
-        return <HotelRoom />;
-      case "5":
-        return <HotelInformation />;
-      case "6":
-        return <BookingInfo />;
-      case "7":
-        return <Calender />;
-      default:
-        return (
-          <div className="text-gray-900 text-lg font-medium">
-            Welcome to your dashboard! This is the main content area where you
-            can add your dashboard widgets, charts, and more.
-          </div>
-        );
-    }
+    const userRole = userInfo?.role?.value; // Accessing user role from userInfo object
+    const allowedPages = rolePermissions[userRole] || [];
+    const selectedPage = allowedPages.find((page) => page.key === selectedMenu);
+    return selectedPage ? selectedPage.component : <div>Access Denied</div>;
+  };
+
+  const renderMenuItems = () => {
+    if (!userInfo) return null;
+
+    const userRole = userInfo?.role?.value; // Accessing user role from userInfo object
+    const allowedPages = rolePermissions[userRole] || [];
+
+    return (
+      <Menu
+        theme="light"
+        mode="inline"
+        selectedKeys={[selectedMenu]}
+        onClick={(e) => setSelectedMenu(e.key)}
+        className="bg-white">
+        {allowedPages.map((page) => (
+          <Menu.Item key={page.key} icon={page.icon} className="bg-white">
+            <span className="text-[#8ABF55] font-medium">{page.label}</span>
+          </Menu.Item>
+        ))}
+      </Menu>
+    );
   };
 
   return (
@@ -104,65 +228,13 @@ const Dashboard = ({ sliders }) => {
           <Image
             src="/images/logo.png"
             alt="Logo"
-            width={collapsed ? 50 : 90}
-            height={collapsed ? 25 : 30}
+            width={collapsed ? 50 : 120}
+            height={collapsed ? 25 : 40}
           />
         </div>
-        <Menu
-          theme="light"
-          mode="inline"
-          selectedKeys={[selectedMenu]}
-          onClick={(e) => setSelectedMenu(e.key)}
-          className="bg-white">
-          <Menu.Item
-            key="1"
-            icon={<DashboardOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Dashboard</span>
-          </Menu.Item>
-          <Menu.Item
-            key="2"
-            icon={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Users</span>
-          </Menu.Item>
-          <Menu.Item
-            key="3"
-            icon={<ApartmentOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Flat Type</span>
-          </Menu.Item>
-          <Menu.Item
-            key="4"
-            icon={<UnorderedListOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Flat No/Unit</span>
-          </Menu.Item>
-          <Menu.Item
-            key="5"
-            icon={<FileTextOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Hotel Info</span>
-          </Menu.Item>
-          <Menu.Item
-            key="6"
-            icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Booking Info</span>
-          </Menu.Item>
-          <Menu.Item
-            key="7"
-            icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Calendar</span>
-          </Menu.Item>
-          <Menu.Item
-            key="8"
-            icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Settings</span>
-          </Menu.Item>
-        </Menu>
+
+        {/* Render the menu items based on user role */}
+        {renderMenuItems()}
       </Sider>
 
       {/* Drawer for Mobile */}
@@ -172,65 +244,8 @@ const Dashboard = ({ sliders }) => {
         onClose={onClose}
         visible={visible}
         bodyStyle={{ padding: 0 }}>
-        <Menu
-          theme="light"
-          mode="inline"
-          selectedKeys={[selectedMenu]}
-          onClick={(e) => {
-            setSelectedMenu(e.key);
-            onClose();
-          }}
-          className="bg-white">
-          <Menu.Item
-            key="1"
-            icon={<DashboardOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Dashboard</span>
-          </Menu.Item>
-          <Menu.Item
-            key="2"
-            icon={<UsergroupAddOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Users</span>
-          </Menu.Item>
-          <Menu.Item
-            key="3"
-            icon={<ApartmentOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Flat Type</span>
-          </Menu.Item>
-          <Menu.Item
-            key="4"
-            icon={<UnorderedListOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Flat No/Unit</span>
-          </Menu.Item>
-          <Menu.Item
-            key="5"
-            icon={<FileTextOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Hotel Info</span>
-          </Menu.Item>
-
-          <Menu.Item
-            key="6"
-            icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Booking Info</span>
-          </Menu.Item>
-          <Menu.Item
-            key="7"
-            icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Calendar</span>
-          </Menu.Item>
-          <Menu.Item
-            key="8"
-            icon={<SettingOutlined style={{ color: "#8ABF55" }} />}
-            className="bg-white">
-            <span className="text-[#8ABF55] font-medium">Settings</span>
-          </Menu.Item>
-        </Menu>
+        {/* Render the menu items in drawer for mobile */}
+        {renderMenuItems()}
       </Drawer>
 
       <Layout className="site-layout">

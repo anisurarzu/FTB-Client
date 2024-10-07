@@ -458,7 +458,7 @@ const AgentInformation = () => {
               <Radio value="other">Other</Radio>
             </Radio.Group>
           </div>
-          <div className="mb-4">
+          <div className="mb-4 pb-2">
             <label htmlFor="role" className="block mb-1">
               Role
             </label>
@@ -499,7 +499,7 @@ const AgentInformation = () => {
             type="primary"
             loading={loading}
             htmlType="submit"
-            className="w-full bg-[#8ABF55] hover:bg-[#7DA54E]">
+            className="w-full bg-[#8ABF55] hover:bg-[#7DA54E] mt-2">
             {isEditing ? "Update User" : "Add User"}
           </Button>
         </form>
