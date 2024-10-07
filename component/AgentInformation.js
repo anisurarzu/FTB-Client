@@ -140,7 +140,7 @@ const AgentInformation = () => {
               plainPassword: values?.password,
               currentAddress: values.currentAddress,
               gender: values.gender,
-              loginID:values.loginID,
+              loginID: values.loginID,
               role: roleInfo.find((role) => role.value === values.role),
             };
             const response = await coreAxios.post("/auth/register", newUser);
@@ -192,7 +192,7 @@ const AgentInformation = () => {
       currentAddress: record.currentAddress,
       role: record.role.value,
       gender: record.gender,
-      loginID:record.loginID,
+      loginID: record.loginID,
       status: "",
     });
     setVisible(true);
@@ -206,7 +206,7 @@ const AgentInformation = () => {
         status: "deleted",
       };
       setLoading(true);
-      const response = await coreAxios.put(`auth/users/soft/${key?.id}`);
+      const response = await coreAxios.delete(`auth/users/hard/${key?.id}`);
       if (response?.status === 200) {
         setLoading(false);
         message.success("User deleted successfully!");
@@ -269,7 +269,7 @@ const AgentInformation = () => {
       key: "phoneNumber",
       width: "15%", // Adjust width for compact design
     },
-   
+
     {
       title: "Address",
       dataIndex: "currentAddress",
@@ -429,7 +429,7 @@ const AgentInformation = () => {
               />
             </div>
           )}
-          
+
           <div className="mb-4">
             <label htmlFor="currentAddress" className="block mb-1">
               Current Address
