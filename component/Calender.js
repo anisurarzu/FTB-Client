@@ -14,6 +14,7 @@ import {
   Select,
 } from "antd";
 import moment from "moment";
+import dayjs from "dayjs";
 import coreAxios from "@/utils/axiosInstance";
 
 const { Option } = Select;
@@ -264,36 +265,45 @@ const CustomCalendar = () => {
                   </Descriptions.Item>
                 </Descriptions>
                 {selectedRoomInfo.bookings.length > 0 ? (
-                  <Table
-                    dataSource={selectedRoomInfo.bookings}
-                    rowKey={(record) => record.guestName}
-                    columns={[
-                      { title: "Guest Name", dataIndex: "guestName" },
-                      { title: "Check In", dataIndex: "checkIn" },
-                      { title: "Check Out", dataIndex: "checkOut" },
-                      { title: "Booked By", dataIndex: "bookedBy" },
-                      {
-                        title: "Total Bill",
-                        dataIndex: ["paymentDetails", "totalBill"],
-                      },
-                      {
-                        title: "Advance Payment",
-                        dataIndex: ["paymentDetails", "advancePayment"],
-                      },
-                      {
-                        title: "Due Payment",
-                        dataIndex: ["paymentDetails", "duePayment"],
-                      },
-                      {
-                        title: "Payment Method",
-                        dataIndex: ["paymentDetails", "paymentMethod"],
-                      },
-                      {
-                        title: "Transaction ID",
-                        dataIndex: ["paymentDetails", "transactionId"],
-                      },
-                    ]}
-                  />
+                 <Table
+                 dataSource={selectedRoomInfo.bookings}
+                 rowKey={(record) => record.guestName}
+                 columns={[
+                   { title: "Guest Name", dataIndex: "guestName" },
+                   {
+                     title: "Check In",
+                     dataIndex: "checkIn",
+                     render: (checkIn) => dayjs(checkIn).format("D MMM YYYY"), // Format Check In date
+                   },
+                   {
+                     title: "Check Out",
+                     dataIndex: "checkOut",
+                     render: (checkOut) => dayjs(checkOut).format("D MMM YYYY"), // Format Check Out date
+                   },
+                   { title: "Booked By", dataIndex: "bookedBy" },
+                   {
+                     title: "Total Bill",
+                     dataIndex: ["paymentDetails", "totalBill"],
+                   },
+                   {
+                     title: "Advance Payment",
+                     dataIndex: ["paymentDetails", "advancePayment"],
+                   },
+                   {
+                     title: "Due Payment",
+                     dataIndex: ["paymentDetails", "duePayment"],
+                   },
+                   {
+                     title: "Payment Method",
+                     dataIndex: ["paymentDetails", "paymentMethod"],
+                   },
+                   {
+                     title: "Transaction ID",
+                     dataIndex: ["paymentDetails", "transactionId"],
+                   },
+                 ]}
+               />
+               
                 ) : (
                   <p>No bookings found for this room.</p>
                 )}

@@ -118,7 +118,7 @@ const DashboardHome = () => {
             <Statistic
               title={
                 <span style={{ color: "white" }}>
-                  Last 7 days/monthly booking amount
+                  Last 7 days booking amount
                 </span>
               }
               value={10}
