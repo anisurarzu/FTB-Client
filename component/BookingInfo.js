@@ -293,7 +293,7 @@ const BookingInfo = () => {
     try {
       const response = await coreAxios.get("bookings");
       if (response.status === 200) {
-        // setBookings(response?.data);
+        setBookings(response?.data);
         setFilteredBookings(response?.data);
         setLoading(false)
       }
@@ -507,14 +507,18 @@ const BookingInfo = () => {
   };
 
   // Handle global search
+  // Global search
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
     setSearchText(value);
     const filteredData = bookings.filter(
       (r) =>
-        r.fullName.toLowerCase().includes(value) ||
-        r.roomCategoryName.toLowerCase().includes(value) ||
-        r.roomNumberName.toLowerCase().includes(value)
+        r.bookingNo.toLowerCase().includes(value) ||
+        r.bookedByID.toLowerCase().includes(value) ||
+        r.fullName.toLowerCase().includes(value)||
+        r.roomCategoryName.toLowerCase().includes(value)||
+        r.roomNumberName.toLowerCase().includes(value)||
+        r.hotelName.toLowerCase().includes(value)
     );
     setFilteredBookings(filteredData);
     setPagination({ ...pagination, current: 1 }); // Reset to page 1 after filtering
@@ -661,7 +665,7 @@ const BookingInfo = () => {
 
                 {/* Table Body */}
                 <tbody>
-                  {filteredBookings?.map((booking) => (
+                  {paginatedBookings?.map((booking) => (
                     <tr
                     key={booking.bookingNo}
                     className="hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -790,15 +794,15 @@ const BookingInfo = () => {
             {/* Pagination (commented out) */}
 
             <div className="flex justify-center p-2">
-              <Pagination
-                current={pagination.current}
-                pageSize={pagination.pageSize}
-                total={filteredBookings?.length}
-                onChange={(page) =>
-                  setPagination({ ...pagination, current: page })
-                }
-                className="mt-4"
-              />
+            <Pagination
+          current={pagination.current}
+          pageSize={pagination.pageSize}
+          total={filteredBookings?.length}
+          onChange={(page, pageSize) =>
+            setPagination({ current: page, pageSize })
+          } // Update both current page and pageSize
+          className="mt-4"
+        />
             </div>
           </div>
 

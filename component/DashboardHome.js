@@ -1,6 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Card, Col, Row, Statistic, Typography, Divider } from "antd";
+import {
+  Card,
+  Col,
+  Row,
+  Statistic,
+  Typography,
+  Divider,
+  Alert,
+  Spin,
+} from "antd";
 import {
   ShoppingCartOutlined,
   DollarCircleOutlined,
@@ -198,85 +207,97 @@ const DashboardHome = () => {
   };
 
   return (
-    <div className="">
-      {/* Title */}
-      <Title
-        level={2}
-        className="mb-4 lg:mb-6 text-[#8ABF55] text-center lg:text-left">
-        Dashboard Overview
-      </Title>
+    <div>
+      {loading ? (
+        <Spin tip="Loading...">
+          <Alert
+            message="Alert message title"
+            description="Further details about the context of this alert."
+            type="info"
+          />
+        </Spin>
+      ) : (
+        <div className="">
+          {/* Title */}
+          <Title
+            level={2}
+            className="mb-4 lg:mb-6 text-[#8ABF55] text-center lg:text-left">
+            Dashboard Overview
+          </Title>
 
-      {/* Statistics */}
-      <Row gutter={[16, 24]} className="mb-6">
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{ backgroundColor: "#8ABF55" }}>
-            <Statistic
-              title={
-                <span style={{ color: "white" }}>
-                  {"FTB's Booking For Today"}
-                </span>
-              }
-              value={totalBillForToday}
-              prefix={<CheckCircleOutlined style={{ color: "white" }} />}
-              valueStyle={{ color: "white" }}
-            />
-          </Card>
-        </Col>
+          {/* Statistics */}
+          <Row gutter={[16, 24]} className="mb-6">
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Card style={{ backgroundColor: "#8ABF55" }}>
+                <Statistic
+                  title={
+                    <span style={{ color: "white" }}>
+                      {"FTB's Booking For Today"}
+                    </span>
+                  }
+                  value={totalBillForToday}
+                  prefix={<CheckCircleOutlined style={{ color: "white" }} />}
+                  valueStyle={{ color: "white" }}
+                />
+              </Card>
+            </Col>
 
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{ backgroundColor: "#8ABF55" }}>
-            <Statistic
-              title={
-                <span style={{ color: "white" }}>Room vacany for today</span>
-              }
-              value={320}
-              prefix={<HomeOutlined style={{ color: "white" }} />}
-              valueStyle={{ color: "white" }}
-            />
-          </Card>
-        </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Card style={{ backgroundColor: "#8ABF55" }}>
+                <Statistic
+                  title={
+                    <span style={{ color: "white" }}>
+                      Room vacany for today
+                    </span>
+                  }
+                  value={320}
+                  prefix={<HomeOutlined style={{ color: "white" }} />}
+                  valueStyle={{ color: "white" }}
+                />
+              </Card>
+            </Col>
 
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{ backgroundColor: "#8ABF55" }}>
-            <Statistic
-              title={
-                <span style={{ color: "white" }}>
-                  Last 30 days booking amount FTB
-                </span>
-              }
-              value={totalBillForLast30Days}
-              prefix={<CheckCircleOutlined style={{ color: "white" }} />}
-              valueStyle={{ color: "white" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{ backgroundColor: "#8ABF55" }}>
-            <Statistic
-              title={
-                <span style={{ color: "white" }}>
-                  Last 30 days booking amount
-                </span>
-              }
-              value={totalBillForLast30Days2}
-              prefix={<CheckCircleOutlined style={{ color: "white" }} />}
-              valueStyle={{ color: "white" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{ backgroundColor: "#8ABF55" }}>
-            <Statistic
-              title={
-                <span style={{ color: "white" }}>Total booking Amount</span>
-              }
-              value={totalBill}
-              prefix={<CheckCircleOutlined style={{ color: "white" }} />}
-              valueStyle={{ color: "white" }}
-            />
-          </Card>
-        </Col>
-        {/* <Col xs={24} sm={12} md={8} lg={6}>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Card style={{ backgroundColor: "#8ABF55" }}>
+                <Statistic
+                  title={
+                    <span style={{ color: "white" }}>
+                      Last 30 days booking amount FTB
+                    </span>
+                  }
+                  value={totalBillForLast30Days}
+                  prefix={<CheckCircleOutlined style={{ color: "white" }} />}
+                  valueStyle={{ color: "white" }}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Card style={{ backgroundColor: "#8ABF55" }}>
+                <Statistic
+                  title={
+                    <span style={{ color: "white" }}>
+                      Last 30 days booking amount
+                    </span>
+                  }
+                  value={totalBillForLast30Days2}
+                  prefix={<CheckCircleOutlined style={{ color: "white" }} />}
+                  valueStyle={{ color: "white" }}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Card style={{ backgroundColor: "#8ABF55" }}>
+                <Statistic
+                  title={
+                    <span style={{ color: "white" }}>Total booking Amount</span>
+                  }
+                  value={totalBill}
+                  prefix={<CheckCircleOutlined style={{ color: "white" }} />}
+                  valueStyle={{ color: "white" }}
+                />
+              </Card>
+            </Col>
+            {/* <Col xs={24} sm={12} md={8} lg={6}>
           <Card style={{ backgroundColor: "#8ABF55" }}>
             <Statistic
               title={<span style={{ color: "white" }}>Total Users</span>}
@@ -286,40 +307,42 @@ const DashboardHome = () => {
             />
           </Card>
         </Col> */}
-      </Row>
+          </Row>
 
-      {/* Graph */}
-      <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-2">
-        <Title
-          level={4}
-          className="text-[#8ABF55] mb-4 text-center lg:text-left">
-          Bookings Over Time
-        </Title>
-        <Line {...config} />
-      </div>
+          {/* Graph */}
+          <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-2">
+            <Title
+              level={4}
+              className="text-[#8ABF55] mb-4 text-center lg:text-left">
+              Bookings Over Time
+            </Title>
+            <Line {...config} />
+          </div>
 
-      {/* Additional Information */}
-      <Divider className="my-4 lg:my-6" />
-      <Row gutter={16}>
-        <Col xs={24} sm={12} md={8}>
-          <Card>
-            <Title level={5}>Recent Orders</Title>
-            {/* Add recent orders or any additional data here */}
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8}>
-          <Card>
-            <Title level={5}>Upcoming Events</Title>
-            {/* Add upcoming events or any additional data here */}
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8}>
-          <Card>
-            <Title level={5}>System Health</Title>
-            {/* Add system health or any additional data here */}
-          </Card>
-        </Col>
-      </Row>
+          {/* Additional Information */}
+          <Divider className="my-4 lg:my-6" />
+          <Row gutter={16}>
+            <Col xs={24} sm={12} md={8}>
+              <Card>
+                <Title level={5}>Recent Orders</Title>
+                {/* Add recent orders or any additional data here */}
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Card>
+                <Title level={5}>Upcoming Events</Title>
+                {/* Add upcoming events or any additional data here */}
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Card>
+                <Title level={5}>System Health</Title>
+                {/* Add system health or any additional data here */}
+              </Card>
+            </Col>
+          </Row>
+        </div>
+      )}
     </div>
   );
 };

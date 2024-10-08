@@ -186,7 +186,8 @@ const HotelCategory = () => {
   return (
     <div>
       {/* Global Search */}
-      <Input
+     <div className='flex justify-between'>
+     <Input
         placeholder="Search by Flat/Room Name or Description"
         value={searchText}
         onChange={handleSearch}
@@ -203,6 +204,7 @@ const HotelCategory = () => {
         className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
         Add New Falt/Room Type
       </Button>
+     </div>
 
       <Spin spinning={loading}>
         <Table
