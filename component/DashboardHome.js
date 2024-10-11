@@ -1,4 +1,3 @@
-"use client";
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -6,36 +5,31 @@ import {
   Row,
   Statistic,
   Typography,
-  Divider,
   Alert,
   Spin,
+  Select,
+  message,
 } from "antd";
-import {
-  ShoppingCartOutlined,
-  DollarCircleOutlined,
-  UsergroupAddOutlined,
-  InfoCircleOutlined,
-  FundOutlined,
-  TeamOutlined,
-  CheckCircleOutlined,
-  HomeOutlined,
-  FieldTimeOutlined,
-  UserDeleteOutlined,
-  MoneyCollectOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+import { CheckCircleOutlined, HomeOutlined } from "@ant-design/icons";
 import { Line } from "@ant-design/charts";
 import coreAxios from "@/utils/axiosInstance";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
+import { Formik, Form, Field } from "formik";
+
 const { Title } = Typography;
+const { Option } = Select;
 
 const DashboardHome = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [hotelInfo, setHotelInfo] = useState([]); // State for hotel information
+  const [filteredBookings, setFilteredBookings] = useState([]); // State for filtered bookings
+  const defaultHotelID = ''; // Default hotel ID
 
   useEffect(() => {
     fetchBookings();
+    fetchHotelInfo();
   }, []);
 
   const fetchBookings = async () => {
@@ -43,8 +37,7 @@ const DashboardHome = () => {
     try {
       const response = await coreAxios.get("bookings");
       if (response.status === 200) {
-        setBookings(response?.data);
-        setLoading(false);
+        setBookings(response.data);
       }
     } catch (error) {
       message.error("Failed to fetch bookings.");
@@ -53,93 +46,56 @@ const DashboardHome = () => {
     }
   };
 
-  /* total bookings ftb today */
+  const fetchHotelInfo = async () => {
+    try {
+      const response = await coreAxios.get("hotel");
+      if (Array.isArray(response.data)) {
+        setHotelInfo(response.data);
+        handleHotelChange(7); // Initialize with default hotel ID
+      } else {
+        setHotelInfo([]); // or handle appropriately
+      }
+    } catch (error) {
+      message.error("Failed to fetch hotel information.");
+    }
+  };
 
-  // Step 1: Get today's date in the desired format (e.g., "2 Oct 2024")
   const today = dayjs().format("D MMM YYYY");
 
-  // Step 2: Filter bookings based on createTime being today and other conditions
-  const filteredTodayBookings = bookings.filter((booking) => {
-    // Convert the booking's createTime to the desired format
-    const createTime = dayjs(booking.createTime).format("D MMM YYYY");
-
-    return (
-      createTime === today && // Check if the booking was created today
-      booking.bookedBy !== "SBFrontDeskFTB" && // Exclude bookings by SBFrontDeskFTB
-      booking.statusID !== 255 // Exclude bookings with statusID 255
+  // Filter bookings based on selected hotel ID
+  const handleHotelChange = (hotelID) => {
+    const filteredData = bookings.filter(
+      (booking) => booking.hotelID === hotelID && booking.statusID !== 255
     );
+    setFilteredBookings(filteredData); // Update filtered bookings
+  };
+
+  const filteredTodayBookings = filteredBookings.filter((booking) => {
+    const createTime = dayjs(booking.createTime).format("D MMM YYYY");
+    return createTime === today && booking.bookedBy !== "SBFrontDeskFTB";
   });
 
-  // Step 3: Calculate the total bill for today's filtered bookings
   const totalBillForToday = filteredTodayBookings.reduce(
     (sum, booking) => sum + booking.totalBill,
     0
   );
 
-  /* all time bokings amount for all */
-
-  // Step 1: Filter out bookings where bookedBy is 'SBFrontDeskFTB'
-  const filteredBookings = bookings.filter(
-    (booking) =>
-      /* booking.bookedBy !== "SBFrontDeskFTB" && */ booking.statusID !== 255
-  );
-
-  // Step 2: Calculate the total bill of the filtered bookings
   const totalBill = filteredBookings.reduce((acc, booking) => {
     return acc + booking.totalBill;
   }, 0);
 
-  /* last 30 days ftb's booking amount */
-
-  // Step 1: Get today's date and the date 30 days ago
-  // Import the isBetween plugin
-
-  // Extend dayjs with the isBetween plugin
   dayjs.extend(isBetween);
   const thirtyDaysAgo = dayjs().subtract(30, "day");
 
-  // Step 2: Filter bookings created within the last 30 days and apply the other conditions
-  const filteredLast30DaysBookings = bookings.filter((booking) => {
-    // Convert the booking's createTime to a dayjs object
+  const filteredLast30DaysBookings = filteredBookings.filter((booking) => {
     const createTime = dayjs(booking.createTime);
-
-    // Check if the booking was created within the last 30 days
     return (
-      createTime.isBetween(thirtyDaysAgo, today, "day", "[]") && // Booking within the last 30 days (inclusive)
-      booking.bookedBy !== "SBFrontDeskFTB" && // Exclude bookings by SBFrontDeskFTB
-      booking.statusID !== 255 // Exclude bookings with statusID 255
+      createTime.isBetween(thirtyDaysAgo, today, "day", "[]") &&
+      booking.bookedBy !== "SBFrontDeskFTB"
     );
   });
 
-  // Step 3: Calculate the total bill for the filtered bookings
   const totalBillForLast30Days = filteredLast30DaysBookings.reduce(
-    (sum, booking) => sum + booking.totalBill,
-    0
-  );
-  /* last 30 days ftb's booking amount */
-
-  // Step 1: Get today's date and the date 30 days ago
-  // Import the isBetween plugin
-
-  // Extend dayjs with the isBetween plugin
-
-  const thirtyDaysAgo2 = dayjs().subtract(30, "day");
-
-  // Step 2: Filter bookings created within the last 30 days and apply the other conditions
-  const filteredLast30DaysBookings2 = bookings.filter((booking) => {
-    // Convert the booking's createTime to a dayjs object
-    const createTime = dayjs(booking.createTime);
-
-    // Check if the booking was created within the last 30 days
-    return (
-      createTime.isBetween(thirtyDaysAgo, today, "day", "[]") && // Booking within the last 30 days (inclusive)
-      // Exclude bookings by SBFrontDeskFTB
-      booking.statusID !== 255 // Exclude bookings with statusID 255
-    );
-  });
-
-  // Step 3: Calculate the total bill for the filtered bookings
-  const totalBillForLast30Days2 = filteredLast30DaysBookings.reduce(
     (sum, booking) => sum + booking.totalBill,
     0
   );
@@ -161,37 +117,22 @@ const DashboardHome = () => {
     };
 
     data.forEach((booking) => {
-      // Parse the check-in date
-      const checkInDate = new Date(booking.checkInDate);
-      const month = checkInDate.toLocaleString("default", { month: "short" }); // Get the short month name
+      const createTime = new Date(booking.createTime);
+      const month = createTime.toLocaleString("default", { month: "short" });
       const totalBill = booking.totalBill;
 
-      // Accumulate the total bill for the month
       monthlyTotals[month] += totalBill;
     });
 
-    // Convert the monthlyTotals object to an array
-    const result = Object.entries(monthlyTotals).map(([month, totalBill]) => ({
+    return Object.entries(monthlyTotals).map(([month, totalBill]) => ({
       month,
       totalBill,
     }));
-
-    return result;
   };
 
   const monthlyBillData = generateMonthlyBillData(filteredBookings);
-  console.log("data------", monthlyBillData);
 
-  const data = [
-    { month: "Jan", sales: 1000 },
-    { month: "Feb", sales: 1200 },
-    { month: "Mar", sales: 1100 },
-    { month: "Apr", sales: 1300 },
-    { month: "May", sales: 1400 },
-    { month: "Jun", sales: 1600 },
-  ];
-
-  const config = {
+  const lineChartConfig = {
     data: monthlyBillData,
     xField: "month",
     yField: "totalBill",
@@ -200,8 +141,7 @@ const DashboardHome = () => {
       shape: "diamond",
     },
     label: {
-      // Ensure that the label uses the correct field
-      content: (data) => `${data.totalBill}`, // Display total bill value
+      content: (data) => `${data.totalBill}`,
     },
     smooth: true,
   };
@@ -217,130 +157,148 @@ const DashboardHome = () => {
           />
         </Spin>
       ) : (
-        <div className="">
-          {/* Title */}
+        <div>
+          <div className=''>
+            <Formik
+              initialValues={{ hotelID: defaultHotelID }} // Only hotelID in initial values
+              onSubmit={(values) => {
+                console.log("Selected Hotel ID:", values.hotelID); // Log selected value
+                handleHotelChange(values.hotelID); // Update filtered bookings based on selected hotel
+              }}
+            >
+              {({ setFieldValue, values }) => (
+                <Form>
+                  <Field name="hotelID">
+                    {({ field }) => (
+                      <Select
+                        {...field}
+                        placeholder="Select a Hotel"
+                        value={values.hotelID} // Ensure Select shows the correct hotel ID
+                        style={{ width: 300 }}
+                        onChange={(value) => {
+                          setFieldValue("hotelID", value); // Update Formik state
+                          handleHotelChange(value); // Update filtered bookings
+                        }}
+                      >
+                        {hotelInfo.map((hotel) => (
+                          <Option key={hotel.hotelID} value={hotel.hotelID}>
+                            {hotel.hotelName}
+                          </Option>
+                        ))}
+                      </Select>
+                    )}
+                  </Field>
+                </Form>
+              )}
+            </Formik>
+          </div>
           <Title
             level={2}
-            className="mb-4 lg:mb-6 text-[#8ABF55] text-center lg:text-left">
+            className="mb-2 lg:mb-4 text-[#8ABF55] text-center lg:text-left"
+          >
             Dashboard Overview
           </Title>
 
-          {/* Statistics */}
+          
+
           <Row gutter={[16, 24]} className="mb-6">
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Card style={{ backgroundColor: "#8ABF55" }}>
-                <Statistic
-                  title={
-                    <span style={{ color: "white" }}>
-                      {"FTB's Booking For Today"}
-                    </span>
-                  }
-                  value={totalBillForToday}
-                  prefix={<CheckCircleOutlined style={{ color: "white" }} />}
-                  valueStyle={{ color: "white" }}
-                />
-              </Card>
-            </Col>
+  <Col xs={24} sm={12} md={8} lg={6}>
+    <Card  style={{
+    background: 'linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)',
+  }}>
+      <Statistic
+        title={
+          <span className="text-white">
+            {"FTB's Booking For Today"}
+          </span>
+        }
+        value={totalBillForToday}
+        prefix={<CheckCircleOutlined className="text-white" />}
+        valueStyle={{ color: "white" }}
+      />
+    </Card>
+  </Col>
 
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Card style={{ backgroundColor: "#8ABF55" }}>
-                <Statistic
-                  title={
-                    <span style={{ color: "white" }}>
-                      Room vacany for today
-                    </span>
-                  }
-                  value={320}
-                  prefix={<HomeOutlined style={{ color: "white" }} />}
-                  valueStyle={{ color: "white" }}
-                />
-              </Card>
-            </Col>
+  <Col xs={24} sm={12} md={8} lg={6}>
+    <Card  style={{
+    background: 'linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)',
+  }}>
+      <Statistic
+        title={
+          <span className="text-white">
+            Room Vacancy For Today
+          </span>
+        }
+        value={320}
+        prefix={<HomeOutlined className="text-white" />}
+        valueStyle={{ color: "white" }}
+      />
+    </Card>
+  </Col>
 
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Card style={{ backgroundColor: "#8ABF55" }}>
-                <Statistic
-                  title={
-                    <span style={{ color: "white" }}>
-                      Last 30 days booking amount FTB
-                    </span>
-                  }
-                  value={totalBillForLast30Days}
-                  prefix={<CheckCircleOutlined style={{ color: "white" }} />}
-                  valueStyle={{ color: "white" }}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Card style={{ backgroundColor: "#8ABF55" }}>
-                <Statistic
-                  title={
-                    <span style={{ color: "white" }}>
-                      Last 30 days booking amount
-                    </span>
-                  }
-                  value={totalBillForLast30Days2}
-                  prefix={<CheckCircleOutlined style={{ color: "white" }} />}
-                  valueStyle={{ color: "white" }}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Card style={{ backgroundColor: "#8ABF55" }}>
-                <Statistic
-                  title={
-                    <span style={{ color: "white" }}>Total booking Amount</span>
-                  }
-                  value={totalBill}
-                  prefix={<CheckCircleOutlined style={{ color: "white" }} />}
-                  valueStyle={{ color: "white" }}
-                />
-              </Card>
-            </Col>
-            {/* <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{ backgroundColor: "#8ABF55" }}>
-            <Statistic
-              title={<span style={{ color: "white" }}>Total Users</span>}
-              value={10}
-              prefix={<UserOutlined style={{ color: "white" }} />}
-              valueStyle={{ color: "white" }}
-            />
-          </Card>
-        </Col> */}
-          </Row>
+  <Col xs={24} sm={12} md={8} lg={6}>
+    <Card  style={{
+    background: 'linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)',
+  }}>
+      <Statistic
+        title={
+          <span className="text-white">
+            Last 30 Days Booking Amount FTB
+          </span>
+        }
+        value={totalBillForLast30Days}
+        prefix={<CheckCircleOutlined className="text-white" />}
+        valueStyle={{ color: "white" }}
+      />
+    </Card>
+  </Col>
 
-          {/* Graph */}
-          <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-2">
-            <Title
-              level={4}
-              className="text-[#8ABF55] mb-4 text-center lg:text-left">
-              Bookings Over Time
-            </Title>
-            <Line {...config} />
+  <Col xs={24} sm={12} md={8} lg={6}>
+    <Card  style={{
+    background: 'linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)',
+  }}>
+      <Statistic
+        title={
+          <span className="text-white">
+            Last 30 Days Booking Amount
+          </span>
+        }
+        value={totalBillForLast30Days}
+        prefix={<CheckCircleOutlined className="text-white" />}
+        valueStyle={{ color: "white" }}
+      />
+    </Card>
+  </Col>
+
+  <Col xs={24} sm={12} md={8} lg={6}>
+    <Card  style={{
+    background: 'linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)',
+  }}>
+      <Statistic
+        title={
+          <span className="text-white">Total Booking Amount</span>
+        }
+        value={totalBill}
+        prefix={<CheckCircleOutlined className="text-white" />}
+        valueStyle={{ color: "white" }}
+      />
+    </Card>
+  </Col>
+</Row>
+
+
+          <div className="">
+            {/* Line Chart */}
+            <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-2">
+              <Title
+                level={4}
+                className="text-[#8ABF55] mb-4 text-center lg:text-left"
+              >
+                Bookings Over Time
+              </Title>
+              <Line {...lineChartConfig} />
+            </div>
           </div>
-
-          {/* Additional Information */}
-          <Divider className="my-4 lg:my-6" />
-          <Row gutter={16}>
-            <Col xs={24} sm={12} md={8}>
-              <Card>
-                <Title level={5}>Recent Orders</Title>
-                {/* Add recent orders or any additional data here */}
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={8}>
-              <Card>
-                <Title level={5}>Upcoming Events</Title>
-                {/* Add upcoming events or any additional data here */}
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={8}>
-              <Card>
-                <Title level={5}>System Health</Title>
-                {/* Add system health or any additional data here */}
-              </Card>
-            </Col>
-          </Row>
         </div>
       )}
     </div>

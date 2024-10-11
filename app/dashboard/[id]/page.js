@@ -125,21 +125,44 @@ const Invoice = ({ params }) => {
             className="bg-white p-8 rounded-lg shadow-md border border-gray-300 w-full mt-4"
             style={{ fontSize: "12px" }} // Make the overall text smaller
           >
-            <div className="">
+            <div >
+            <div className="grid grid-cols-3 gap-4" >
+              <div className="logo-container flex items-center justify-center">
+                <Image
+                  src="/images/Shamudro-Bari.png"
+                  alt="Logo"
+                  width={150}
+                  height={60}
+                />
+              </div>
+              <div className='mt-8 text-center'>
+                <h4 className="uppercase text-red-700 font-semibold text-xl">{data?.[0]?.hotelName} INVOICE</h4>
+              </div>
               <div className="text-center">
-                <p className="text-3xl font-bold uppercase text-blue-700 underline">
-                  {data?.hotelName || "Samudra Bari"}
+                
+                <div className="mt-8 text-gray-800 text-left">
+                <p>
+                  Address:  N.H.A building No- 09, Samudra Bari, Kolatoli, Cox’s
+                  Bazar
                 </p>
-                <p className="text-lg font-bold pt-2 text-red-700">
-                  Invoice Number: {data?.[0]?.bookingNo || "N/A"}
-                </p>
-                <p className="text-gray-600">
-                  Date:{" "}
-                  {moment(data?.createdAt).format("D MMM YYYY") ||
-                    "02 October 2024"}
-                </p>
+                <p>Front Desk no: 01886628295</p>
+                <p>Reservation no: 01886628296</p>
+              
               </div>
 
+              </div>
+              </div>
+              <div className='flex justify-between'>
+                  <p className="font-bold ">
+                    Invoice Number: {data?.[0]?.bookingNo || "N/A"}
+                  </p>
+                  <p className="text-gray-600 font-bold">
+                  Date:{" "}
+                    {moment(data?.[0]?.createTime).format("D MMM YYYY") ||
+                    "02 October 2024"}
+                  </p> 
+              </div>
+              
               <div className="mt-8 text-gray-800">
                 <p className="font-bold text-md">Bill To:</p>
                 <p>Guest Name: {data?.[0]?.fullName || "Ahmed Niloy"}</p>
@@ -149,6 +172,8 @@ const Invoice = ({ params }) => {
                   Address: {data?.[0]?.address || "Jinjira, Keranigong, Dhaka"}
                 </p>
               </div>
+
+
 
               {/* Table for Booking Details */}
               <div className="mt-8 text-gray-800">
@@ -177,17 +202,17 @@ const Invoice = ({ params }) => {
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Children
                       </th>
-                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                      {/* <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Method
-                      </th>
-                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                      </th> */}
+                      {/* <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Advance
                       </th>
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Due
-                      </th>
+                      </th> */}
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        Total Bill
+                        Bill
                       </th>
                     </tr>
                   </thead>
@@ -216,15 +241,15 @@ const Invoice = ({ params }) => {
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.children || "N/A"}
                         </td>
-                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                       {/*  <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.paymentMethod || "N/A"}
-                        </td>
-                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        </td> */}
+                        {/* <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.advancePayment || "N/A"}
                         </td>
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.duePayment || "N/A"}
-                        </td>
+                        </td> */}
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.totalBill || "N/A"}
                         </td>
@@ -236,29 +261,25 @@ const Invoice = ({ params }) => {
 
               <div className="mt-8 text-gray-800">
                 <p className="font-bold text-md">Payment Information:</p>
+                <p>Total Bill: {totals.totalBill} taka</p>
                 <p>Total Advance: {totals.totalAdvance} taka</p>
                 <p>Total Due: {totals.totalDue} taka</p>
-                <p>Total Bill: {totals.totalBill} taka</p>
+                <p>Payment Method: {data?.[0]?.paymentMethod} </p>
+                <p>Transaction ID: {data?.[0]?.transactionId} </p>
+               
               </div>
 
               <div className="mt-8 text-gray-800">
+              <p className='py-1'>Booked by: {data?.[0]?.bookedBy || "N/A"}</p>
                 <p className="font-bold text-md">Note:</p>
                 <p>
-                  Thank you so much for choosing Samudra Bari. Hope you will
+                  Thank you so much for choosing {data?.[0]?.hotelName}. Hope you will
                   enjoy your stay with us. Best of luck for your Cox’s Bazar
                   trip.
                 </p>
               </div>
 
-              <div className="mt-8 text-gray-800">
-                <p>
-                  Address: N.H.A building No- 09, Samudra Bari, Kolatoli, Cox’s
-                  Bazar
-                </p>
-                <p>Front Desk no: 01886628295</p>
-                <p>Reservation no: 01886628296</p>
-                <p>Booked by: {data?.[0]?.bookedBy || "N/A"}</p>
-              </div>
+              
             </div>
           </div>
         </div>

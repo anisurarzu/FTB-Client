@@ -10,6 +10,7 @@ import {
   ApartmentOutlined,
   UnorderedListOutlined,
   MenuOutlined,
+  CalendarOutlined,
 } from "@ant-design/icons"; // Icons
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -34,11 +35,18 @@ const rolePermissions = {
       component: <DashboardHome />,
     },
     {
-      key: "2",
-      label: "Users",
-      icon: <UsergroupAddOutlined />,
-      component: <AgentInformation />,
+      key: "7",
+      label: "Calendar",
+      icon: <CalendarOutlined />,
+      component: <Calender />,
     },
+    {
+      key: "6",
+      label: "Booking Info",
+      icon: <SettingOutlined />,
+      component: <BookingInfo />,
+    },
+
     {
       key: "3",
       label: "Flat/Room Type",
@@ -57,17 +65,12 @@ const rolePermissions = {
       icon: <FileTextOutlined />,
       component: <HotelInformation />,
     },
+
     {
-      key: "6",
-      label: "Booking Info",
-      icon: <SettingOutlined />,
-      component: <BookingInfo />,
-    },
-    {
-      key: "7",
-      label: "Calendar",
-      icon: <SettingOutlined />,
-      component: <Calender />,
+      key: "2",
+      label: "Users",
+      icon: <UsergroupAddOutlined />,
+      component: <AgentInformation />,
     },
     { key: "8", label: "Settings", icon: <SettingOutlined />, component: null },
   ],
@@ -79,16 +82,16 @@ const rolePermissions = {
       component: <DashboardHome />,
     },
     {
+      key: "7",
+      label: "Calendar",
+      icon: <CalendarOutlined />,
+      component: <Calender />,
+    },
+    {
       key: "6",
       label: "Booking Info",
       icon: <SettingOutlined />,
       component: <BookingInfo />,
-    },
-    {
-      key: "7",
-      label: "Calendar",
-      icon: <SettingOutlined />,
-      component: <Calender />,
     },
   ],
   hoteladmin: [
@@ -99,16 +102,16 @@ const rolePermissions = {
       component: <DashboardHome />,
     },
     {
+      key: "7",
+      label: "Calendar",
+      icon: <CalendarOutlined />,
+      component: <Calender />,
+    },
+    {
       key: "6",
       label: "Booking Info",
       icon: <SettingOutlined />,
       component: <BookingInfo />,
-    },
-    {
-      key: "7",
-      label: "Calendar",
-      icon: <SettingOutlined />,
-      component: <Calender />,
     },
   ],
   admin: [
@@ -119,16 +122,10 @@ const rolePermissions = {
       component: <DashboardHome />,
     },
     {
-      key: "2",
-      label: "Users",
-      icon: <UsergroupAddOutlined />,
-      component: <AgentInformation />,
-    },
-    {
-      key: "5",
-      label: "Hotel Info",
-      icon: <FileTextOutlined />,
-      component: <HotelInformation />,
+      key: "7",
+      label: "Calendar",
+      icon: <CalendarOutlined />,
+      component: <Calender />,
     },
     {
       key: "6",
@@ -136,11 +133,18 @@ const rolePermissions = {
       icon: <SettingOutlined />,
       component: <BookingInfo />,
     },
+
     {
-      key: "7",
-      label: "Calendar",
-      icon: <SettingOutlined />,
-      component: <Calender />,
+      key: "5",
+      label: "Hotel Info",
+      icon: <FileTextOutlined />,
+      component: <HotelInformation />,
+    },
+    {
+      key: "2",
+      label: "Users",
+      icon: <UsergroupAddOutlined />,
+      component: <AgentInformation />,
     },
   ],
 };
@@ -209,7 +213,7 @@ const Dashboard = ({ sliders }) => {
         className="bg-white">
         {allowedPages.map((page) => (
           <Menu.Item key={page.key} icon={page.icon} className="bg-white">
-            <span className="text-[#8ABF55] font-medium">{page.label}</span>
+            <span className="text-black font-medium ">{page.label}</span>
           </Menu.Item>
         ))}
       </Menu>
@@ -249,38 +253,44 @@ const Dashboard = ({ sliders }) => {
       </Drawer>
 
       <Layout className="site-layout">
-        <Header className="bg-white flex justify-between items-center pr-8 py-4 shadow-md">
-          <Button
-            icon={<MenuOutlined />}
-            className="lg:hidden"
-            onClick={showDrawer}
+      <Header
+  style={{
+    background: 'linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)',
+  }}
+  className="flex justify-between items-center pr-8 py-4 shadow-md"
+>
+  <Button
+    icon={<MenuOutlined />}
+    className="lg:hidden"
+    onClick={showDrawer}
+  />
+  <h1 className="text-2xl font-bold text-white px-2">
+    Fast Track Booking
+  </h1>
+  <div className="flex items-center space-x-4">
+    {userInfo && (
+      <div className="relative flex items-center space-x-2">
+        <div className="hidden lg:block xl:block">
+          <Avatar
+            src={userInfo.image}
+            alt={userInfo.username}
+            size={40}
           />
-          <h1 className="text-2xl font-bold text-[#8ABF55] px-2">
-            Fast Track Booking
-          </h1>
-          <div className="flex items-center space-x-4">
-            {userInfo && (
-              <div className="relative flex items-center space-x-2">
-                <div className="hidden lg:block xl:block">
-                  <Avatar
-                    src={userInfo.image}
-                    alt={userInfo.username}
-                    size={40}
-                  />
-                </div>
-                <div className="hidden lg:block xl:lg:block absolute top-0 left-0 mt-12 ml-2 bg-white text-[#8ABF55] rounded-md p-2 opacity-0 transition-opacity duration-300 hover:opacity-100">
-                  {userInfo.username}
-                </div>
-              </div>
-            )}
-            <Button
-              icon={<LogoutOutlined />}
-              type="primary"
-              className="bg-[#8ABF55] text-white border-none hover:bg-[#7DA54E]"
-              onClick={handleLogout}
-            />
-          </div>
-        </Header>
+        </div>
+        <div className="hidden lg:block xl:lg:block absolute top-0 left-0 mt-12 ml-2 bg-white text-[#8ABF55] rounded-md p-2 opacity-0 transition-opacity duration-300 hover:opacity-100">
+          {userInfo.username}
+        </div>
+      </div>
+    )}
+    <Button
+      icon={<LogoutOutlined />}
+      type="primary"
+      className="bg-[#8EABEF] text-white border-none hover:bg-[#7DA54E]"
+      onClick={handleLogout}
+    />
+  </div>
+</Header>
+
 
         <Content className="m-6 p-6 bg-white rounded-lg shadow-lg">
           {loading ? (

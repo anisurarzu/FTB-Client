@@ -17,6 +17,7 @@ import {
   Col,
   Pagination,
   Alert,
+  Option,
 } from "antd";
 import { useFormik } from "formik";
 import axios from "axios";
@@ -31,6 +32,8 @@ import Link from "next/link"; // For routing
 
 const BookingInfo = () => {
   const [visible, setVisible] = useState(false);
+
+  const [selectedHotel2, setSelectedHotel2] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editingKey, setEditingKey] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -176,7 +179,7 @@ const BookingInfo = () => {
         name: values.roomNumberName,
         bookedDates: [
           dayjs(values.checkInDate).format("YYYY-MM-DD"),
-          dayjs(values.checkOutDate).subtract(1, 'day').format("YYYY-MM-DD"),
+          dayjs(values.checkOutDate).subtract(1, "day").format("YYYY-MM-DD"),
         ],
         bookings: [
           {
@@ -295,7 +298,7 @@ const BookingInfo = () => {
       if (response.status === 200) {
         setBookings(response?.data);
         setFilteredBookings(response?.data);
-        setLoading(false)
+        setLoading(false);
       }
     } catch (error) {
       message.error("Failed to fetch bookings.");
@@ -428,11 +431,11 @@ const BookingInfo = () => {
     setLoading(true);
     try {
       const canceledBy = userInfo?.loginID; // Replace this with the actual user performing the deletion (e.g., from user context)
-      
+
       const res = await coreAxios.put(`/booking/soft/${key}`, {
-        canceledBy: canceledBy // Pass the canceledBy field in the request body
+        canceledBy: canceledBy, // Pass the canceledBy field in the request body
       });
-      
+
       if (res.status === 200) {
         message.success("Booking deleted successfully!");
         fetchBookings(); // Fetch the updated list of bookings
@@ -443,7 +446,6 @@ const BookingInfo = () => {
       setLoading(false);
     }
   };
-  
 
   const handlePriceChange = (e) => {
     const { name, value } = e.target;
@@ -515,9 +517,9 @@ const BookingInfo = () => {
       (r) =>
         r.bookingNo.toLowerCase().includes(value) ||
         r.bookedByID.toLowerCase().includes(value) ||
-        r.fullName.toLowerCase().includes(value)||
-        r.roomCategoryName.toLowerCase().includes(value)||
-        r.roomNumberName.toLowerCase().includes(value)||
+        r.fullName.toLowerCase().includes(value) ||
+        r.roomCategoryName.toLowerCase().includes(value) ||
+        r.roomNumberName.toLowerCase().includes(value) ||
         r.hotelName.toLowerCase().includes(value)
     );
     setFilteredBookings(filteredData);
@@ -584,6 +586,36 @@ const BookingInfo = () => {
       }
     }
   };
+  console.log("hotelID", hotelInfo);
+  const handleHotelChange = (hotelID) => {
+    setLoading(true)
+    setSelectedHotel2(hotelID); // Update selected hotel when dropdown changes
+
+
+  const selectedHotel = hotelInfo.find((hotel) => hotel.hotelID === hotelID);
+
+  // Update formik values
+  
+ // Reset room number name
+  formik.setFieldValue("hotelID2", hotelID); // Set the selected hotel ID
+  formik.setFieldValue(
+    "hotelName2",
+    selectedHotel ? selectedHotel.hotelName : ""
+  );
+
+
+
+    // Filter bookings by hotelID
+    const filteredData = bookings.filter(
+      (booking) => booking.hotelID === hotelID
+    );
+
+    setFilteredBookings(filteredData); // Set the filtered bookings
+    setPagination({ ...pagination, current: 1 }); // Reset pagination to page 1
+
+    setLoading(false)
+  };
+  
 
   return (
     <div>
@@ -608,6 +640,22 @@ const BookingInfo = () => {
               className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
               Add New Booking
             </Button>
+            {/* Hotel Selection Dropdown */}
+
+            <Select
+              name="hotelName2"
+              placeholder="Select a Hotel"
+              value={formik.values.hotelName2}
+          style={{ width: 300 }}
+
+              onChange={handleHotelChange}>
+              {hotelInfo.map((hotel) => (
+                <Select.Option key={hotel.hotelID} value={hotel.hotelID}>
+                  {hotel.hotelName}
+                </Select.Option>
+              ))}
+            </Select>
+
             {/* Global Search Input */}
             <Input
               placeholder="Search bookings..."
@@ -626,7 +674,7 @@ const BookingInfo = () => {
                     <th className="border border-tableBorder text-center p-2">
                       Booking No.
                     </th>
-                   
+
                     <th className="border border-tableBorder text-center p-2">
                       Guest Name
                     </th>
@@ -638,6 +686,9 @@ const BookingInfo = () => {
                     </th>
                     <th className="border border-tableBorder text-center p-2">
                       Flat No/Unit
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Booking Date
                     </th>
                     <th className="border border-tableBorder text-center p-2">
                       Check In
@@ -667,13 +718,14 @@ const BookingInfo = () => {
                 <tbody>
                   {paginatedBookings?.map((booking) => (
                     <tr
-                    key={booking.bookingNo}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800"
-                    style={{
-                      backgroundColor: booking.statusID === 255 ? 'rgba(255, 99, 99, 0.5)' : '',
-                    }}
-                  >
-                  
+                      key={booking.bookingNo}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                      style={{
+                        backgroundColor:
+                          booking.statusID === 255
+                            ? "rgba(255, 99, 99, 0.5)"
+                            : "",
+                      }}>
                       {/* Booking No with Link and Copy Feature */}
                       <td className="border border-tableBorder text-center p-2">
                         <span
@@ -683,6 +735,7 @@ const BookingInfo = () => {
                             justifyContent: "center",
                           }}>
                           <Link
+                            target="_blank"
                             href={`/dashboard/${booking.bookingNo}`}
                             passHref>
                             <p
@@ -707,7 +760,6 @@ const BookingInfo = () => {
                       </td>
 
                       {/* Booked By */}
-                   
 
                       {/* Guest Name */}
                       <td className="border border-tableBorder text-center p-2">
@@ -731,6 +783,10 @@ const BookingInfo = () => {
 
                       {/* Check In */}
                       <td className="border border-tableBorder text-center p-2">
+                        {moment(booking.createTime).format("D MMM YYYY")}
+                      </td>
+                      {/* Check In */}
+                      <td className="border border-tableBorder text-center p-2">
                         {moment(booking.checkInDate).format("D MMM YYYY")}
                       </td>
 
@@ -748,25 +804,24 @@ const BookingInfo = () => {
                       <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
                         {booking.totalBill}
                       </td>
-                     
 
                       {/* Booking Status */}
                       <td
-  className="border border-tableBorder text-center p-2 font-bold"
-  style={{
-    color: booking.statusID === 255 ? 'red' : 'green', // Inline style for text color
-  }}
->
-  {booking.statusID === 255 ? (
-    <p>Canceled</p>
-  ) : (
-    "Confirmed"
-  )}
-</td>
-<td className="border border-tableBorder text-center p-2 font-bold text-green-900">
-                        {booking?.statusID===255?booking?.canceledBy:booking?.bookedBy} 
+                        className="border border-tableBorder text-center p-2 font-bold"
+                        style={{
+                          color: booking.statusID === 255 ? "red" : "green", // Inline style for text color
+                        }}>
+                        {booking.statusID === 255 ? (
+                          <p>Canceled</p>
+                        ) : (
+                          "Confirmed"
+                        )}
                       </td>
-
+                      <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
+                        {booking?.statusID === 255
+                          ? booking?.canceledBy
+                          : booking?.bookedBy}
+                      </td>
 
                       {/* Actions */}
                       <td className="border border-tableBorder text-center p-2">
@@ -794,15 +849,15 @@ const BookingInfo = () => {
             {/* Pagination (commented out) */}
 
             <div className="flex justify-center p-2">
-            <Pagination
-          current={pagination.current}
-          pageSize={pagination.pageSize}
-          total={filteredBookings?.length}
-          onChange={(page, pageSize) =>
-            setPagination({ current: page, pageSize })
-          } // Update both current page and pageSize
-          className="mt-4"
-        />
+              <Pagination
+                current={pagination.current}
+                pageSize={pagination.pageSize}
+                total={filteredBookings?.length}
+                onChange={(page, pageSize) =>
+                  setPagination({ current: page, pageSize })
+                } // Update both current page and pageSize
+                className="mt-4"
+              />
             </div>
           </div>
 
@@ -878,29 +933,25 @@ const BookingInfo = () => {
                   </Form.Item>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <Form.Item label="Check In Date" className="mb-2">
-                    <DatePicker
-                      name="checkInDate"
-                      value={formik.values.checkInDate}
-                      required={true}
-                      onChange={(date) =>
-                        formik.setFieldValue("checkInDate", date)
-                      }
-                    />
-                  </Form.Item>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Check Out Date" className="mb-2">
-                    <DatePicker
-                      name="checkOutDate"
-                      required={true}
-                      value={formik.values.checkOutDate}
-                      onChange={(date) =>
-                        formik.setFieldValue("checkOutDate", date)
-                      }
-                    />
-                  </Form.Item>
-                </div>
+        <Form.Item label="Check In Date" className="mb-2">
+          <DatePicker
+            name="checkInDate"
+            required={true}
+            value={formik.values.checkInDate}
+            onChange={(date) => handleDateChange("checkInDate", date)}
+          />
+        </Form.Item>
+      </div>
+      <div style={{ flex: 1 }}>
+        <Form.Item label="Check Out Date" className="mb-2">
+          <DatePicker
+            name="checkOutDate"
+            required={true}
+            value={formik.values.checkOutDate}
+            onChange={(date) => handleDateChange("checkOutDate", date)}
+          />
+        </Form.Item>
+      </div>
               </div>
 
               <div style={{ display: "flex", gap: "16px" }}>
