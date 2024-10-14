@@ -4,7 +4,6 @@ import {
   Badge,
   Calendar,
   Modal,
-  List,
   Button,
   Descriptions,
   Table,
@@ -13,7 +12,6 @@ import {
   Alert,
   Select,
 } from "antd";
-import moment from "moment";
 import dayjs from "dayjs";
 import coreAxios from "@/utils/axiosInstance";
 
@@ -27,8 +25,9 @@ const CustomCalendar = () => {
   const [selectedRoomInfo, setSelectedRoomInfo] = useState(null);
   const [highlightedDate, setHighlightedDate] = useState(null);
   const [hotelData, setHotelData] = useState([]);
-  const [selectedHotel, setSelectedHotel] = useState(null); // For selected hotel
+  const [selectedHotel, setSelectedHotel] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showAllDates, setShowAllDates] = useState(false); // New state for toggling view
 
   useEffect(() => {
     fetchHotelInformation();
@@ -42,7 +41,7 @@ const CustomCalendar = () => {
         setLoading(false);
         setHotelData(res?.data);
         if (res?.data?.length > 0) {
-          setSelectedHotel(res?.data[0].hotelName); // Set first hotel as default
+          setSelectedHotel(res?.data[0].hotelName);
         }
       }
     } catch (err) {
@@ -51,7 +50,6 @@ const CustomCalendar = () => {
   };
 
   const getRoomAvailability = (date) => {
-    // Filter hotel data based on selected hotel
     const filteredHotel = hotelData.find(
       (hotel) => hotel.hotelName === selectedHotel
     );
@@ -95,13 +93,25 @@ const CustomCalendar = () => {
   };
 
   const handleHotelChange = (hotel) => {
-    setSelectedHotel(hotel); // Update selected hotel when dropdown changes
-    setHighlightedDate(null); // Clear the highlighted date when changing the hotel
-    setRoomAvailability([]); // Clear availability data
+    setSelectedHotel(hotel);
+    setHighlightedDate(null);
+    setRoomAvailability([]);
+  };
+
+  const toggleDateView = () => {
+    setShowAllDates((prev) => !prev); // Toggle between showing all dates or future dates only
   };
 
   const dateFullCellRender = (value) => {
     const date = value.format("YYYY-MM-DD");
+    const today = dayjs().startOf("day"); // Today's date for comparison
+    const isPast = value.isBefore(today); // Check if the date is in the past
+
+    // If showAllDates is false, hide past dates by returning an empty div
+    if (!showAllDates && isPast) {
+      return <div style={{ visibility: "hidden" }} />;
+    }
+
     const availability = getRoomAvailability(date);
     const isSelected = highlightedDate
       ? value.isSame(highlightedDate, "day")
@@ -152,8 +162,7 @@ const CustomCalendar = () => {
         FTB Booking Calendar
       </h3>
 
-      {/* Hotel Selection Dropdown */}
-      <div className=" text-left">
+      <div className="text-left">
         <Select
           value={selectedHotel}
           onChange={handleHotelChange}
@@ -165,6 +174,12 @@ const CustomCalendar = () => {
             </Option>
           ))}
         </Select>
+      </div>
+
+      <div className="text-center my-4">
+        <Button onClick={toggleDateView} style={{ marginRight: 8 }}>
+          {showAllDates ? "Show Future Dates Only" : "Show All Dates"}
+        </Button>
       </div>
 
       {loading ? (
@@ -181,18 +196,18 @@ const CustomCalendar = () => {
         <div>
           <Calendar
             dateFullCellRender={dateFullCellRender}
+            defaultValue={dayjs()} // Start calendar from today's date using dayjs
             onSelect={(date) => {
               const selectedDate = date.format("YYYY-MM-DD");
               if (
                 !highlightedDate ||
-                !moment(selectedDate).isSame(highlightedDate, "day")
+                !dayjs(selectedDate).isSame(highlightedDate, "day")
               ) {
                 handleDateSelect(date);
               }
             }}
           />
 
-          {/* Modals for room availability and room details */}
           <Modal
             title={`Room Availability for ${selectedDate}`}
             visible={isModalVisible}
@@ -265,45 +280,46 @@ const CustomCalendar = () => {
                   </Descriptions.Item>
                 </Descriptions>
                 {selectedRoomInfo.bookings.length > 0 ? (
-                 <Table
-                 dataSource={selectedRoomInfo.bookings}
-                 rowKey={(record) => record.guestName}
-                 columns={[
-                   { title: "Guest Name", dataIndex: "guestName" },
-                   {
-                     title: "Check In",
-                     dataIndex: "checkIn",
-                     render: (checkIn) => dayjs(checkIn).format("D MMM YYYY"), // Format Check In date
-                   },
-                   {
-                     title: "Check Out",
-                     dataIndex: "checkOut",
-                     render: (checkOut) => dayjs(checkOut).format("D MMM YYYY"), // Format Check Out date
-                   },
-                   { title: "Booked By", dataIndex: "bookedBy" },
-                   {
-                     title: "Total Bill",
-                     dataIndex: ["paymentDetails", "totalBill"],
-                   },
-                   {
-                     title: "Advance Payment",
-                     dataIndex: ["paymentDetails", "advancePayment"],
-                   },
-                   {
-                     title: "Due Payment",
-                     dataIndex: ["paymentDetails", "duePayment"],
-                   },
-                   {
-                     title: "Payment Method",
-                     dataIndex: ["paymentDetails", "paymentMethod"],
-                   },
-                   {
-                     title: "Transaction ID",
-                     dataIndex: ["paymentDetails", "transactionId"],
-                   },
-                 ]}
-               />
-               
+                  <Table
+                    dataSource={selectedRoomInfo.bookings}
+                    rowKey={(record) => record.guestName}
+                    columns={[
+                      { title: "Guest Name", dataIndex: "guestName" },
+                      {
+                        title: "Check In",
+                        dataIndex: "checkIn",
+                        render: (checkIn) =>
+                          dayjs(checkIn).format("D MMM YYYY"),
+                      },
+                      {
+                        title: "Check Out",
+                        dataIndex: "checkOut",
+                        render: (checkOut) =>
+                          dayjs(checkOut).format("D MMM YYYY"),
+                      },
+                      { title: "Booked By", dataIndex: "bookedBy" },
+                      {
+                        title: "Total Bill",
+                        dataIndex: ["paymentDetails", "totalBill"],
+                      },
+                      {
+                        title: "Advance Payment",
+                        dataIndex: ["paymentDetails", "advancePayment"],
+                      },
+                      {
+                        title: "Due Payment",
+                        dataIndex: ["paymentDetails", "duePayment"],
+                      },
+                      {
+                        title: "Payment Method",
+                        dataIndex: ["paymentDetails", "paymentMethod"],
+                      },
+                      {
+                        title: "Transaction ID",
+                        dataIndex: ["paymentDetails", "transactionId"],
+                      },
+                    ]}
+                  />
                 ) : (
                   <p>No bookings found for this room.</p>
                 )}
