@@ -588,22 +588,19 @@ const BookingInfo = () => {
   };
   console.log("hotelID", hotelInfo);
   const handleHotelChange = (hotelID) => {
-    setLoading(true)
+    setLoading(true);
     setSelectedHotel2(hotelID); // Update selected hotel when dropdown changes
 
+    const selectedHotel = hotelInfo.find((hotel) => hotel.hotelID === hotelID);
 
-  const selectedHotel = hotelInfo.find((hotel) => hotel.hotelID === hotelID);
+    // Update formik values
 
-  // Update formik values
-  
- // Reset room number name
-  formik.setFieldValue("hotelID2", hotelID); // Set the selected hotel ID
-  formik.setFieldValue(
-    "hotelName2",
-    selectedHotel ? selectedHotel.hotelName : ""
-  );
-
-
+    // Reset room number name
+    formik.setFieldValue("hotelID2", hotelID); // Set the selected hotel ID
+    formik.setFieldValue(
+      "hotelName2",
+      selectedHotel ? selectedHotel.hotelName : ""
+    );
 
     // Filter bookings by hotelID
     const filteredData = bookings.filter(
@@ -613,9 +610,8 @@ const BookingInfo = () => {
     setFilteredBookings(filteredData); // Set the filtered bookings
     setPagination({ ...pagination, current: 1 }); // Reset pagination to page 1
 
-    setLoading(false)
+    setLoading(false);
   };
-  
 
   return (
     <div>
@@ -646,8 +642,7 @@ const BookingInfo = () => {
               name="hotelName2"
               placeholder="Select a Hotel"
               value={formik.values.hotelName2}
-          style={{ width: 300 }}
-
+              style={{ width: 300 }}
               onChange={handleHotelChange}>
               {hotelInfo.map((hotel) => (
                 <Select.Option key={hotel.hotelID} value={hotel.hotelID}>
@@ -933,25 +928,29 @@ const BookingInfo = () => {
                   </Form.Item>
                 </div>
                 <div style={{ flex: 1 }}>
-        <Form.Item label="Check In Date" className="mb-2">
-          <DatePicker
-            name="checkInDate"
-            required={true}
-            value={formik.values.checkInDate}
-            onChange={(date) => handleDateChange("checkInDate", date)}
-          />
-        </Form.Item>
-      </div>
-      <div style={{ flex: 1 }}>
-        <Form.Item label="Check Out Date" className="mb-2">
-          <DatePicker
-            name="checkOutDate"
-            required={true}
-            value={formik.values.checkOutDate}
-            onChange={(date) => handleDateChange("checkOutDate", date)}
-          />
-        </Form.Item>
-      </div>
+                  <Form.Item label="Check In Date" className="mb-2">
+                    <DatePicker
+                      name="checkInDate"
+                      value={formik.values.checkInDate}
+                      required={true}
+                      onChange={(date) =>
+                        formik.setFieldValue("checkInDate", date)
+                      }
+                    />
+                  </Form.Item>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Check Out Date" className="mb-2">
+                    <DatePicker
+                      name="checkOutDate"
+                      required={true}
+                      value={formik.values.checkOutDate}
+                      onChange={(date) =>
+                        formik.setFieldValue("checkOutDate", date)
+                      }
+                    />
+                  </Form.Item>
+                </div>
               </div>
 
               <div style={{ display: "flex", gap: "16px" }}>

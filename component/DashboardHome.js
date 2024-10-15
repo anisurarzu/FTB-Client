@@ -25,7 +25,7 @@ const DashboardHome = () => {
   const [loading, setLoading] = useState(false);
   const [hotelInfo, setHotelInfo] = useState([]); // State for hotel information
   const [filteredBookings, setFilteredBookings] = useState([]); // State for filtered bookings
-  const defaultHotelID = ''; // Default hotel ID
+  const defaultHotelID = ""; // Default hotel ID
 
   useEffect(() => {
     fetchBookings();
@@ -158,14 +158,13 @@ const DashboardHome = () => {
         </Spin>
       ) : (
         <div>
-          <div className=''>
+          <div className="">
             <Formik
               initialValues={{ hotelID: defaultHotelID }} // Only hotelID in initial values
               onSubmit={(values) => {
                 console.log("Selected Hotel ID:", values.hotelID); // Log selected value
                 handleHotelChange(values.hotelID); // Update filtered bookings based on selected hotel
-              }}
-            >
+              }}>
               {({ setFieldValue, values }) => (
                 <Form>
                   <Field name="hotelID">
@@ -178,8 +177,7 @@ const DashboardHome = () => {
                         onChange={(value) => {
                           setFieldValue("hotelID", value); // Update Formik state
                           handleHotelChange(value); // Update filtered bookings
-                        }}
-                      >
+                        }}>
                         {hotelInfo.map((hotel) => (
                           <Option key={hotel.hotelID} value={hotel.hotelID}>
                             {hotel.hotelName}
@@ -194,106 +192,109 @@ const DashboardHome = () => {
           </div>
           <Title
             level={2}
-            className="mb-2 lg:mb-4 text-[#8ABF55] text-center lg:text-left"
-          >
+            className="mb-2 lg:mb-4 text-[#8ABF55] text-center lg:text-left">
             Dashboard Overview
           </Title>
 
-          
-
           <Row gutter={[16, 24]} className="mb-6">
-  <Col xs={24} sm={12} md={8} lg={6}>
-    <Card  style={{
-    background: 'linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)',
-  }}>
-      <Statistic
-        title={
-          <span className="text-white">
-            {"FTB's Booking For Today"}
-          </span>
-        }
-        value={totalBillForToday}
-        prefix={<CheckCircleOutlined className="text-white" />}
-        valueStyle={{ color: "white" }}
-      />
-    </Card>
-  </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Card
+                style={{
+                  background:
+                    "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                }}>
+                <Statistic
+                  title={
+                    <span className="text-white">
+                      {"FTB's Booking For Today"}
+                    </span>
+                  }
+                  value={totalBillForToday}
+                  prefix={<CheckCircleOutlined className="text-white" />}
+                  valueStyle={{ color: "white" }}
+                />
+              </Card>
+            </Col>
 
-  <Col xs={24} sm={12} md={8} lg={6}>
-    <Card  style={{
-    background: 'linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)',
-  }}>
-      <Statistic
-        title={
-          <span className="text-white">
-            Room Vacancy For Today
-          </span>
-        }
-        value={320}
-        prefix={<HomeOutlined className="text-white" />}
-        valueStyle={{ color: "white" }}
-      />
-    </Card>
-  </Col>
+           {/*  <Col xs={24} sm={12} md={8} lg={6}>
+              <Card
+                style={{
+                  background:
+                    "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                }}>
+                <Statistic
+                  title={
+                    <span className="text-white">Room Vacancy For Today</span>
+                  }
+                  value={320}
+                  prefix={<HomeOutlined className="text-white" />}
+                  valueStyle={{ color: "white" }}
+                />
+              </Card>
+            </Col> */}
 
-  <Col xs={24} sm={12} md={8} lg={6}>
-    <Card  style={{
-    background: 'linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)',
-  }}>
-      <Statistic
-        title={
-          <span className="text-white">
-            Last 30 Days Booking Amount FTB
-          </span>
-        }
-        value={totalBillForLast30Days}
-        prefix={<CheckCircleOutlined className="text-white" />}
-        valueStyle={{ color: "white" }}
-      />
-    </Card>
-  </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Card
+                style={{
+                  background:
+                    "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                }}>
+                <Statistic
+                  title={
+                    <span className="text-white">
+                      Last 30 Days Booking Amount FTB
+                    </span>
+                  }
+                  value={totalBillForLast30Days}
+                  prefix={<CheckCircleOutlined className="text-white" />}
+                  valueStyle={{ color: "white" }}
+                />
+              </Card>
+            </Col>
 
-  <Col xs={24} sm={12} md={8} lg={6}>
-    <Card  style={{
-    background: 'linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)',
-  }}>
-      <Statistic
-        title={
-          <span className="text-white">
-            Last 30 Days Booking Amount
-          </span>
-        }
-        value={totalBillForLast30Days}
-        prefix={<CheckCircleOutlined className="text-white" />}
-        valueStyle={{ color: "white" }}
-      />
-    </Card>
-  </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Card
+                style={{
+                  background:
+                    "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                }}>
+                <Statistic
+                  title={
+                    <span className="text-white">
+                      Last 30 Days Booking Amount
+                    </span>
+                  }
+                  value={totalBillForLast30Days}
+                  prefix={<CheckCircleOutlined className="text-white" />}
+                  valueStyle={{ color: "white" }}
+                />
+              </Card>
+            </Col>
 
-  <Col xs={24} sm={12} md={8} lg={6}>
-    <Card  style={{
-    background: 'linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)',
-  }}>
-      <Statistic
-        title={
-          <span className="text-white">Total Booking Amount</span>
-        }
-        value={totalBill}
-        prefix={<CheckCircleOutlined className="text-white" />}
-        valueStyle={{ color: "white" }}
-      />
-    </Card>
-  </Col>
-</Row>
-
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Card
+                style={{
+                  background:
+                    "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                }}>
+                <Statistic
+                  title={
+                    <span className="text-white">Total Booking Amount</span>
+                  }
+                  value={totalBill}
+                  prefix={<CheckCircleOutlined className="text-white" />}
+                  valueStyle={{ color: "white" }}
+                />
+              </Card>
+            </Col>
+          </Row>
 
           <div className="">
             {/* Line Chart */}
             <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-2">
               <Title
                 level={4}
-                className="text-[#8ABF55] mb-4 text-center lg:text-left"
-              >
+                className="text-[#8ABF55] mb-4 text-center lg:text-left">
                 Bookings Over Time
               </Title>
               <Line {...lineChartConfig} />
