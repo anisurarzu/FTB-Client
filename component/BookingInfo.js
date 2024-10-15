@@ -242,7 +242,10 @@ const BookingInfo = () => {
       setIsEditing(false);
       setEditingKey(null);
       message.success("Room booking status updated successfully!");
-      fetchBookings(); // Fetch updated bookings after successful update
+
+      fetchHotelInfo();
+      fetchBookings();
+      // Fetch updated bookings after successful update
     } else {
       message.error("Failed to update room booking status.");
     }

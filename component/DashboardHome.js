@@ -9,6 +9,7 @@ import {
   Spin,
   Select,
   message,
+  Table,
 } from "antd";
 import { CheckCircleOutlined, HomeOutlined } from "@ant-design/icons";
 import { Line } from "@ant-design/charts";
@@ -22,15 +23,33 @@ const { Option } = Select;
 
 const DashboardHome = () => {
   const [bookings, setBookings] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hotelInfo, setHotelInfo] = useState([]); // State for hotel information
   const [filteredBookings, setFilteredBookings] = useState([]); // State for filtered bookings
   const defaultHotelID = ""; // Default hotel ID
+  const [userData, setUserData] = useState([]); // State for user data
 
   useEffect(() => {
     fetchBookings();
     fetchHotelInfo();
+
+    fetchUsers();
   }, []);
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await coreAxios.get("/auth/users");
+      if (response.status === 200) {
+        setLoading(false);
+        setUsers(response.data);
+      }
+    } catch (error) {
+      message.error("Failed to fetch users. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -146,6 +165,113 @@ const DashboardHome = () => {
     smooth: true,
   };
 
+  // Calculate user-wise total bills
+  const calculateUserTotalBills = (userID) => {
+    // Get the correct loginID based on userID
+    const user = users?.users?.find((user) => user.id === userID);
+
+    if (!user) {
+      console.warn(`User with ID ${userID} not found`);
+      return {
+        totalBillForUserToday: 0,
+        totalBillForUserLast30Days: 0,
+        totalBillForUserOverall: 0,
+      };
+    }
+
+    const bookedByID = user.loginID; // Get the corresponding loginID
+
+    // Filter bookings based on bookedByID
+    const userBookings = bookings.filter(
+      (booking) => booking.bookedByID === bookedByID
+    );
+
+    // Log the user bookings to verify
+    console.log(`User Bookings for ${bookedByID}:`, userBookings);
+
+    const today = dayjs().startOf("day");
+    const totalBillForUserToday = userBookings.reduce((sum, booking) => {
+      const createTime = dayjs(booking.createTime).startOf("day");
+      return createTime.isSame(today) ? sum + booking.totalBill : sum;
+    }, 0);
+
+    const sevenDaysAgo = dayjs().subtract(7, "day").startOf("day");
+    const totalBillForUserLast7Days = userBookings.reduce((sum, booking) => {
+      const createTime = dayjs(booking.createTime).startOf("day");
+      return createTime.isBetween(sevenDaysAgo, today, "day", "[]")
+        ? sum + booking.totalBill
+        : sum;
+    }, 0);
+
+    const thirtyDaysAgo = dayjs().subtract(30, "day").startOf("day");
+    const totalBillForUserLast30Days = userBookings.reduce((sum, booking) => {
+      const createTime = dayjs(booking.createTime).startOf("day");
+      return createTime.isBetween(thirtyDaysAgo, today, "day", "[]")
+        ? sum + booking.totalBill
+        : sum;
+    }, 0);
+
+    const totalBillForUserOverall = userBookings.reduce(
+      (sum, booking) => sum + booking.totalBill,
+      0
+    );
+
+    return {
+      totalBillForUserToday,
+      totalBillForUserLast7Days,
+      totalBillForUserLast30Days,
+      totalBillForUserOverall,
+    };
+  };
+
+  // Prepare user data for the table
+  const userTableData = users?.users?.map((user) => {
+    const {
+      totalBillForUserToday,
+      totalBillForUserLast7Days,
+      totalBillForUserLast30Days,
+      totalBillForUserOverall,
+    } = calculateUserTotalBills(user.id);
+    return {
+      key: user.id,
+      username: user.loginID,
+      totalBillForToday: totalBillForUserToday,
+      totalBillForUserLast7Days: totalBillForUserLast7Days,
+      totalBillForLast30Days: totalBillForUserLast30Days,
+      totalBillOverall: totalBillForUserOverall,
+    };
+  });
+
+  // Log the userTableData to check results
+
+  const columns = [
+    {
+      title: "User ID",
+      dataIndex: "username",
+      key: "username",
+    },
+    {
+      title: "Today's Booking",
+      dataIndex: "totalBillForToday",
+      key: "totalBillForToday",
+    },
+    {
+      title: "Last 7 Days Booking",
+      dataIndex: "totalBillForUserLast7Days",
+      key: "totalBillForUserLast7Days",
+    },
+    {
+      title: "Last 30 Days Booking",
+      dataIndex: "totalBillForLast30Days",
+      key: "totalBillForLast30Days",
+    },
+    {
+      title: "Overall Booking",
+      dataIndex: "totalBillOverall",
+      key: "totalBillOverall",
+    },
+  ];
+
   return (
     <div>
       {loading ? (
@@ -206,7 +332,7 @@ const DashboardHome = () => {
                 <Statistic
                   title={
                     <span className="text-white">
-                      {"FTB's Booking For Today"}
+                      {"Today's Booking By FTB Agents"}
                     </span>
                   }
                   value={totalBillForToday}
@@ -216,23 +342,6 @@ const DashboardHome = () => {
               </Card>
             </Col>
 
-           {/*  <Col xs={24} sm={12} md={8} lg={6}>
-              <Card
-                style={{
-                  background:
-                    "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
-                }}>
-                <Statistic
-                  title={
-                    <span className="text-white">Room Vacancy For Today</span>
-                  }
-                  value={320}
-                  prefix={<HomeOutlined className="text-white" />}
-                  valueStyle={{ color: "white" }}
-                />
-              </Card>
-            </Col> */}
-
             <Col xs={24} sm={12} md={8} lg={6}>
               <Card
                 style={{
@@ -242,7 +351,7 @@ const DashboardHome = () => {
                 <Statistic
                   title={
                     <span className="text-white">
-                      Last 30 Days Booking Amount FTB
+                      Last 30 Days Booking By FTB
                     </span>
                   }
                   value={totalBillForLast30Days}
@@ -260,9 +369,7 @@ const DashboardHome = () => {
                 }}>
                 <Statistic
                   title={
-                    <span className="text-white">
-                      Last 30 Days Booking Amount
-                    </span>
+                    <span className="text-white">Last 30 Days Booking</span>
                   }
                   value={totalBillForLast30Days}
                   prefix={<CheckCircleOutlined className="text-white" />}
@@ -279,7 +386,9 @@ const DashboardHome = () => {
                 }}>
                 <Statistic
                   title={
-                    <span className="text-white">Total Booking Amount</span>
+                    <span className="text-white">
+                      {`Today's Booking By Overall`}
+                    </span>
                   }
                   value={totalBill}
                   prefix={<CheckCircleOutlined className="text-white" />}
@@ -288,7 +397,6 @@ const DashboardHome = () => {
               </Card>
             </Col>
           </Row>
-
           <div className="">
             {/* Line Chart */}
             <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-2">
@@ -298,6 +406,67 @@ const DashboardHome = () => {
                 Bookings Over Time
               </Title>
               <Line {...lineChartConfig} />
+            </div>
+          </div>
+
+          <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-4">
+            <Title
+              level={4}
+              className="text-[#8ABF55] mb-4 text-center lg:text-left">
+              User-wise Booking Overview (For All Hotels)
+            </Title>
+
+            {/* Responsive Table */}
+            <div className="relative overflow-x-auto shadow-md">
+              <div style={{ overflowX: "auto" }}>
+                <table className="w-full text-xs text-left rtl:text-right dark:text-gray-400">
+                  {/* Table Header */}
+                  <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                      <th className="border border-tableBorder text-center p-2">
+                        User ID
+                      </th>
+                      <th className="border border-tableBorder text-center p-2">
+                        {`Today's Booking`}
+                      </th>
+                      <th className="border border-tableBorder text-center p-2">
+                        Last 7 Days Booking
+                      </th>
+                      <th className="border border-tableBorder text-center p-2">
+                        Last 30 Days Booking
+                      </th>
+                      <th className="border border-tableBorder text-center p-2">
+                        Overall Booking
+                      </th>
+                    </tr>
+                  </thead>
+
+                  {/* Table Body */}
+                  <tbody>
+                    {userTableData?.map((user) => (
+                      <tr
+                        key={user.key}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <td className="border border-tableBorder text-center p-2">
+                          {user.username}
+                        </td>
+                        <td className="border border-tableBorder text-center p-2">
+                          {user.totalBillForToday}
+                        </td>
+                        <td className="border border-tableBorder text-center p-2">
+                          {user.totalBillForUserLast7Days}
+                        </td>
+                        <td className="border border-tableBorder text-center p-2">
+                          {user.totalBillForLast30Days}
+                        </td>
+                        <td className="border border-tableBorder text-center p-2">
+                          {user.totalBillOverall}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>

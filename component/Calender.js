@@ -11,6 +11,7 @@ import {
   Spin,
   Alert,
   Select,
+   Row, Col 
 } from "antd";
 import dayjs from "dayjs";
 import coreAxios from "@/utils/axiosInstance";
@@ -208,63 +209,71 @@ const CustomCalendar = () => {
             }}
           />
 
-          <Modal
-            title={`Room Availability for ${selectedDate}`}
-            visible={isModalVisible}
-            onCancel={() => setIsModalVisible(false)}
-            width={1200}
-            footer={[
-              <Button key="close" onClick={() => setIsModalVisible(false)}>
-                Close
-              </Button>,
-            ]}>
-            <div className="w-full">
-              {roomAvailability.map((hotel, hotelIdx) => (
-                <div key={hotelIdx} className="mb-8">
-                  <div className="text-lg font-bold mb-4">
-                    {hotel.hotelName}
-                  </div>
 
-                  <div className="flex">
-                    {hotel.roomCategories.map((category, idx) => (
-                      <div
-                        key={idx}
-                        className="bg-white p-4 rounded-md shadow-md">
-                        <Tag color="blue">{category.name}</Tag>:{" "}
-                        {category.availableroomNumbers} Available /{" "}
-                        {category.bookedroomNumbers} Booked
-                        <div className="mt-2 space-y-2">
-                          {category.roomNumbers.map((room) => (
-                            <div key={room.name}>
-                              {room.bookedDates.includes(selectedDate) ? (
-                                <Button
-                                  type="link"
-                                  onClick={() => handleRoomClick(room)}>
-                                  <Tag color="yellow">
-                                    Room {room.name} is Booked
-                                  </Tag>
-                                </Button>
-                              ) : (
-                                <Tag color="green">
-                                  Room {room.name} is Available
-                                </Tag>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+
+<Modal
+  title={`Room Availability for ${selectedDate}`}
+  visible={isModalVisible}
+  onCancel={() => setIsModalVisible(false)}
+  width={1200}
+  footer={[
+    <Button key="close" onClick={() => setIsModalVisible(false)}>
+      Close
+    </Button>,
+  ]}
+>
+  <div className="w-full">
+    {roomAvailability.map((hotel, hotelIdx) => (
+      <div key={hotelIdx} className="mb-8">
+        <div className="text-lg font-bold mb-4">{hotel.hotelName}</div>
+
+        {/* Use Ant Design Grid System */}
+        <Row gutter={[16, 16]}>
+          {hotel.roomCategories.map((category, idx) => (
+            <Col
+              key={idx}
+              xs={24}  // Full width on extra small screens
+              sm={12}  // 2 columns on small screens
+              md={8}   // 3 columns on medium screens
+              lg={6}   // 4 columns on large screens
+            >
+              <div className="bg-white p-4 rounded-md shadow-md">
+                <Tag color="blue">{category.name}</Tag>:{" "}
+                {category.availableroomNumbers} Available /{" "}
+                {category.bookedroomNumbers} Booked
+                <div className="mt-2 space-y-2">
+                  {category.roomNumbers.map((room) => (
+                    <div key={room.name}>
+                      {room.bookedDates.includes(selectedDate) ? (
+                        <Button
+                          type="link"
+                          onClick={() => handleRoomClick(room)}
+                        >
+                          <Tag color="yellow">
+                            Room {room.name} is Booked
+                          </Tag>
+                        </Button>
+                      ) : (
+                        <Tag color="green">Room {room.name} is Available</Tag>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </Modal>
+              </div>
+            </Col>
+          ))}
+        </Row>
+      </div>
+    ))}
+  </div>
+</Modal>
+
 
           <Modal
             title={`Room Details`}
             visible={roomInfoModalVisible}
             onCancel={() => setRoomInfoModalVisible(false)}
-            width={1200}
+            width='100%'
             footer={[
               <Button
                 key="close"
