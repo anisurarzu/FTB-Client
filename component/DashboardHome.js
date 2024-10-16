@@ -25,6 +25,7 @@ const DashboardHome = () => {
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
   const [hotelInfo, setHotelInfo] = useState([]); // State for hotel information
   const [filteredBookings, setFilteredBookings] = useState([]); // State for filtered bookings
   const defaultHotelID = ""; // Default hotel ID
@@ -33,8 +34,9 @@ const DashboardHome = () => {
   useEffect(() => {
     fetchBookings();
     fetchHotelInfo();
-
     fetchUsers();
+    fetchBookingsByHotelID(21);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const fetchUsers = async () => {
     try {
@@ -64,30 +66,40 @@ const DashboardHome = () => {
       setLoading(false);
     }
   };
+  const fetchBookingsByHotelID = async (hotelID) => {
+    setLoading2(true);
+    try {
+      const response = await coreAxios.post("getBookingByHotelID", {
+        hotelID: hotelID,
+      }); // Use POST and send hotelID in the body
+      if (response.status === 200) {
+        setFilteredBookings(response.data);
+        setLoading2(false);
+      }
+    } catch (error) {
+      message.error("Failed to fetch bookings.");
+    } finally {
+      setLoading2(false);
+    }
+  };
 
   const fetchHotelInfo = async () => {
     try {
       const response = await coreAxios.get("hotel");
       if (Array.isArray(response.data)) {
         setHotelInfo(response.data);
-        handleHotelChange(7); // Initialize with default hotel ID
+        // handleHotelChange(7); // Initialize with default hotel ID
       } else {
         setHotelInfo([]); // or handle appropriately
       }
     } catch (error) {
-      message.error("Failed to fetch hotel information.");
+      // message.error("Failed to fetch hotel information.");
     }
   };
 
   const today = dayjs().format("D MMM YYYY");
 
   // Filter bookings based on selected hotel ID
-  const handleHotelChange = (hotelID) => {
-    const filteredData = bookings.filter(
-      (booking) => booking.hotelID === hotelID && booking.statusID !== 255
-    );
-    setFilteredBookings(filteredData); // Update filtered bookings
-  };
 
   const filteredTodayBookings = filteredBookings.filter((booking) => {
     const createTime = dayjs(booking.createTime).format("D MMM YYYY");
@@ -171,7 +183,6 @@ const DashboardHome = () => {
     const user = users?.users?.find((user) => user.id === userID);
 
     if (!user) {
-      console.warn(`User with ID ${userID} not found`);
       return {
         totalBillForUserToday: 0,
         totalBillForUserLast30Days: 0,
@@ -187,7 +198,6 @@ const DashboardHome = () => {
     );
 
     // Log the user bookings to verify
-    console.log(`User Bookings for ${bookedByID}:`, userBookings);
 
     const today = dayjs().startOf("day");
     const totalBillForUserToday = userBookings.reduce((sum, booking) => {
@@ -242,36 +252,6 @@ const DashboardHome = () => {
     };
   });
 
-  // Log the userTableData to check results
-
-  const columns = [
-    {
-      title: "User ID",
-      dataIndex: "username",
-      key: "username",
-    },
-    {
-      title: "Today's Booking",
-      dataIndex: "totalBillForToday",
-      key: "totalBillForToday",
-    },
-    {
-      title: "Last 7 Days Booking",
-      dataIndex: "totalBillForUserLast7Days",
-      key: "totalBillForUserLast7Days",
-    },
-    {
-      title: "Last 30 Days Booking",
-      dataIndex: "totalBillForLast30Days",
-      key: "totalBillForLast30Days",
-    },
-    {
-      title: "Overall Booking",
-      dataIndex: "totalBillOverall",
-      key: "totalBillOverall",
-    },
-  ];
-
   return (
     <div>
       {loading ? (
@@ -286,10 +266,10 @@ const DashboardHome = () => {
         <div>
           <div className="">
             <Formik
-              initialValues={{ hotelID: defaultHotelID }} // Only hotelID in initial values
+              initialValues={{ hotelID: 21 }} // Only hotelID in initial values
               onSubmit={(values) => {
-                console.log("Selected Hotel ID:", values.hotelID); // Log selected value
-                handleHotelChange(values.hotelID); // Update filtered bookings based on selected hotel
+                // Log selected value
+              // Update filtered bookings based on selected hotel
               }}>
               {({ setFieldValue, values }) => (
                 <Form>
@@ -301,8 +281,10 @@ const DashboardHome = () => {
                         value={values.hotelID} // Ensure Select shows the correct hotel ID
                         style={{ width: 300 }}
                         onChange={(value) => {
-                          setFieldValue("hotelID", value); // Update Formik state
-                          handleHotelChange(value); // Update filtered bookings
+                          setFieldValue("hotelID", value);
+                          fetchBookingsByHotelID(value);
+                          // Update Formik state
+                          // handleHotelChange(value); // Update filtered bookings
                         }}>
                         {hotelInfo.map((hotel) => (
                           <Option key={hotel.hotelID} value={hotel.hotelID}>
@@ -322,92 +304,104 @@ const DashboardHome = () => {
             Dashboard Overview
           </Title>
 
-          <Row gutter={[16, 24]} className="mb-6">
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Card
-                style={{
-                  background:
-                    "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
-                }}>
-                <Statistic
-                  title={
-                    <span className="text-white">
-                      {"Today's Booking By FTB Agents"}
-                    </span>
-                  }
-                  value={totalBillForToday}
-                  prefix={<CheckCircleOutlined className="text-white" />}
-                  valueStyle={{ color: "white" }}
-                />
-              </Card>
-            </Col>
+          {loading2 ? (
+            <Spin tip="Loading...">
+              <Alert
+                message="Alert message title"
+                description="Further details about the context of this alert."
+                type="info"
+              />
+            </Spin>
+          ) : (
+            <div>
+              <Row gutter={[16, 24]} className="mb-6">
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Card
+                    style={{
+                      background:
+                        "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                    }}>
+                    <Statistic
+                      title={
+                        <span className="text-white">
+                          {"Today's Booking By FTB Agents"}
+                        </span>
+                      }
+                      value={totalBillForToday}
+                      prefix={<CheckCircleOutlined className="text-white" />}
+                      valueStyle={{ color: "white" }}
+                    />
+                  </Card>
+                </Col>
 
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Card
-                style={{
-                  background:
-                    "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
-                }}>
-                <Statistic
-                  title={
-                    <span className="text-white">
-                      Last 30 Days Booking By FTB
-                    </span>
-                  }
-                  value={totalBillForLast30Days}
-                  prefix={<CheckCircleOutlined className="text-white" />}
-                  valueStyle={{ color: "white" }}
-                />
-              </Card>
-            </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Card
+                    style={{
+                      background:
+                        "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                    }}>
+                    <Statistic
+                      title={
+                        <span className="text-white">
+                          Last 30 Days Booking By FTB
+                        </span>
+                      }
+                      value={totalBillForLast30Days}
+                      prefix={<CheckCircleOutlined className="text-white" />}
+                      valueStyle={{ color: "white" }}
+                    />
+                  </Card>
+                </Col>
 
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Card
-                style={{
-                  background:
-                    "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
-                }}>
-                <Statistic
-                  title={
-                    <span className="text-white">Last 30 Days Booking</span>
-                  }
-                  value={totalBillForLast30Days}
-                  prefix={<CheckCircleOutlined className="text-white" />}
-                  valueStyle={{ color: "white" }}
-                />
-              </Card>
-            </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Card
+                    style={{
+                      background:
+                        "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                    }}>
+                    <Statistic
+                      title={
+                        <span className="text-white">Last 30 Days Booking</span>
+                      }
+                      value={totalBillForLast30Days}
+                      prefix={<CheckCircleOutlined className="text-white" />}
+                      valueStyle={{ color: "white" }}
+                    />
+                  </Card>
+                </Col>
 
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Card
-                style={{
-                  background:
-                    "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
-                }}>
-                <Statistic
-                  title={
-                    <span className="text-white">
-                      {`Today's Booking By Overall`}
-                    </span>
-                  }
-                  value={totalBill}
-                  prefix={<CheckCircleOutlined className="text-white" />}
-                  valueStyle={{ color: "white" }}
-                />
-              </Card>
-            </Col>
-          </Row>
-          <div className="">
-            {/* Line Chart */}
-            <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-2">
-              <Title
-                level={4}
-                className="text-[#8ABF55] mb-4 text-center lg:text-left">
-                Bookings Over Time
-              </Title>
-              <Line {...lineChartConfig} />
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Card
+                    style={{
+                      background:
+                        "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                    }}>
+                    <Statistic
+                      title={
+                        <span className="text-white">
+                          {`Today's Booking By Overall`}
+                        </span>
+                      }
+                      value={totalBill}
+                      prefix={<CheckCircleOutlined className="text-white" />}
+                      valueStyle={{ color: "white" }}
+                    />
+                  </Card>
+                </Col>
+              </Row>
+              <div className="">
+                {/* Line Chart */}
+                <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-2">
+                  <Title
+                    level={4}
+                    className="text-[#8ABF55] mb-4 text-center lg:text-left">
+                    Bookings Over Time
+                  </Title>
+                  <Line {...lineChartConfig} />
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-4">
             <Title
