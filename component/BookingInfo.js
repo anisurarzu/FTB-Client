@@ -168,88 +168,99 @@ const BookingInfo = () => {
     ? JSON.parse(localStorage.getItem("userInfo"))
     : null;
 
-  const updateRoomBookingStatus = async (values) => {
-    setLoading(true);
-    // Prepare the dynamic booking update payload based on form data
-    const bookingUpdatePayload = {
-      hotelID: values?.hotelID, // Now included in the body
-      categoryName: values?.roomCategoryName, // Use roomCategoryName to match your structure
-      roomName: values?.roomNumberName, // Now included in the body
-      booking: {
-        name: values.roomNumberName,
-        bookedDates: [
-          dayjs(values.checkInDate).format("YYYY-MM-DD"),
-          dayjs(values.checkOutDate).subtract(1, "day").format("YYYY-MM-DD"),
-        ],
-        bookings: [
-          {
-            guestName: values.fullName,
+    const updateRoomBookingStatus = async (values) => {
+      setLoading(true);
+    
+      // Utility function to generate all dates between two dates
+      const getBookedDates = (checkInDate, checkOutDate) => {
+        const startDate = dayjs(checkInDate);
+        const endDate = dayjs(checkOutDate);
+        const bookedDates = [];
+    
+        // Push dates from check-in to check-out (exclusive)
+        for (let d = startDate; d.isBefore(endDate); d = d.add(1, 'day')) {
+          bookedDates.push(d.format("YYYY-MM-DD"));
+        }
+        return bookedDates;
+      };
+    
+      // Prepare the dynamic booking update payload based on form data
+      const bookingUpdatePayload = {
+        hotelID: values?.hotelID, // Now included in the body
+        categoryName: values?.roomCategoryName, // Use roomCategoryName to match your structure
+        roomName: values?.roomNumberName, // Now included in the body
+        booking: {
+          name: values.roomNumberName,
+          bookedDates: getBookedDates(values.checkInDate, values.checkOutDate), // Use utility function
+          bookings: [
+            {
+              guestName: values.fullName,
+              checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
+              checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
+              bookedBy: values.bookedBy,
+              adults: values?.adults,
+              children: values?.children,
+              paymentDetails: {
+                totalBill: values.totalBill,
+                advancePayment: values.advancePayment,
+                duePayment: values.duePayment,
+                paymentMethod: values.paymentMethod,
+                transactionId: values.transactionId,
+              },
+            },
+          ],
+        },
+      };
+    
+      try {
+        // Make the API call to update the room booking
+        const updateBookingResponse = await coreAxios.put(
+          `/hotel/room/updateBooking`, // Same route as before
+          bookingUpdatePayload // Send full payload in request body
+        );
+    
+        if (updateBookingResponse.status === 200) {
+          const newBooking = {
+            ...values,
             checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
             checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
-            bookedBy: values.bookedBy,
-            adults: values?.adults,
-            children: values?.children,
-            paymentDetails: {
-              totalBill: values.totalBill,
-              advancePayment: values.advancePayment,
-              duePayment: values.duePayment,
-              paymentMethod: values.paymentMethod,
-              transactionId: values.transactionId,
-            },
-          },
-        ],
-      },
-    };
-
-    // Make the API call to update the room booking
-
-    const updateBookingResponse = await coreAxios.put(
-      `/hotel/room/updateBooking`, // Same route as before
-      bookingUpdatePayload // Send full payload in request body
-    );
-    if (updateBookingResponse.status === 200) {
-      const newBooking = {
-        ...values,
-        checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
-        checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
-        key: uuidv4(), // Generate a unique key for this booking
-        bookingID: updateBookingResponse?.data?.hotel?._id, // Correctly extracting the bookingId from response
-      };
-
-      // First, create or update the booking in the booking collection
-      let response;
-      if (isEditing) {
-        response = await coreAxios.put(`booking/${editingKey}`, newBooking);
-        if (response.status === 200) {
-          setLoading(false);
-          message.success("Booking created/updated successfully!");
+            key: uuidv4(), // Generate a unique key for this booking
+            bookingID: updateBookingResponse?.data?.hotel?._id, // Correctly extracting the bookingId from response
+          };
+    
+          // First, create or update the booking in the booking collection
+          let response;
+          if (isEditing) {
+            response = await coreAxios.put(`booking/${editingKey}`, newBooking);
+          } else {
+            response = await coreAxios.post("booking", newBooking);
+          }
+    
+          if (response.status === 200) {
+            message.success("Booking created/updated successfully!");
+          } else {
+            message.error("Failed to create/update booking.");
+          }
+    
+          // Clean up after successful update
+          setVisible(false);
+          setIsEditing(false);
+          setEditingKey(null);
+          message.success("Room booking status updated successfully!");
+    
+          // Refresh hotel and booking information
+          fetchHotelInfo();
+          fetchBookings();
         } else {
-          setLoading(false);
-          message.error("Failed to create/update booking.");
+          message.error("Failed to update room booking status.");
         }
-      } else {
-        response = await coreAxios.post("booking", newBooking);
-        if (response.status === 200) {
-          setLoading(false);
-          message.success("Booking created/updated successfully!");
-        } else {
-          setLoading(false);
-          message.error("Failed to create/update booking.");
-        }
+      } catch (error) {
+        message.error("An error occurred while updating the booking.");
+      } finally {
+        setLoading(false);
       }
-
-      setVisible(false);
-      setIsEditing(false);
-      setEditingKey(null);
-      message.success("Room booking status updated successfully!");
-
-      fetchHotelInfo();
-      fetchBookings();
-      // Fetch updated bookings after successful update
-    } else {
-      message.error("Failed to update room booking status.");
-    }
-  };
+    };
+    
 
   const formik = useFormik({
     initialValues: {
@@ -382,6 +393,7 @@ const BookingInfo = () => {
         address: record.address,
         phone: record.phone,
         email: record.email,
+        hotelID:record.hotelID,
         hotelName: record.hotelName,
         roomCategoryName: record.roomCategoryName,
         roomNumberID: record.roomNumberID,

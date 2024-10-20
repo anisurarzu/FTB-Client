@@ -193,7 +193,7 @@ const DashboardHome = () => {
     const bookedByID = user.loginID; // Get the corresponding loginID
 
     // Filter bookings based on bookedByID
-    const userBookings = bookings.filter(
+    const userBookings = filteredBookings.filter(
       (booking) => booking.bookedByID === bookedByID
     );
 
@@ -269,7 +269,7 @@ const DashboardHome = () => {
               initialValues={{ hotelID: 21 }} // Only hotelID in initial values
               onSubmit={(values) => {
                 // Log selected value
-              // Update filtered bookings based on selected hotel
+                // Update filtered bookings based on selected hotel
               }}>
               {({ setFieldValue, values }) => (
                 <Form>
@@ -318,8 +318,7 @@ const DashboardHome = () => {
                 <Col xs={24} sm={12} md={8} lg={6}>
                   <Card
                     style={{
-                      background:
-                        "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                      background: "linear-gradient(45deg, #8A99EB, #AFC7F3)",
                     }}>
                     <Statistic
                       title={
@@ -337,8 +336,7 @@ const DashboardHome = () => {
                 <Col xs={24} sm={12} md={8} lg={6}>
                   <Card
                     style={{
-                      background:
-                        "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                      background: "linear-gradient(45deg, #8A99EB, #AFC7F3)",
                     }}>
                     <Statistic
                       title={
@@ -356,8 +354,7 @@ const DashboardHome = () => {
                 <Col xs={24} sm={12} md={8} lg={6}>
                   <Card
                     style={{
-                      background:
-                        "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                      background: "linear-gradient(45deg, #8A99EB,  #AFC7F3)",
                     }}>
                     <Statistic
                       title={
@@ -373,8 +370,7 @@ const DashboardHome = () => {
                 <Col xs={24} sm={12} md={8} lg={6}>
                   <Card
                     style={{
-                      background:
-                        "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+                      background: "linear-gradient(45deg, #8A99EB, #AFC7F3)",
                     }}>
                     <Statistic
                       title={
@@ -389,8 +385,8 @@ const DashboardHome = () => {
                   </Card>
                 </Col>
               </Row>
-              <div className="">
-                {/* Line Chart */}
+              {/* <div className="">
+
                 <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-2">
                   <Title
                     level={4}
@@ -399,7 +395,7 @@ const DashboardHome = () => {
                   </Title>
                   <Line {...lineChartConfig} />
                 </div>
-              </div>
+              </div> */}
             </div>
           )}
 
@@ -407,7 +403,7 @@ const DashboardHome = () => {
             <Title
               level={4}
               className="text-[#8ABF55] mb-4 text-center lg:text-left">
-              User-wise Booking Overview (For All Hotels)
+              User-wise Booking Overview
             </Title>
 
             {/* Responsive Table */}
@@ -415,8 +411,8 @@ const DashboardHome = () => {
               <div style={{ overflowX: "auto" }}>
                 <table className="w-full text-xs text-left rtl:text-right dark:text-gray-400">
                   {/* Table Header */}
-                  <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                    <tr>
+                  <thead>
+                    <tr style={{ backgroundColor: "#8CA0ED", color: "white" }}>
                       <th className="border border-tableBorder text-center p-2">
                         User ID
                       </th>
@@ -437,10 +433,21 @@ const DashboardHome = () => {
 
                   {/* Table Body */}
                   <tbody>
-                    {userTableData?.map((user) => (
+                    {userTableData?.map((user, index) => (
                       <tr
                         key={user.key}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                        style={{
+                          backgroundColor:
+                            index % 2 === 0 ? "#9CDFFB" : "#ABCDF5",
+                          transition: "background-color 0.3s ease",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#8CA0ED")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            index % 2 === 0 ? "#9CDFFB" : "#ABCDF5")
+                        }>
                         <td className="border border-tableBorder text-center p-2">
                           {user.username}
                         </td>

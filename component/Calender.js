@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Badge,
-  Calendar,
   Modal,
   Button,
   Descriptions,
@@ -11,7 +10,8 @@ import {
   Spin,
   Alert,
   Select,
-   Row, Col 
+  Row,
+  Col,
 } from "antd";
 import dayjs from "dayjs";
 import coreAxios from "@/utils/axiosInstance";
@@ -24,11 +24,12 @@ const CustomCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [roomAvailability, setRoomAvailability] = useState([]);
   const [selectedRoomInfo, setSelectedRoomInfo] = useState(null);
-  const [highlightedDate, setHighlightedDate] = useState(null);
+  const [highlightedDate, setHighlightedDate] = useState(dayjs()); // Default to current date
   const [hotelData, setHotelData] = useState([]);
   const [selectedHotel, setSelectedHotel] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showAllDates, setShowAllDates] = useState(false); // New state for toggling view
+  const [currentMonth, setCurrentMonth] = useState(dayjs().startOf("month")); // Track current month
+  const [showFullMonth, setShowFullMonth] = useState(false); // New state for toggling
 
   useEffect(() => {
     fetchHotelInformation();
@@ -79,11 +80,11 @@ const CustomCalendar = () => {
       : [];
   };
 
-  const handleDateSelect = (value) => {
-    const date = value.format("YYYY-MM-DD");
-    setHighlightedDate(value);
-    const availability = getRoomAvailability(date);
-    setSelectedDate(date);
+  const handleDateSelect = (date) => {
+    const formattedDate = date.format("YYYY-MM-DD");
+    setHighlightedDate(date);
+    const availability = getRoomAvailability(formattedDate);
+    setSelectedDate(formattedDate);
     setRoomAvailability(availability);
     setIsModalVisible(true);
   };
@@ -99,62 +100,94 @@ const CustomCalendar = () => {
     setRoomAvailability([]);
   };
 
-  const toggleDateView = () => {
-    setShowAllDates((prev) => !prev); // Toggle between showing all dates or future dates only
+  const goToNextMonth = () => {
+    setCurrentMonth(currentMonth.add(1, "month"));
   };
 
-  const dateFullCellRender = (value) => {
-    const date = value.format("YYYY-MM-DD");
-    const today = dayjs().startOf("day"); // Today's date for comparison
-    const isPast = value.isBefore(today); // Check if the date is in the past
+  const goToPrevMonth = () => {
+    setCurrentMonth(currentMonth.subtract(1, "month"));
+  };
 
-    // If showAllDates is false, hide past dates by returning an empty div
-    if (!showAllDates && isPast) {
-      return <div style={{ visibility: "hidden" }} />;
+  // Toggle between showing from the current date or from the start of the month
+  const toggleViewMode = () => {
+    setShowFullMonth(!showFullMonth);
+  };
+
+  const renderCalendarDays = () => {
+    const daysInMonth = currentMonth.daysInMonth();
+    const currentDay = dayjs().date(); // Get the current day
+
+    const daysArray = [...Array(daysInMonth).keys()].map((day) =>
+      currentMonth.add(day, "day")
+    );
+
+    // Determine which days to show based on the toggle state
+    const filteredDaysArray = showFullMonth
+      ? daysArray
+      : currentMonth.isSame(dayjs(), "month")
+      ? daysArray.slice(currentDay - 1) // Show from current date in the current month
+      : daysArray; // Show all days for previous months
+
+    const rows = [];
+
+    // Break days into chunks of 4
+    for (let i = 0; i < filteredDaysArray.length; i += 4) {
+      rows.push(filteredDaysArray.slice(i, i + 4));
     }
 
-    const availability = getRoomAvailability(date);
-    const isSelected = highlightedDate
-      ? value.isSame(highlightedDate, "day")
-      : false;
-
-    return (
+    return rows.map((week, weekIndex) => (
       <div
+        key={weekIndex}
         style={{
-          padding: "5px",
-          textAlign: "center",
-          border: "1px solid #d9d9d9",
-          backgroundColor: isSelected ? "#e6f7ff" : "transparent",
-          borderRadius: "4px",
-        }}
-        onClick={() => handleDateSelect(value)}>
-        <div
-          style={{
-            fontWeight: "bold",
-            fontSize: "14px",
-            borderBottom: "1px solid #d9d9d9",
-          }}>
-          {value.format("D MMM YYYY (ddd)")}
-        </div>
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {availability.map((hotel, index) => (
-            <li key={index}>
-              <ul>
-                {hotel.roomCategories.map((category, idx) => (
-                  <li key={idx}>
-                    <span>{category.name}: </span>
-                    <Badge
-                      count={category.availableroomNumbers}
-                      style={{ backgroundColor: "#52c41a" }}
-                    />
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "10px",
+        }}>
+        {week.map((date, index) => {
+          const formattedDate = date.format("YYYY-MM-DD");
+          const availability = getRoomAvailability(formattedDate);
+          const isSelected = highlightedDate
+            ? date.isSame(highlightedDate, "day")
+            : false;
+
+          return (
+            <div
+              key={index}
+              className="calendar-day"
+              style={{
+                padding: "5px",
+                textAlign: "center",
+                border: "1px solid #d9d9d9",
+                backgroundColor: isSelected ? "#e6f7ff" : "transparent",
+                borderRadius: "4px",
+                width: "22%", // 4 dates in a row
+              }}
+              onClick={() => handleDateSelect(date)}>
+              <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+                {date.format("D MMM")}
+              </div>
+              <ul style={{ listStyle: "none", padding: 0 }}>
+                {availability.map((hotel, index) => (
+                  <li key={index}>
+                    <ul>
+                      {hotel.roomCategories.map((category, idx) => (
+                        <li key={idx}>
+                          <span>{category.name}: </span>
+                          <Badge
+                            count={category.availableroomNumbers}
+                            style={{ backgroundColor: "#52c41a" }}
+                          />
+                        </li>
+                      ))}
+                    </ul>
                   </li>
                 ))}
               </ul>
-            </li>
-          ))}
-        </ul>
+            </div>
+          );
+        })}
       </div>
-    );
+    ));
   };
 
   return (
@@ -178,10 +211,23 @@ const CustomCalendar = () => {
       </div>
 
       <div className="text-center my-4">
-        <Button onClick={toggleDateView} style={{ marginRight: 8 }}>
-          {showAllDates ? "Show Future Dates Only" : "Show All Dates"}
+      <Button onClick={toggleViewMode} style={{ marginBottom: "10px",marginRight:8 }}>
+          {showFullMonth ? "Show Current Date" : "Show Full Month"}
+        </Button>
+        <Button
+          onClick={goToPrevMonth}
+          style={{ marginRight: 8, marginBottom: "10px" }}>
+          Previous Month
+        </Button>
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          {currentMonth.format("MMMM YYYY")}
+        </span>
+        <Button onClick={goToNextMonth} style={{ marginLeft: 8 }}>
+          Next Month
         </Button>
       </div>
+
+     
 
       {loading ? (
         <Spin
@@ -195,85 +241,73 @@ const CustomCalendar = () => {
         </Spin>
       ) : (
         <div>
-          <Calendar
-            dateFullCellRender={dateFullCellRender}
-            defaultValue={dayjs()} // Start calendar from today's date using dayjs
-            onSelect={(date) => {
-              const selectedDate = date.format("YYYY-MM-DD");
-              if (
-                !highlightedDate ||
-                !dayjs(selectedDate).isSame(highlightedDate, "day")
-              ) {
-                handleDateSelect(date);
-              }
-            }}
-          />
+          {/* Custom Calendar Render */}
+          <div className="calendar-grid">{renderCalendarDays()}</div>
 
+          <Modal
+            title={`Room Availability for ${selectedDate}`}
+            visible={isModalVisible}
+            onCancel={() => setIsModalVisible(false)}
+            width={1200}
+            footer={[
+              <Button key="close" onClick={() => setIsModalVisible(false)}>
+                Close
+              </Button>,
+            ]}>
+            <div className="w-full">
+              {roomAvailability.map((hotel, hotelIdx) => (
+                <div key={hotelIdx} className="mb-8">
+                  <div className="text-lg font-bold mb-4">
+                    {hotel.hotelName}
+                  </div>
 
-
-<Modal
-  title={`Room Availability for ${selectedDate}`}
-  visible={isModalVisible}
-  onCancel={() => setIsModalVisible(false)}
-  width={1200}
-  footer={[
-    <Button key="close" onClick={() => setIsModalVisible(false)}>
-      Close
-    </Button>,
-  ]}
->
-  <div className="w-full">
-    {roomAvailability.map((hotel, hotelIdx) => (
-      <div key={hotelIdx} className="mb-8">
-        <div className="text-lg font-bold mb-4">{hotel.hotelName}</div>
-
-        {/* Use Ant Design Grid System */}
-        <Row gutter={[16, 16]}>
-          {hotel.roomCategories.map((category, idx) => (
-            <Col
-              key={idx}
-              xs={24}  // Full width on extra small screens
-              sm={12}  // 2 columns on small screens
-              md={8}   // 3 columns on medium screens
-              lg={6}   // 4 columns on large screens
-            >
-              <div className="bg-white p-4 rounded-md shadow-md">
-                <Tag color="blue">{category.name}</Tag>:{" "}
-                {category.availableroomNumbers} Available /{" "}
-                {category.bookedroomNumbers} Booked
-                <div className="mt-2 space-y-2">
-                  {category.roomNumbers.map((room) => (
-                    <div key={room.name}>
-                      {room.bookedDates.includes(selectedDate) ? (
-                        <Button
-                          type="link"
-                          onClick={() => handleRoomClick(room)}
-                        >
-                          <Tag color="yellow">
-                            Room {room.name} is Booked
-                          </Tag>
-                        </Button>
-                      ) : (
-                        <Tag color="green">Room {room.name} is Available</Tag>
-                      )}
-                    </div>
-                  ))}
+                  {/* Use Ant Design Grid System */}
+                  <Row gutter={[16, 16]}>
+                    {hotel.roomCategories.map((category, idx) => (
+                      <Col
+                        key={idx}
+                        xs={24} // Full width on extra small screens
+                        sm={12} // 2 columns on small screens
+                        md={8} // 3 columns on medium screens
+                        lg={6} // 4 columns on large screens
+                      >
+                        <div className="bg-white p-4 rounded-md shadow-md">
+                          <Tag color="blue">{category.name}</Tag>:{" "}
+                          {category.availableroomNumbers} Available /{" "}
+                          {category.bookedroomNumbers} Booked
+                          <div className="mt-2 space-y-2">
+                            {category.roomNumbers.map((room) => (
+                              <div key={room.name}>
+                                {room.bookedDates.includes(selectedDate) ? (
+                                  <Button
+                                    type="link"
+                                    onClick={() => handleRoomClick(room)}>
+                                    <Tag color="yellow">
+                                      Room {room.name} is Booked
+                                    </Tag>
+                                  </Button>
+                                ) : (
+                                  <Tag color="green">
+                                    Room {room.name} is Available
+                                  </Tag>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </Col>
+                    ))}
+                  </Row>
                 </div>
-              </div>
-            </Col>
-          ))}
-        </Row>
-      </div>
-    ))}
-  </div>
-</Modal>
-
+              ))}
+            </div>
+          </Modal>
 
           <Modal
             title={`Room Details`}
             visible={roomInfoModalVisible}
             onCancel={() => setRoomInfoModalVisible(false)}
-            width='100%'
+            width="100%"
             footer={[
               <Button
                 key="close"
