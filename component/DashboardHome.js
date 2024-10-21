@@ -53,7 +53,7 @@ const DashboardHome = () => {
           (user) =>
             user.role.value !== "superadmin" && user.role.value !== "admin"
         );
-        console.log("-----", filtered);
+
         setFilteredUsers(filtered);
       }
     } catch (error) {
