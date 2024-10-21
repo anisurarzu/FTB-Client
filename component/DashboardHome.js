@@ -83,7 +83,10 @@ const DashboardHome = () => {
         hotelID: hotelID,
       }); // Use POST and send hotelID in the body
       if (response.status === 200) {
-        setFilteredBookings(response.data);
+        const filtered = response?.data?.filter(
+          (data) => data.statusID !== 255
+        );
+        setFilteredBookings(filtered);
         setLoading2(false);
       }
     } catch (error) {
