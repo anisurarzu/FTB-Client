@@ -24,6 +24,7 @@ const { Option } = Select;
 const DashboardHome = () => {
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loading2, setLoading2] = useState(false);
   const [hotelInfo, setHotelInfo] = useState([]); // State for hotel information
@@ -45,6 +46,15 @@ const DashboardHome = () => {
       if (response.status === 200) {
         setLoading(false);
         setUsers(response.data);
+        const allUsers = response.data;
+
+        // Filter out users with role "Super Admin" or "Admin"
+        const filtered = allUsers.users?.filter(
+          (user) =>
+            user.role.value !== "superadmin" && user.role.value !== "admin"
+        );
+        console.log("-----", filtered);
+        setFilteredUsers(filtered);
       }
     } catch (error) {
       message.error("Failed to fetch users. Please try again.");
@@ -180,7 +190,7 @@ const DashboardHome = () => {
   // Calculate user-wise total bills
   const calculateUserTotalBills = (userID) => {
     // Get the correct loginID based on userID
-    const user = users?.users?.find((user) => user.id === userID);
+    const user = filteredUsers?.find((user) => user.id === userID);
 
     if (!user) {
       return {
@@ -235,7 +245,7 @@ const DashboardHome = () => {
   };
 
   // Prepare user data for the table
-  const userTableData = users?.users?.map((user) => {
+  const userTableData = filteredUsers?.map((user) => {
     const {
       totalBillForUserToday,
       totalBillForUserLast7Days,

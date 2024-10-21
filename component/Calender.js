@@ -155,27 +155,57 @@ const CustomCalendar = () => {
               key={index}
               className="calendar-day"
               style={{
-                padding: "5px",
+                padding: "10px", // Slightly more padding for better spacing
                 textAlign: "center",
                 border: "1px solid #d9d9d9",
-                backgroundColor: isSelected ? "#e6f7ff" : "transparent",
-                borderRadius: "4px",
+                backgroundColor: isSelected ? "#8CA1ED" : "#f0f5ff", // Highlight with the primary color
+                borderRadius: "10px", // Rounded corners for modern look
                 width: "22%", // 4 dates in a row
+                boxShadow: isSelected ? "0 4px 8px rgba(0, 0, 0, 0.1)" : "none", // Subtle shadow on selected dates
+                transition: "all 0.3s ease", // Smooth hover and selection transitions
+                cursor: "pointer", // Indicates clickable
               }}
-              onClick={() => handleDateSelect(date)}>
-              <div style={{ fontWeight: "bold", fontSize: "14px" }}>
-                {date.format("D MMM")}
+              onClick={() => handleDateSelect(date)}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "#9DE1FB")
+              } // Lighter blue on hover
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = isSelected
+                  ? "#8CA1ED"
+                  : "#f0f5ff")
+              } // Restore color after hover
+            >
+              <div
+                style={{
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  color: isSelected ? "#ffffff" : "#333", // White text on selected date, dark on others
+                }}>
+                {date.format("D MMM YYYY (dddd)")}
               </div>
-              <ul style={{ listStyle: "none", padding: 0 }}>
+              <ul style={{ listStyle: "none", padding: 0, marginTop: "8px" }}>
                 {availability.map((hotel, index) => (
                   <li key={index}>
                     <ul>
                       {hotel.roomCategories.map((category, idx) => (
-                        <li key={idx}>
+                        <li
+                          className="text-left flex justify-between"
+                          key={idx}
+                          style={{
+                            fontSize: "12px", // Slightly smaller text for room categories
+                            margin: "4px 0", // Space between room types
+                            color: "#555", // Softer text color for categories
+                          }}>
                           <span>{category.name}: </span>
                           <Badge
                             count={category.availableroomNumbers}
-                            style={{ backgroundColor: "#52c41a" }}
+                            style={{
+                              backgroundColor:
+                                category.availableroomNumbers > 0
+                                  ? "#52c41a"
+                                  : "#f5222d", // Green if available, red if none
+                              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)", // Slight shadow to make the badges pop
+                            }}
                           />
                         </li>
                       ))}
@@ -211,7 +241,9 @@ const CustomCalendar = () => {
       </div>
 
       <div className="text-center my-4">
-      <Button onClick={toggleViewMode} style={{ marginBottom: "10px",marginRight:8 }}>
+        <Button
+          onClick={toggleViewMode}
+          style={{ marginBottom: "10px", marginRight: 8 }}>
           {showFullMonth ? "Show Current Date" : "Show Full Month"}
         </Button>
         <Button
@@ -226,8 +258,6 @@ const CustomCalendar = () => {
           Next Month
         </Button>
       </div>
-
-     
 
       {loading ? (
         <Spin
