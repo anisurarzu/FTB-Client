@@ -155,8 +155,8 @@ const Invoice = ({ params }) => {
                 <h3 className="font-bold text-red-700">
                   Invoice Number: {data?.[0]?.bookingNo || "N/A"}
                 </h3>
-                <p className="text-gray-600 font-bold">
-                  Date:{" "}
+                <p className="text-red-700 font-bold">
+                  Booking Date:
                   {moment(data?.[0]?.createTime).format("D MMM YYYY") ||
                     "02 October 2024"}
                 </p>
@@ -182,7 +182,7 @@ const Invoice = ({ params }) => {
                   <thead>
                     <tr className="bg-red-700 text-white">
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        Room
+                        Apartment
                       </th>
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Check-in
@@ -217,9 +217,7 @@ const Invoice = ({ params }) => {
                     {data?.map((booking, index) => (
                       <tr key={index}>
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                          {`${booking?.roomNumberName || "N/A"} (${
-                            booking?.roomCategoryName || "N/A"
-                          })`}
+                          {` ${booking?.roomCategoryName || "N/A"}`}
                         </td>
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {moment(booking?.checkInDate).format("D MMM YYYY") ||
@@ -255,6 +253,11 @@ const Invoice = ({ params }) => {
                   </tbody>
                 </table>
               </div>
+              <p>
+                  Thank you so much for choosing {data?.[0]?.hotelName}. Hope
+                  you will enjoy your stay with us. Best of luck for your Cox’s
+                  Bazar trip.
+                </p>
 
               <div className="mt-8 text-gray-800">
                 <p className="font-bold text-md">Payment Information:</p>
@@ -267,14 +270,13 @@ const Invoice = ({ params }) => {
 
               <div className="mt-8 text-gray-800">
                 <p className="py-1">
-                  Booked by: {data?.[0]?.bookedBy || "N/A"}
+                  Booked by: {data?.[0]?.bookedByID || "N/A"}
+                </p>
+                <p className="py-1">
+                  Check in - 12:30 PM & Check out - 11:00 AM
                 </p>
                 <p className="font-bold text-md">Note:</p>
-                <p>
-                  Thank you so much for choosing {data?.[0]?.hotelName}. Hope
-                  you will enjoy your stay with us. Best of luck for your Cox’s
-                  Bazar trip.
-                </p>
+                
               </div>
             </div>
           </div>
