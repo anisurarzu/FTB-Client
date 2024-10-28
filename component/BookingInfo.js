@@ -855,7 +855,7 @@ const BookingInfo = () => {
                           ? booking?.canceledBy
                           : booking?.bookedByID}
                       </td>
-                      <td className="border  border-tableBorder text-center px-24  text-blue-900">
+                      <td className="border  border-tableBorder text-center   text-blue-900">
                         {booking?.updatedByID} {" "}
                         {booking?.updatedByID &&
                           dayjs(booking?.updatedAt).format(
