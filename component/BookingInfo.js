@@ -168,99 +168,98 @@ const BookingInfo = () => {
     ? JSON.parse(localStorage.getItem("userInfo"))
     : null;
 
-    const updateRoomBookingStatus = async (values) => {
-      setLoading(true);
-    
-      // Utility function to generate all dates between two dates
-      const getBookedDates = (checkInDate, checkOutDate) => {
-        const startDate = dayjs(checkInDate);
-        const endDate = dayjs(checkOutDate);
-        const bookedDates = [];
-    
-        // Push dates from check-in to check-out (exclusive)
-        for (let d = startDate; d.isBefore(endDate); d = d.add(1, 'day')) {
-          bookedDates.push(d.format("YYYY-MM-DD"));
-        }
-        return bookedDates;
-      };
-    
-      // Prepare the dynamic booking update payload based on form data
-      const bookingUpdatePayload = {
-        hotelID: values?.hotelID, // Now included in the body
-        categoryName: values?.roomCategoryName, // Use roomCategoryName to match your structure
-        roomName: values?.roomNumberName, // Now included in the body
-        booking: {
-          name: values.roomNumberName,
-          bookedDates: getBookedDates(values.checkInDate, values.checkOutDate), // Use utility function
-          bookings: [
-            {
-              guestName: values.fullName,
-              checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
-              checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
-              bookedBy: values.bookedBy,
-              adults: values?.adults,
-              children: values?.children,
-              paymentDetails: {
-                totalBill: values.totalBill,
-                advancePayment: values.advancePayment,
-                duePayment: values.duePayment,
-                paymentMethod: values.paymentMethod,
-                transactionId: values.transactionId,
-              },
-            },
-          ],
-        },
-      };
-    
-      try {
-        // Make the API call to update the room booking
-        const updateBookingResponse = await coreAxios.put(
-          `/hotel/room/updateBooking`, // Same route as before
-          bookingUpdatePayload // Send full payload in request body
-        );
-    
-        if (updateBookingResponse.status === 200) {
-          const newBooking = {
-            ...values,
+  const updateRoomBookingStatus = async (values) => {
+    setLoading(true);
+
+    // Utility function to generate all dates between two dates
+    const getBookedDates = (checkInDate, checkOutDate) => {
+      const startDate = dayjs(checkInDate);
+      const endDate = dayjs(checkOutDate);
+      const bookedDates = [];
+
+      // Push dates from check-in to check-out (exclusive)
+      for (let d = startDate; d.isBefore(endDate); d = d.add(1, "day")) {
+        bookedDates.push(d.format("YYYY-MM-DD"));
+      }
+      return bookedDates;
+    };
+
+    // Prepare the dynamic booking update payload based on form data
+    const bookingUpdatePayload = {
+      hotelID: values?.hotelID, // Now included in the body
+      categoryName: values?.roomCategoryName, // Use roomCategoryName to match your structure
+      roomName: values?.roomNumberName, // Now included in the body
+      booking: {
+        name: values.roomNumberName,
+        bookedDates: getBookedDates(values.checkInDate, values.checkOutDate), // Use utility function
+        bookings: [
+          {
+            guestName: values.fullName,
             checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
             checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
-            key: uuidv4(), // Generate a unique key for this booking
-            bookingID: updateBookingResponse?.data?.hotel?._id, // Correctly extracting the bookingId from response
-          };
-    
-          // First, create or update the booking in the booking collection
-          let response;
-          if (isEditing) {
-            response = await coreAxios.put(`booking/${editingKey}`, newBooking);
-          } else {
-            response = await coreAxios.post("booking", newBooking);
-          }
-    
-          if (response.status === 200) {
-            message.success("Booking created/updated successfully!");
-          } else {
-            message.error("Failed to create/update booking.");
-          }
-    
-          // Clean up after successful update
-          setVisible(false);
-          setIsEditing(false);
-          setEditingKey(null);
-          message.success("Room booking status updated successfully!");
-    
-          // Refresh hotel and booking information
-          fetchHotelInfo();
-          fetchBookings();
-        } else {
-          message.error("Failed to update room booking status.");
-        }
-      } catch (error) {
-        message.error("An error occurred while updating the booking.");
-      } finally {
-        setLoading(false);
-      }
+            bookedBy: values.bookedBy,
+            adults: values?.adults,
+            children: values?.children,
+            paymentDetails: {
+              totalBill: values.totalBill,
+              advancePayment: values.advancePayment,
+              duePayment: values.duePayment,
+              paymentMethod: values.paymentMethod,
+              transactionId: values.transactionId,
+            },
+          },
+        ],
+      },
     };
-    
+
+    try {
+      // Make the API call to update the room booking
+      const updateBookingResponse = await coreAxios.put(
+        `/hotel/room/updateBooking`, // Same route as before
+        bookingUpdatePayload // Send full payload in request body
+      );
+
+      if (updateBookingResponse.status === 200) {
+        const newBooking = {
+          ...values,
+          checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
+          checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
+          key: uuidv4(), // Generate a unique key for this booking
+          bookingID: updateBookingResponse?.data?.hotel?._id, // Correctly extracting the bookingId from response
+        };
+
+        // First, create or update the booking in the booking collection
+        let response;
+        if (isEditing) {
+          response = await coreAxios.put(`booking/${editingKey}`, newBooking);
+        } else {
+          response = await coreAxios.post("booking", newBooking);
+        }
+
+        if (response.status === 200) {
+          message.success("Booking created/updated successfully!");
+        } else {
+          message.error("Failed to create/update booking.");
+        }
+
+        // Clean up after successful update
+        setVisible(false);
+        setIsEditing(false);
+        setEditingKey(null);
+        message.success("Room booking status updated successfully!");
+
+        // Refresh hotel and booking information
+        fetchHotelInfo();
+        fetchBookings();
+      } else {
+        message.error("Failed to update room booking status.");
+      }
+    } catch (error) {
+      message.error("An error occurred while updating the booking.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -388,12 +387,15 @@ const BookingInfo = () => {
     if (record) {
       formik.setValues({
         ...formik.values,
+        bookedBy: record?.username,
+        bookedByID: record?.loginID,
+        updatedByID: userInfo ? userInfo?.loginID : "",
         fullName: record.fullName,
         nidPassport: record.nidPassport,
         address: record.address,
         phone: record.phone,
         email: record.email,
-        hotelID:record.hotelID,
+        hotelID: record.hotelID,
         hotelName: record.hotelName,
         roomCategoryName: record.roomCategoryName,
         roomNumberID: record.roomNumberID,
@@ -535,7 +537,8 @@ const BookingInfo = () => {
         r.fullName.toLowerCase().includes(value) ||
         r.roomCategoryName.toLowerCase().includes(value) ||
         r.roomNumberName.toLowerCase().includes(value) ||
-        r.hotelName.toLowerCase().includes(value)
+        r.hotelName.toLowerCase().includes(value) ||
+        r.phone.toLowerCase().includes(value)
     );
     setFilteredBookings(filteredData);
     setPagination({ ...pagination, current: 1 }); // Reset to page 1 after filtering
@@ -628,6 +631,27 @@ const BookingInfo = () => {
     setLoading(false);
   };
 
+  // night calculations
+  const handleCheckInChange = (date) => {
+    formik.setFieldValue("checkInDate", date);
+    calculateNights(date, formik.values.checkOutDate);
+  };
+
+  const handleCheckOutChange = (date) => {
+    formik.setFieldValue("checkOutDate", date);
+    calculateNights(formik.values.checkInDate, date);
+  };
+
+  const calculateNights = (checkIn, checkOut) => {
+    if (checkIn && checkOut) {
+      const diffTime = Math.abs(checkOut - checkIn);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+      formik.setFieldValue("nights", diffDays);
+    } else {
+      formik.setFieldValue("nights", 0); // Reset nights if one of the dates is not set
+    }
+  };
+
   return (
     <div>
       {loading ? (
@@ -689,8 +713,11 @@ const BookingInfo = () => {
                       Guest Name
                     </th>
                     <th className="border border-tableBorder text-center p-2">
-                      Hotel
+                      Phone
                     </th>
+                    {/* <th className="border border-tableBorder text-center p-2">
+                      Hotel
+                    </th> */}
                     <th className="border border-tableBorder text-center p-2">
                       Flat Type
                     </th>
@@ -717,6 +744,9 @@ const BookingInfo = () => {
                     </th>
                     <th className="border border-tableBorder text-center p-2">
                       Confirm/Cancel By
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Updated By
                     </th>
                     <th className="border border-tableBorder text-center p-2">
                       Actions
@@ -768,29 +798,26 @@ const BookingInfo = () => {
                           </Tooltip>
                         </span>
                       </td>
-
                       {/* Booked By */}
-
                       {/* Guest Name */}
                       <td className="border border-tableBorder text-center p-2">
                         {booking.fullName}
                       </td>
-
-                      {/* Hotel Name */}
                       <td className="border border-tableBorder text-center p-2">
-                        {booking.hotelName}
+                        {booking.phone}
                       </td>
-
+                      {/* Hotel Name */}
+                      {/* <td className="border border-tableBorder text-center p-2">
+                        {booking.hotelName}
+                      </td> */}
                       {/* Flat Type */}
                       <td className="border border-tableBorder text-center p-2">
                         {booking.roomCategoryName}
                       </td>
-
                       {/* Flat No/Unit */}
                       <td className="border border-tableBorder text-center p-2">
                         {booking.roomNumberName}
                       </td>
-
                       {/* Check In */}
                       <td className="border border-tableBorder text-center p-2">
                         {moment(booking.createTime).format("D MMM YYYY")}
@@ -799,22 +826,18 @@ const BookingInfo = () => {
                       <td className="border border-tableBorder text-center p-2">
                         {moment(booking.checkInDate).format("D MMM YYYY")}
                       </td>
-
                       {/* Check Out */}
                       <td className="border border-tableBorder text-center p-2">
                         {moment(booking.checkOutDate).format("D MMM YYYY")}
                       </td>
-
                       {/* Nights */}
                       <td className="border border-tableBorder text-center p-2">
                         {booking.nights}
                       </td>
-
                       {/* Total Bill */}
                       <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
                         {booking.totalBill}
                       </td>
-
                       {/* Booking Status */}
                       <td
                         className="border border-tableBorder text-center p-2 font-bold"
@@ -830,7 +853,14 @@ const BookingInfo = () => {
                       <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
                         {booking?.statusID === 255
                           ? booking?.canceledBy
-                          : booking?.bookedBy}
+                          : booking?.bookedByID}
+                      </td>
+                      <td className="border  border-tableBorder text-center px-24  text-blue-900">
+                        {booking?.updatedByID} {" "}
+                        {booking?.updatedByID &&
+                          dayjs(booking?.updatedAt).format(
+                            "D MMM, YYYY (h:mm a)"
+                          )}
                       </td>
 
                       {/* Actions */}
@@ -948,9 +978,7 @@ const BookingInfo = () => {
                       name="checkInDate"
                       value={formik.values.checkInDate}
                       required={true}
-                      onChange={(date) =>
-                        formik.setFieldValue("checkInDate", date)
-                      }
+                      onChange={handleCheckInChange}
                     />
                   </Form.Item>
                 </div>
@@ -960,9 +988,7 @@ const BookingInfo = () => {
                       name="checkOutDate"
                       required={true}
                       value={formik.values.checkOutDate}
-                      onChange={(date) =>
-                        formik.setFieldValue("checkOutDate", date)
-                      }
+                      onChange={handleCheckOutChange}
                     />
                   </Form.Item>
                 </div>
