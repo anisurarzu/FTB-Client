@@ -286,7 +286,7 @@ const BookingInfo = () => {
       note: "",
       bookedBy: userInfo ? userInfo?.username : "",
       bookedByID: userInfo ? userInfo?.loginID : "",
-      updatedByID: "",
+      updatedByID: "Not Updated",
       reference: "",
       adults: 0,
       children: 0,
