@@ -286,6 +286,7 @@ const BookingInfo = () => {
       note: "",
       bookedBy: userInfo ? userInfo?.username : "",
       bookedByID: userInfo ? userInfo?.loginID : "",
+      updatedByID: "",
       reference: "",
       adults: 0,
       children: 0,
@@ -856,7 +857,7 @@ const BookingInfo = () => {
                           : booking?.bookedByID}
                       </td>
                       <td className="border  border-tableBorder text-center   text-blue-900">
-                        {booking?.updatedByID} {" "}
+                        {booking?.updatedByID}{" "}
                         {booking?.updatedByID &&
                           dayjs(booking?.updatedAt).format(
                             "D MMM, YYYY (h:mm a)"
