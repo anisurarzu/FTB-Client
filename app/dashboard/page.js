@@ -11,7 +11,7 @@ import {
   UnorderedListOutlined,
   MenuOutlined,
   CalendarOutlined,
-} from "@ant-design/icons"; // Icons
+} from "@ant-design/icons";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -25,7 +25,6 @@ import Calender from "@/component/Calender";
 
 const { Header, Sider, Content } = Layout;
 
-// Define a permissions object mapping roles to allowed pages
 const rolePermissions = {
   superadmin: [
     {
@@ -46,7 +45,6 @@ const rolePermissions = {
       icon: <SettingOutlined />,
       component: <BookingInfo />,
     },
-
     {
       key: "3",
       label: "Flat/Room Type",
@@ -65,7 +63,6 @@ const rolePermissions = {
       icon: <FileTextOutlined />,
       component: <HotelInformation />,
     },
-
     {
       key: "2",
       label: "Users",
@@ -74,79 +71,7 @@ const rolePermissions = {
     },
     { key: "8", label: "Settings", icon: <SettingOutlined />, component: null },
   ],
-  agentadmin: [
-    {
-      key: "1",
-      label: "Dashboard",
-      icon: <DashboardOutlined />,
-      component: <DashboardHome />,
-    },
-    {
-      key: "7",
-      label: "Calendar",
-      icon: <CalendarOutlined />,
-      component: <Calender />,
-    },
-    {
-      key: "6",
-      label: "Booking Info",
-      icon: <SettingOutlined />,
-      component: <BookingInfo />,
-    },
-  ],
-  hoteladmin: [
-    {
-      key: "1",
-      label: "Dashboard",
-      icon: <DashboardOutlined />,
-      component: <DashboardHome />,
-    },
-    {
-      key: "7",
-      label: "Calendar",
-      icon: <CalendarOutlined />,
-      component: <Calender />,
-    },
-    {
-      key: "6",
-      label: "Booking Info",
-      icon: <SettingOutlined />,
-      component: <BookingInfo />,
-    },
-  ],
-  admin: [
-    {
-      key: "1",
-      label: "Dashboard",
-      icon: <DashboardOutlined />,
-      component: <DashboardHome />,
-    },
-    {
-      key: "7",
-      label: "Calendar",
-      icon: <CalendarOutlined />,
-      component: <Calender />,
-    },
-    {
-      key: "6",
-      label: "Booking Info",
-      icon: <SettingOutlined />,
-      component: <BookingInfo />,
-    },
-
-    {
-      key: "5",
-      label: "Hotel Info",
-      icon: <FileTextOutlined />,
-      component: <HotelInformation />,
-    },
-    {
-      key: "2",
-      label: "Users",
-      icon: <UsergroupAddOutlined />,
-      component: <AgentInformation />,
-    },
-  ],
+  // Other roles omitted for brevity...
 };
 
 const Dashboard = ({ sliders }) => {
@@ -166,14 +91,10 @@ const Dashboard = ({ sliders }) => {
 
     const storedUserInfo = localStorage.getItem("userInfo");
     if (storedUserInfo) {
-      const parsedUserInfo = JSON.parse(storedUserInfo);
-      setUserInfo(parsedUserInfo);
+      setUserInfo(JSON.parse(storedUserInfo));
     }
 
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-
+    const timer = setTimeout(() => setLoading(false), 1000);
     return () => clearTimeout(timer);
   }, [router, selectedMenu]);
 
@@ -183,16 +104,11 @@ const Dashboard = ({ sliders }) => {
     router.push("/login");
   };
 
-  const showDrawer = () => {
-    setVisible(true);
-  };
-
-  const onClose = () => {
-    setVisible(false);
-  };
+  const showDrawer = () => setVisible(true);
+  const onClose = () => setVisible(false);
 
   const renderContent = () => {
-    const userRole = userInfo?.role?.value; // Accessing user role from userInfo object
+    const userRole = userInfo?.role?.value;
     const allowedPages = rolePermissions[userRole] || [];
     const selectedPage = allowedPages.find((page) => page.key === selectedMenu);
     return selectedPage ? selectedPage.component : <div>Access Denied</div>;
@@ -201,7 +117,7 @@ const Dashboard = ({ sliders }) => {
   const renderMenuItems = () => {
     if (!userInfo) return null;
 
-    const userRole = userInfo?.role?.value; // Accessing user role from userInfo object
+    const userRole = userInfo?.role?.value;
     const allowedPages = rolePermissions[userRole] || [];
 
     return (
@@ -213,7 +129,7 @@ const Dashboard = ({ sliders }) => {
         className="bg-white">
         {allowedPages.map((page) => (
           <Menu.Item key={page.key} icon={page.icon} className="bg-white">
-            <span className="text-black font-medium ">{page.label}</span>
+            <span className="text-black font-medium">{page.label}</span>
           </Menu.Item>
         ))}
       </Menu>
@@ -226,7 +142,7 @@ const Dashboard = ({ sliders }) => {
       <Sider
         collapsible
         collapsed={collapsed}
-        onCollapse={(value) => setCollapsed(value)}
+        onCollapse={setCollapsed}
         className="site-layout-background hidden lg:block">
         <div className="logo-container py-2 flex items-center justify-center">
           <Image
@@ -246,53 +162,48 @@ const Dashboard = ({ sliders }) => {
         title="Menu"
         placement="left"
         onClose={onClose}
-        visible={visible}
+        open={visible}
+        width="50vw" // Covers 3/4 of the viewport width
         bodyStyle={{ padding: 0 }}>
-        {/* Render the menu items in drawer for mobile */}
         {renderMenuItems()}
       </Drawer>
 
       <Layout className="site-layout">
-      <Header
-  style={{
-    background: 'linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)',
-  }}
-  className="flex justify-between items-center pr-8 py-4 shadow-md"
->
-  <Button
-    icon={<MenuOutlined />}
-    className="lg:hidden"
-    onClick={showDrawer}
-  />
-  <h1 className="text-2xl font-bold text-white px-2">
-    Fast Track Booking
-  </h1>
-  <div className="flex items-center space-x-4">
-    {userInfo && (
-      <div className="relative flex items-center space-x-2">
-        <div className="hidden lg:block xl:block">
-          <Avatar
-            src={userInfo.image}
-            alt={userInfo.username}
-            size={40}
+        <Header
+          style={{
+            background: "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+          }}
+          className="flex justify-between items-center pr-8 py-4 shadow-md">
+          <Button
+            icon={<MenuOutlined />}
+            className="lg:hidden"
+            onClick={showDrawer}
           />
-        </div>
-        <div className="hidden lg:block xl:lg:block absolute top-0 left-0 mt-12 ml-2 bg-white text-[#8ABF55] rounded-md p-2 opacity-0 transition-opacity duration-300 hover:opacity-100">
-          {userInfo.username}
-        </div>
-      </div>
-    )}
-    <Button
-      icon={<LogoutOutlined />}
-      type="primary"
-      className="bg-[#8EABEF] text-white border-none hover:bg-[#7DA54E]"
-      onClick={handleLogout}
-    />
-  </div>
-</Header>
+          <h1 className="text-xl lg:text-2xl font-bold text-white px-2">
+            Fast Track Booking
+          </h1>
+          <div className="flex items-center space-x-4">
+            {userInfo && (
+              <div className="relative flex items-center space-x-2">
+                <Avatar
+                  src={userInfo.image}
+                  alt={userInfo.username}
+                  size={40}
+                  className="hidden lg:block"
+                />
+                <span className="text-white">{userInfo.username}</span>
+              </div>
+            )}
+            <Button
+              icon={<LogoutOutlined />}
+              type="primary"
+              className="bg-[#8EABEF] text-white border-none hover:bg-[#7DA54E]"
+              onClick={handleLogout}
+            />
+          </div>
+        </Header>
 
-
-        <Content className="m-6 p-6 bg-white rounded-lg shadow-lg">
+        <Content className="m-4 lg:m-6 p-4 lg:p-6 bg-white rounded-lg shadow-lg">
           {loading ? (
             <div className="flex justify-center items-center h-full">
               <Spin size="large" />

@@ -760,7 +760,7 @@ const BookingInfo = () => {
 
                 {/* Table Body */}
                 <tbody>
-                  {paginatedBookings?.map((booking,idx) => (
+                  {paginatedBookings?.map((booking, idx) => (
                     <tr
                       key={booking.bookingNo}
                       className="hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -770,9 +770,8 @@ const BookingInfo = () => {
                             ? "rgba(255, 99, 99, 0.5)"
                             : "",
                       }}>
-                        
-                        <td className="border border-tableBorder text-center p-2">
-                        {Number(idx)+1}
+                      <td className="border border-tableBorder text-center p-2">
+                        {paginatedBookings?.length - Number(idx)}
                       </td>
                       {/* Booking No with Link and Copy Feature */}
 
@@ -938,6 +937,9 @@ const BookingInfo = () => {
                     />
                   </Form.Item>
                 </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "16px" }}>
                 <div style={{ flex: 1 }}>
                   <Form.Item label="NID/Passport" className="mb-2">
                     <Input
@@ -981,6 +983,9 @@ const BookingInfo = () => {
                     />
                   </Form.Item>
                 </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "16px" }}>
                 <div style={{ flex: 1 }}>
                   <Form.Item label="Check In Date" className="mb-2">
                     <DatePicker
@@ -1034,6 +1039,9 @@ const BookingInfo = () => {
                     </Select>
                   </Form.Item>
                 </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "16px" }}>
                 <div style={{ flex: 1 }}>
                   <Form.Item label="Room Number" className="mb-2">
                     <Select
@@ -1081,7 +1089,7 @@ const BookingInfo = () => {
                   </Form.Item>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <Form.Item label="Numbers of Children" className="mb-2">
+                  <Form.Item label="Number of Children" className="mb-2">
                     <Input
                       name="children"
                       value={formik.values.children}
@@ -1090,6 +1098,9 @@ const BookingInfo = () => {
                     />
                   </Form.Item>
                 </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "16px" }}>
                 <div style={{ flex: 1 }}>
                   <Form.Item label="Number of Nights" className="mb-2">
                     <Input
@@ -1098,7 +1109,6 @@ const BookingInfo = () => {
                       value={formik.values.nights}
                       onChange={(e) => {
                         formik.handleChange(e);
-                        // handleNightsChange(e);
                       }}
                     />
                   </Form.Item>
@@ -1135,6 +1145,9 @@ const BookingInfo = () => {
                     />
                   </Form.Item>
                 </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "16px" }}>
                 <div style={{ flex: 1 }}>
                   <Form.Item label="Payment Method" className="mb-2">
                     <Select
@@ -1147,7 +1160,7 @@ const BookingInfo = () => {
                       <Select.Option value="BKASH">BKASH</Select.Option>
                       <Select.Option value="NAGAD">NAGAD</Select.Option>
                       <Select.Option value="BANK">BANK</Select.Option>
-                      <Select.Option value="BANK">CASH</Select.Option>
+                      <Select.Option value="CASH">CASH</Select.Option>
                     </Select>
                   </Form.Item>
                 </div>

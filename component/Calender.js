@@ -189,7 +189,7 @@ const CustomCalendar = () => {
                     <ul>
                       {hotel.roomCategories.map((category, idx) => (
                         <li
-                          className="text-left flex justify-between"
+                          className="text-left "
                           key={idx}
                           style={{
                             fontSize: "12px", // Slightly smaller text for room categories
