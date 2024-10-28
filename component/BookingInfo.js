@@ -276,7 +276,7 @@ const BookingInfo = () => {
       roomNumberName: "",
       roomPrice: 0,
       checkInDate: dayjs(), // Set default to current date
-      checkOutDate: dayjs().add(1, "day"), // One day after the current date
+      // checkOutDate: dayjs().add(1, "day"), // One day after the current date
       nights: 0,
       totalBill: 0,
       advancePayment: 0,
