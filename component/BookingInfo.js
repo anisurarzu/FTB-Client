@@ -709,6 +709,9 @@ const BookingInfo = () => {
                     <th className="border border-tableBorder text-center p-2">
                       Booking No.
                     </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Invoice No.
+                    </th>
 
                     <th className="border border-tableBorder text-center p-2">
                       Guest Name
@@ -757,7 +760,7 @@ const BookingInfo = () => {
 
                 {/* Table Body */}
                 <tbody>
-                  {paginatedBookings?.map((booking) => (
+                  {paginatedBookings?.map((booking,idx) => (
                     <tr
                       key={booking.bookingNo}
                       className="hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -767,7 +770,12 @@ const BookingInfo = () => {
                             ? "rgba(255, 99, 99, 0.5)"
                             : "",
                       }}>
+                        
+                        <td className="border border-tableBorder text-center p-2">
+                        {Number(idx)+1}
+                      </td>
                       {/* Booking No with Link and Copy Feature */}
+
                       <td className="border border-tableBorder text-center p-2">
                         <span
                           style={{

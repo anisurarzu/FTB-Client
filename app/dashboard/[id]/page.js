@@ -253,7 +253,9 @@ const Invoice = ({ params }) => {
                   </tbody>
                 </table>
               </div>
-              <p className="font-bold text-md mt-2">Note: {data?.[0]?.note}</p>
+              <p className="font-bold text-md mt-2 text-black">
+                Note: {data?.[0]?.note}
+              </p>
 
               <div className="mt-8 text-gray-800">
                 <p className="font-bold text-md">Payment Information:</p>
@@ -272,7 +274,7 @@ const Invoice = ({ params }) => {
                   Check in - 12:30 PM & Check out - 11:00 AM
                 </p>
               </div>
-              <p>
+              <p className="text-black">
                 Thank you so much for choosing {data?.[0]?.hotelName}. Hope you
                 will enjoy your stay with us. Best of luck for your Cox’s Bazar
                 trip.
