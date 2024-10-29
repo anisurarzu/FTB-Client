@@ -22,6 +22,7 @@ import HotelInformation from "@/component/HotelInformation";
 import HotelRoom from "@/component/HotelRoom";
 import BookingInfo from "@/component/BookingInfo";
 import Calender from "@/component/Calender";
+import RoomAvailabilityPage from "@/component/RoomSearchPage";
 
 const { Header, Sider, Content } = Layout;
 
@@ -32,6 +33,12 @@ const rolePermissions = {
       label: "Dashboard",
       icon: <DashboardOutlined />,
       component: <DashboardHome />,
+    },
+    {
+      key: "9",
+      label: "Room Availability",
+      icon: <DashboardOutlined />,
+      component: <RoomAvailabilityPage />,
     },
     {
       key: "7",
