@@ -34,6 +34,110 @@ const rolePermissions = {
       icon: <DashboardOutlined />,
       component: <DashboardHome />,
     },
+
+    {
+      key: "7",
+      label: "Calendar",
+      icon: <CalendarOutlined />,
+      component: <Calender />,
+    },
+    {
+      key: "9",
+      label: "Room Availability",
+      icon: <DashboardOutlined />,
+      component: <RoomAvailabilityPage />,
+    },
+    {
+      key: "6",
+      label: "Booking Info",
+      icon: <SettingOutlined />,
+      component: <BookingInfo />,
+    },
+    // {
+    //   key: "3",
+    //   label: "Flat/Room Type",
+    //   icon: <ApartmentOutlined />,
+    //   component: <HotelCategory />,
+    // },
+    // {
+    //   key: "4",
+    //   label: "Flat/Room No",
+    //   icon: <UnorderedListOutlined />,
+    //   component: <HotelRoom />,
+    // },
+    {
+      key: "5",
+      label: "Hotel Info",
+      icon: <FileTextOutlined />,
+      component: <HotelInformation />,
+    },
+    {
+      key: "2",
+      label: "Users",
+      icon: <UsergroupAddOutlined />,
+      component: <AgentInformation />,
+    },
+    { key: "8", label: "Settings", icon: <SettingOutlined />, component: null },
+  ],
+  agentadmin: [
+    {
+      key: "1",
+      label: "Dashboard",
+      icon: <DashboardOutlined />,
+      component: <DashboardHome />,
+    },
+    {
+      key: "7",
+      label: "Calendar",
+      icon: <CalendarOutlined />,
+      component: <Calender />,
+    },
+    {
+      key: "9",
+      label: "Room Availability",
+      icon: <DashboardOutlined />,
+      component: <RoomAvailabilityPage />,
+    },
+    {
+      key: "6",
+      label: "Booking Info",
+      icon: <SettingOutlined />,
+      component: <BookingInfo />,
+    },
+  ],
+  hoteladmin: [
+    {
+      key: "1",
+      label: "Dashboard",
+      icon: <DashboardOutlined />,
+      component: <DashboardHome />,
+    },
+    {
+      key: "7",
+      label: "Calendar",
+      icon: <CalendarOutlined />,
+      component: <Calender />,
+    },
+    {
+      key: "9",
+      label: "Room Availability",
+      icon: <DashboardOutlined />,
+      component: <RoomAvailabilityPage />,
+    },
+    {
+      key: "6",
+      label: "Booking Info",
+      icon: <SettingOutlined />,
+      component: <BookingInfo />,
+    },
+  ],
+  admin: [
+    {
+      key: "1",
+      label: "Dashboard",
+      icon: <DashboardOutlined />,
+      component: <DashboardHome />,
+    },
     {
       key: "9",
       label: "Room Availability",
@@ -52,18 +156,7 @@ const rolePermissions = {
       icon: <SettingOutlined />,
       component: <BookingInfo />,
     },
-    {
-      key: "3",
-      label: "Flat/Room Type",
-      icon: <ApartmentOutlined />,
-      component: <HotelCategory />,
-    },
-    {
-      key: "4",
-      label: "Flat/Room No",
-      icon: <UnorderedListOutlined />,
-      component: <HotelRoom />,
-    },
+
     {
       key: "5",
       label: "Hotel Info",
@@ -76,7 +169,6 @@ const rolePermissions = {
       icon: <UsergroupAddOutlined />,
       component: <AgentInformation />,
     },
-    { key: "8", label: "Settings", icon: <SettingOutlined />, component: null },
   ],
   // Other roles omitted for brevity...
 };
