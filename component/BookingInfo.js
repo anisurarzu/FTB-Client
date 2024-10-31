@@ -222,10 +222,10 @@ const BookingInfo = () => {
             hotelID: prevData?.hotelID,
             categoryName: prevData?.roomCategoryName,
             roomName: prevData?.roomNumberName,
-            datesToDelete: [
-              prevData?.checkInDate.split("T")[0],
-              prevData?.checkOutDate.split("T")[0],
-            ], // Dates to delete
+            datesToDelete: getAllDatesBetween(
+              prevData?.checkInDate,
+              prevData?.checkOutDate
+            ), // Dates to delete
           },
         });
         if (deleteResponse.status === 200) {
@@ -526,6 +526,25 @@ const BookingInfo = () => {
     setIsEditing(true);
   };
 
+  // Function to generate all dates between two given dates
+  // Function to generate all dates between two given dates
+  function getAllDatesBetween(startDate, endDate) {
+    const dates = [];
+    let currentDate = dayjs(startDate);
+
+    while (currentDate.isBefore(endDate) || currentDate.isSame(endDate)) {
+      dates.push(currentDate.format("YYYY-MM-DD"));
+      currentDate = currentDate.add(1, "day");
+    }
+
+    // Check if start date is not the first of the month, then remove last date
+    if (dayjs(startDate).date() !== 1) {
+      dates.pop(); // Remove the last date
+    }
+
+    return dates;
+  }
+
   const handleDelete = async (value) => {
     console.log("value", value);
     setLoading(true);
@@ -537,10 +556,10 @@ const BookingInfo = () => {
           categoryName: value?.roomCategoryName,
           roomName: value?.roomNumberName,
           bookingID: value?.bookingID,
-          datesToDelete: [
-            value?.checkInDate.split("T")[0],
-            value?.checkOutDate.split("T")[0],
-          ]
+          datesToDelete: getAllDatesBetween(
+            value?.checkInDate,
+            value?.checkOutDate
+          ),
         },
       });
 
