@@ -141,7 +141,7 @@ const Invoice = ({ params }) => {
                   </h4>
                 </div>
                 <div className="text-center">
-                  <div className="mt-8 text-gray-800 text-left">
+                  <div className="mt-8 text-black text-left">
                     <p>
                       Address: N.H.A building No- 09, Samudra Bari, Kolatoli,
                       Cox’s Bazar
@@ -162,7 +162,7 @@ const Invoice = ({ params }) => {
                 </p>
               </div>
 
-              <div className="mt-8 text-gray-800">
+              <div className="mt-8 text-black">
                 <p className="font-bold text-md">Bill To:</p>
                 <p>Guest Name: {data?.[0]?.fullName || "Ahmed Niloy"}</p>
                 <p>Phone: {data?.[0]?.phone || "01625441918"}</p>
@@ -173,7 +173,7 @@ const Invoice = ({ params }) => {
               </div>
 
               {/* Table for Booking Details */}
-              <div className="mt-8 text-gray-800">
+              <div className="mt-8 text-black">
                 <p className="font-bold text-md">Booking Details:</p>
                 <table
                   className="table-auto w-full border-collapse border border-gray-400 mt-4 text-left text-xs" // Smaller text
@@ -199,9 +199,9 @@ const Invoice = ({ params }) => {
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Children
                       </th>
-                      {/* <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        Method
-                      </th> */}
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        Kitchen Facilities
+                      </th>
                       {/* <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Advance
                       </th>
@@ -236,9 +236,9 @@ const Invoice = ({ params }) => {
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.children || "N/A"}
                         </td>
-                        {/*  <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                          {booking?.paymentMethod || "N/A"}
-                        </td> */}
+                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.isKitchen ? "Yes":"No"}
+                        </td>
                         {/* <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.advancePayment || "N/A"}
                         </td>
@@ -257,7 +257,7 @@ const Invoice = ({ params }) => {
                 Note: {data?.[0]?.note}
               </p>
 
-              <div className="mt-8 text-gray-800">
+              <div className="mt-8 text-black">
                 <p className="font-bold text-md">Payment Information:</p>
                 <p>Total Bill: {totals.totalBill} taka</p>
                 <p>Total Advance: {totals.totalAdvance} taka</p>
@@ -266,7 +266,7 @@ const Invoice = ({ params }) => {
                 <p>Transaction ID: {data?.[0]?.transactionId} </p>
               </div>
 
-              <div className="mt-8 text-gray-800">
+              <div className="mt-8 text-black">
                 <p className="py-1">
                   Booked by: {data?.[0]?.bookedByID || "N/A"}
                 </p>

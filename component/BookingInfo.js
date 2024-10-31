@@ -18,6 +18,7 @@ import {
   Pagination,
   Alert,
   Option,
+  Switch,
 } from "antd";
 import { useFormik } from "formik";
 import axios from "axios";
@@ -270,6 +271,7 @@ const BookingInfo = () => {
       email: "",
       hotelID: 0,
       hotelName: "",
+      isKitchen: false,
       roomCategoryID: 0,
       roomCategoryName: "",
       roomNumberID: 0,
@@ -389,6 +391,7 @@ const BookingInfo = () => {
       formik.setValues({
         ...formik.values,
         bookedBy: record?.username,
+        isKitchen: record?.isKitchen,
         bookedByID: record?.loginID,
         updatedByID: userInfo ? userInfo?.loginID : "",
         fullName: record.fullName,
@@ -771,7 +774,7 @@ const BookingInfo = () => {
                             : "",
                       }}>
                       <td className="border border-tableBorder text-center p-2">
-                        {paginatedBookings?.length - Number(idx)}
+                        {booking?.serialNo}
                       </td>
                       {/* Booking No with Link and Copy Feature */}
 
@@ -946,7 +949,7 @@ const BookingInfo = () => {
                       name="nidPassport"
                       value={formik.values.nidPassport}
                       onChange={formik.handleChange}
-                      required={true}
+                      required={false}
                     />
                   </Form.Item>
                 </div>
@@ -956,7 +959,7 @@ const BookingInfo = () => {
                       name="address"
                       value={formik.values.address}
                       onChange={formik.handleChange}
-                      required={true}
+                      required={false}
                     />
                   </Form.Item>
                 </div>
@@ -1084,7 +1087,7 @@ const BookingInfo = () => {
                       name="adults"
                       value={formik.values.adults}
                       onChange={formik.handleChange}
-                      required={true}
+                      required={false}
                     />
                   </Form.Item>
                 </div>
@@ -1094,7 +1097,7 @@ const BookingInfo = () => {
                       name="children"
                       value={formik.values.children}
                       onChange={formik.handleChange}
-                      required={true}
+                      required={false}
                     />
                   </Form.Item>
                 </div>
@@ -1171,6 +1174,19 @@ const BookingInfo = () => {
                       name="transactionId"
                       value={formik.values.transactionId}
                       onChange={formik.handleChange}
+                    />
+                  </Form.Item>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: "16px" }}>
+                {/* Other fields in this row */}
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Is Kitchen?" className="mb-2">
+                    <Switch
+                      checked={formik.values.isKitchen} // Use formik's value for isKitchen
+                      onChange={(checked) =>
+                        formik.setFieldValue("isKitchen", checked)
+                      } // Update formik value on switch toggle
                     />
                   </Form.Item>
                 </div>
