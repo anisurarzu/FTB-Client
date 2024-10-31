@@ -247,6 +247,8 @@ const BookingInfo = () => {
         setVisible(false);
         setIsEditing(false);
         setEditingKey(null);
+        setBookings([]);
+        setFilteredBookings([])
         message.success("Room booking status updated successfully!");
 
         // Refresh hotel and booking information
