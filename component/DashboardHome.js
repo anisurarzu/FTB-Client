@@ -90,7 +90,8 @@ const DashboardHome = () => {
         setLoading2(false);
       }
     } catch (error) {
-      message.error("Failed to fetch bookings.");
+      setFilteredBookings([]);
+      message.error("No Bookings Presents For This Hotel.");
     } finally {
       setLoading2(false);
     }
