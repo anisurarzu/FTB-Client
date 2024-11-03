@@ -32,7 +32,7 @@ const HotelRoom = () => {
   const fetchRooms = async () => {
     setLoading(true);
     try {
-      const response = await coreAxios.get("hotelRoom");
+      const response = await coreAxios.get("bookings");
       if (response?.status === 200) {
         setLoading(false);
         setRoom(response.data);
@@ -117,8 +117,8 @@ const HotelRoom = () => {
   const columns = [
     {
       title: "Flat/Room No.", // Updated the header name
-      dataIndex: "name",
-      key: "name",
+      dataIndex: "fullName",
+      key: "fullName",
     },
     {
       title: "Room Description",

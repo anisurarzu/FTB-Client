@@ -202,12 +202,10 @@ const Invoice = ({ params }) => {
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Kitchen Facilities
                       </th>
-                      {/* <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        Advance
-                      </th>
+
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        Due
-                      </th> */}
+                        Bill (Per Night)
+                      </th>
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Bill
                       </th>
@@ -236,15 +234,13 @@ const Invoice = ({ params }) => {
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.children || "N/A"}
                         </td>
-                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                          {booking?.isKitchen ? "Yes":"No"}
-                        </td>
-                        {/* <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                          {booking?.advancePayment || "N/A"}
-                        </td>
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                          {booking?.duePayment || "N/A"}
-                        </td> */}
+                          {booking?.isKitchen ? "Yes" : "No"}
+                        </td>
+
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.roomPrice || "N/A"}
+                        </td>
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.totalBill || "N/A"}
                         </td>
