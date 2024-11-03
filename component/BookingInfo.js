@@ -1024,7 +1024,7 @@ const BookingInfo = () => {
 
           <Spin spinning={loading}>
             <Table
-              dataSource={paginatedRooms}
+              dataSource={[]}
               columns={columns}
               rowKey="_id"
               pagination={false} // Disable Ant Design pagination
@@ -1038,7 +1038,7 @@ const BookingInfo = () => {
             <Pagination
               current={pagination.current}
               pageSize={pagination.pageSize}
-              total={filteredBookings?.length}
+              total={0}
               onChange={(page, pageSize) =>
                 setPagination({ current: page, pageSize })
               } // Update both current page and pageSize
