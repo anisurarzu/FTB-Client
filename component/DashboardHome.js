@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -117,7 +118,7 @@ const DashboardHome = () => {
 
   const filteredTodayBookings = filteredBookings.filter((booking) => {
     const createTime = dayjs(booking.createTime).format("D MMM YYYY");
-    return createTime === today && booking.bookedBy !== "SBFrontDeskFTB";
+    return createTime === today && booking.bookedByID !== "SBFrontDesk";
   });
 
   const totalBillForToday = filteredTodayBookings.reduce(
@@ -136,7 +137,7 @@ const DashboardHome = () => {
     const createTime = dayjs(booking.createTime);
     return (
       createTime.isBetween(thirtyDaysAgo, today, "day", "[]") &&
-      booking.bookedBy !== "SBFrontDeskFTB"
+      booking.bookedByID !== "SBFrontDesk"
     );
   });
 
@@ -161,7 +162,7 @@ const DashboardHome = () => {
       Dec: 0,
     };
 
-    data.forEach((booking) => {
+    data?.forEach((booking) => {
       const createTime = new Date(booking.createTime);
       const month = createTime.toLocaleString("default", { month: "short" });
       const totalBill = booking.totalBill;
@@ -178,7 +179,7 @@ const DashboardHome = () => {
   const monthlyBillData = generateMonthlyBillData(filteredBookings);
 
   const lineChartConfig = {
-    data: monthlyBillData,
+    data: [],
     xField: "month",
     yField: "totalBill",
     point: {
