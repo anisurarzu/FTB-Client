@@ -48,7 +48,7 @@ const BookingInfo = () => {
   const [prevData, setPrevData] = useState();
   const [pagination, setPagination] = useState({
     current: 1,
-    pageSize: 12,
+    pageSize: 10,
   });
   const [searchText, setSearchText] = useState("");
 
@@ -652,22 +652,18 @@ const BookingInfo = () => {
     formik.setFieldValue("duePayment", duePayment >= 0 ? duePayment : 0); // Ensure due payment is non-negative
   };
   // Handle pagination
-  const paginatedRooms = filteredBookings.slice(
-    (pagination.current - 1) * pagination.pageSize,
-    pagination.current * pagination.pageSize
-  );
-
-  const handleTableChange = (pagination) => {
-    setPagination(pagination);
+  const handleTableChange = (newPagination) => {
+    setPagination(newPagination);
   };
 
+  // Handle global search
   // Global search
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
     setSearchText(value);
     const filteredData = bookings.filter(
       (r) =>
-        r.bookingNo.includes(value) ||
+        r.bookingNo.toLowerCase().includes(value) ||
         r.bookedByID.toLowerCase().includes(value) ||
         r.fullName.toLowerCase().includes(value) ||
         r.roomCategoryName.toLowerCase().includes(value) ||
@@ -679,196 +675,11 @@ const BookingInfo = () => {
     setPagination({ ...pagination, current: 1 }); // Reset to page 1 after filtering
   };
 
-  const columns = [
-    {
-      title: "Booking No.",
-      dataIndex: "serialNo",
-      key: "serialNo",
-      align: "center",
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Invoice No.",
-      dataIndex: "bookingNo",
-      key: "bookingNo",
-      align: "center",
-      render: (serialNo, record) => (
-        <div className="flex items-center justify-center">
-          <Link
-            target="_blank"
-            href={`/dashboard/${record.bookingNo}`}
-            passHref>
-            <p className="text-blue-600 cursor-pointer mr-2">
-              {record.bookingNo}
-            </p>
-          </Link>
-          <Tooltip title="Click to copy">
-            <CopyToClipboard
-              text={record.bookingNo}
-              onCopy={() => message.success("Copied!")}>
-              <CopyOutlined className="cursor-pointer text-blue-600" />
-            </CopyToClipboard>
-          </Tooltip>
-        </div>
-      ),
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-
-    {
-      title: "Guest Name",
-      dataIndex: "fullName",
-      key: "fullName",
-      align: "center",
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Phone",
-      dataIndex: "phone",
-      key: "phone",
-      align: "center",
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Flat Type",
-      dataIndex: "roomCategoryName",
-      key: "roomCategoryName",
-      align: "center",
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Flat No/Unit",
-      dataIndex: "roomNumberName",
-      key: "roomNumberName",
-      align: "center",
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Booking Date",
-      dataIndex: "createTime",
-      key: "createTime",
-      align: "center",
-      render: (createTime) => dayjs(createTime).format("D MMM YYYY"),
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Check In",
-      dataIndex: "checkInDate",
-      key: "checkInDate",
-      align: "center",
-      render: (checkInDate) => dayjs(checkInDate).format("D MMM YYYY"),
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Check Out",
-      dataIndex: "checkOutDate",
-      key: "checkOutDate",
-      align: "center",
-      render: (checkOutDate) => dayjs(checkOutDate).format("D MMM YYYY"),
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Nights",
-      dataIndex: "nights",
-      key: "nights",
-      align: "center",
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Total",
-      dataIndex: "totalBill",
-      key: "totalBill",
-      align: "center",
-      render: (totalBill) => (
-        <span className="font-bold text-green-900">{totalBill}</span>
-      ),
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Status",
-      dataIndex: "statusID",
-      key: "statusID",
-      align: "center",
-      render: (statusID) => (
-        <span className={statusID === 255 ? "text-red-600" : "text-green-600"}>
-          {statusID === 255 ? "Canceled" : "Confirmed"}
-        </span>
-      ),
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Confirm/Cancel By",
-      dataIndex: "statusID",
-      key: "statusID",
-      align: "center",
-      render: (statusID, record) =>
-        statusID === 255 ? record.canceledBy : record.bookedByID,
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Updated By",
-      dataIndex: "updatedByID",
-      key: "updatedByID",
-      align: "center",
-      render: (updatedByID, record) =>
-        updatedByID
-          ? `${updatedByID} ${dayjs(record.updatedAt).format(
-              "D MMM, YYYY (h:mm a)"
-            )}`
-          : "",
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      align: "center",
-      render: (text, record) =>
-        record.statusID === 1 && (
-          <div className="flex">
-            <Button size="small" onClick={() => handleEdit(record)}>
-              Edit
-            </Button>
-            <Popconfirm
-              title="Are you sure to delete this booking?"
-              onConfirm={() => handleDelete(record)}>
-              <Button type="link" danger size="small">
-                Cancel
-              </Button>
-            </Popconfirm>
-          </div>
-        ),
-      onCell: () => ({
-        className: "border border-gray-300 p-2",
-      }),
-    },
-  ];
+  // Paginate the filtered data
+  const paginatedBookings = filteredBookings.slice(
+    (pagination.current - 1) * pagination.pageSize,
+    pagination.current * pagination.pageSize
+  );
 
   const fetchBookingDetails = async (bookingNo) => {
     try {
@@ -971,9 +782,6 @@ const BookingInfo = () => {
       formik.setFieldValue("nights", 0); // Reset nights if one of the dates is not set
     }
   };
-  const rowClassName = () => {
-    return "small-row-height";
-  };
 
   return (
     <div>
@@ -1022,29 +830,214 @@ const BookingInfo = () => {
             />
           </div>
 
-          <Spin spinning={loading}>
-            <Table
-              dataSource={paginatedRooms}
-              columns={columns}
-              rowKey="_id"
-              pagination={false} // Disable Ant Design pagination
-              size="small"
-              rowClassName={(record) =>
-                record.statusID === 255 ? "bg-red-50 dark:bg-red-800" : ""
-              }
-              className="text-xs"
-              scroll={{ x: "max-content" }}
-            />
-            <Pagination
-              current={pagination.current}
-              pageSize={pagination.pageSize}
-              total={filteredBookings?.length}
-              onChange={(page, pageSize) =>
-                setPagination({ current: page, pageSize })
-              } // Update both current page and pageSize
-              className="mt-4"
-            />
-          </Spin>
+          <div className="relative overflow-x-auto shadow-md">
+            <div style={{ overflowX: "auto" }}>
+              <table className="w-full text-xs text-left rtl:text-right  dark:text-gray-400">
+                {/* Table Header */}
+                <thead className="text-xs  uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                  <tr>
+                    <th className="border border-tableBorder text-center p-2">
+                      Booking No.
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Invoice No.
+                    </th>
+
+                    <th className="border border-tableBorder text-center p-2">
+                      Guest Name
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Phone
+                    </th>
+                    {/* <th className="border border-tableBorder text-center p-2">
+                      Hotel
+                    </th> */}
+                    <th className="border border-tableBorder text-center p-2">
+                      Flat Type
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Flat No/Unit
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Booking Date
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Check In
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Check Out
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Nights
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Total
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Status
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Confirm/Cancel By
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Updated By
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+
+                {/* Table Body */}
+                <tbody>
+                  {paginatedBookings?.map((booking, idx) => (
+                    <tr
+                      key={booking._id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                      style={{
+                        backgroundColor:
+                          booking.statusID === 255
+                            ? "rgba(255, 99, 99, 0.5)"
+                            : "",
+                      }}>
+                      <td className="border border-tableBorder text-center p-2">
+                        {booking?.serialNo}
+                      </td>
+                      {/* Booking No with Link and Copy Feature */}
+
+                      <td className="border border-tableBorder text-center p-2">
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}>
+                          <Link
+                            target="_blank"
+                            href={`/dashboard/${booking.bookingNo}`}
+                            passHref>
+                            <p
+                              style={{
+                                color: "#1890ff",
+                                cursor: "pointer",
+                                marginRight: 8,
+                              }}>
+                              {booking.bookingNo}
+                            </p>
+                          </Link>
+                          <Tooltip title="Click to copy">
+                            <CopyToClipboard
+                              text={booking.bookingNo}
+                              onCopy={() => message.success("Copied!")}>
+                              <CopyOutlined
+                                style={{ cursor: "pointer", color: "#1890ff" }}
+                              />
+                            </CopyToClipboard>
+                          </Tooltip>
+                        </span>
+                      </td>
+                      {/* Booked By */}
+                      {/* Guest Name */}
+                      <td className="border border-tableBorder text-center p-2">
+                        {booking.fullName}
+                      </td>
+                      <td className="border border-tableBorder text-center p-2">
+                        {booking.phone}
+                      </td>
+                      {/* Hotel Name */}
+                      {/* <td className="border border-tableBorder text-center p-2">
+                        {booking.hotelName}
+                      </td> */}
+                      {/* Flat Type */}
+                      <td className="border border-tableBorder text-center p-2">
+                        {booking.roomCategoryName}
+                      </td>
+                      {/* Flat No/Unit */}
+                      <td className="border border-tableBorder text-center p-2">
+                        {booking.roomNumberName}
+                      </td>
+                      {/* Check In */}
+                      <td className="border border-tableBorder text-center p-2">
+                        {moment(booking.createTime).format("D MMM YYYY")}
+                      </td>
+                      {/* Check In */}
+                      <td className="border border-tableBorder text-center p-2">
+                        {moment(booking.checkInDate).format("D MMM YYYY")}
+                      </td>
+                      {/* Check Out */}
+                      <td className="border border-tableBorder text-center p-2">
+                        {moment(booking.checkOutDate).format("D MMM YYYY")}
+                      </td>
+                      {/* Nights */}
+                      <td className="border border-tableBorder text-center p-2">
+                        {booking.nights}
+                      </td>
+                      {/* Total Bill */}
+                      <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
+                        {booking.totalBill}
+                      </td>
+                      {/* Booking Status */}
+                      <td
+                        className="border border-tableBorder text-center p-2 font-bold"
+                        style={{
+                          color: booking.statusID === 255 ? "red" : "green", // Inline style for text color
+                        }}>
+                        {booking.statusID === 255 ? (
+                          <p>Canceled</p>
+                        ) : (
+                          "Confirmed"
+                        )}
+                      </td>
+                      <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
+                        {booking?.statusID === 255
+                          ? booking?.canceledBy
+                          : booking?.bookedByID}
+                      </td>
+                      <td className="border  border-tableBorder text-center   text-blue-900">
+                        {booking?.updatedByID}{" "}
+                        {booking?.updatedByID &&
+                          dayjs(booking?.updatedAt).format(
+                            "D MMM, YYYY (h:mm a)"
+                          )}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="border border-tableBorder text-center p-2">
+                        {booking?.statusID === 1 && (
+                          <div className="flex">
+                            <Button onClick={() => handleEdit(booking)}>
+                              Edit
+                            </Button>
+                            <Popconfirm
+                              title="Are you sure to delete this booking?"
+                              onConfirm={() => handleDelete(booking)}>
+                              <Button type="link" danger>
+                                Cancel
+                              </Button>
+                            </Popconfirm>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination (commented out) */}
+
+            <div className="flex justify-center p-2">
+              <Pagination
+                current={pagination.current}
+                pageSize={pagination.pageSize}
+                total={filteredBookings?.length}
+                onChange={(page, pageSize) =>
+                  setPagination({ current: page, pageSize })
+                } // Update both current page and pageSize
+                className="mt-4"
+              />
+            </div>
+          </div>
 
           <Modal
             title={isEditing ? "Edit Booking" : "Create Booking"}
@@ -1288,6 +1281,7 @@ const BookingInfo = () => {
                 <div style={{ flex: 1 }}>
                   <Form.Item label="Payment Method" className="mb-2">
                     <Select
+                      required={true}
                       name="paymentMethod"
                       value={formik.values.paymentMethod}
                       onChange={(value) =>
