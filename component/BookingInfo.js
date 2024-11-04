@@ -112,6 +112,40 @@ const BookingInfo = () => {
     });
   };
 
+  // const fetchRoomNumbers = async (value) => {
+  //   const room = roomCategories.find((room) => room._id === value);
+
+  //   if (room && room.roomNumbers) {
+  //     const availableRooms = room.roomNumbers.filter((roomNumber) => {
+  //       // Check if the room has any bookedDates
+  //       if (roomNumber.bookedDates.length > 0) {
+  //         // Subtract one day from the checkout date
+  //         const adjustedCheckOutDate = dayjs(
+  //           formik.values.checkOutDate
+  //         ).subtract(1, "day");
+
+  //         // Check for overlapping dates with the adjusted checkout date
+  //         const isOverlapping = areDatesOverlapping(
+  //           formik.values.checkInDate,
+  //           adjustedCheckOutDate,
+  //           roomNumber.bookedDates
+  //         );
+
+  //         // If there's an overlap, exclude the room from available rooms
+  //         return !isOverlapping;
+  //       }
+
+  //       // If no bookedDates exist, the room is available
+  //       return true;
+  //     });
+
+  //     // Set the filtered available rooms to state
+  //     setRoomNumbers(availableRooms);
+  //   } else {
+  //     // Handle the case where the room or room numbers are not available
+  //     setRoomNumbers([]);
+  //   }
+  // };
   const fetchRoomNumbers = async (value) => {
     const room = roomCategories.find((room) => room._id === value);
 
@@ -119,10 +153,18 @@ const BookingInfo = () => {
       const availableRooms = room.roomNumbers.filter((roomNumber) => {
         // Check if the room has any bookedDates
         if (roomNumber.bookedDates.length > 0) {
-          // If bookedDates exist, check for overlapping dates
+          const checkInDate = dayjs(formik.values.checkInDate);
+          const checkOutDate = dayjs(formik.values.checkOutDate);
+
+          // Conditionally adjust the checkout date if check-in and check-out dates are different
+          const adjustedCheckOutDate = checkInDate.isSame(checkOutDate, "day")
+            ? checkOutDate // If check-in and check-out are the same, use checkout directly
+            : checkOutDate.subtract(1, "day"); // Otherwise, subtract one day
+
+          // Check for overlapping dates with the adjusted checkout date
           const isOverlapping = areDatesOverlapping(
-            formik.values.checkInDate,
-            formik.values.checkOutDate,
+            checkInDate,
+            adjustedCheckOutDate,
             roomNumber.bookedDates
           );
 
@@ -764,11 +806,22 @@ const BookingInfo = () => {
 
   // night calculations
   const handleCheckInChange = (date) => {
+    formik.setFieldValue("hotelName", "");
+    formik.setFieldValue("hotelID", 0);
+    formik.setFieldValue("roomCategoryID", 0);
+    formik.setFieldValue("roomCategoryName", "");
+    formik.setFieldValue("roomNumberID", 0);
+    formik.setFieldValue("checkOutDate", "");
     formik.setFieldValue("checkInDate", date);
     calculateNights(date, formik.values.checkOutDate);
   };
 
   const handleCheckOutChange = (date) => {
+    formik.setFieldValue("hotelName", "");
+    formik.setFieldValue("hotelID", 0);
+    formik.setFieldValue("roomCategoryID", 0);
+    formik.setFieldValue("roomCategoryName", "");
+    formik.setFieldValue("roomNumberID", 0);
     formik.setFieldValue("checkOutDate", date);
     calculateNights(formik.values.checkInDate, date);
   };
