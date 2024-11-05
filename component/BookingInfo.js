@@ -806,22 +806,28 @@ const BookingInfo = () => {
 
   // night calculations
   const handleCheckInChange = (date) => {
-    formik.setFieldValue("hotelName", "");
-    formik.setFieldValue("hotelID", 0);
-    formik.setFieldValue("roomCategoryID", 0);
-    formik.setFieldValue("roomCategoryName", "");
-    formik.setFieldValue("roomNumberID", 0);
-    formik.setFieldValue("checkOutDate", "");
+    if (!isEditing) {
+      formik.setFieldValue("hotelName", "");
+      formik.setFieldValue("hotelID", 0);
+      formik.setFieldValue("roomCategoryID", 0);
+      formik.setFieldValue("roomCategoryName", "");
+      formik.setFieldValue("roomNumberID", 0);
+      formik.setFieldValue("roomNumberName", "");
+      formik.setFieldValue("checkOutDate", "");
+    }
     formik.setFieldValue("checkInDate", date);
     calculateNights(date, formik.values.checkOutDate);
   };
 
   const handleCheckOutChange = (date) => {
-    formik.setFieldValue("hotelName", "");
-    formik.setFieldValue("hotelID", 0);
-    formik.setFieldValue("roomCategoryID", 0);
-    formik.setFieldValue("roomCategoryName", "");
-    formik.setFieldValue("roomNumberID", 0);
+    if (!isEditing) {
+      formik.setFieldValue("hotelName", "");
+      formik.setFieldValue("hotelID", 0);
+      formik.setFieldValue("roomCategoryID", 0);
+      formik.setFieldValue("roomCategoryName", "");
+      formik.setFieldValue("roomNumberID", 0);
+      formik.setFieldValue("roomNumberName", "");
+    }
     formik.setFieldValue("checkOutDate", date);
     calculateNights(formik.values.checkInDate, date);
   };
