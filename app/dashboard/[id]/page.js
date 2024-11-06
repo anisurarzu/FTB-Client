@@ -128,12 +128,21 @@ const Invoice = ({ params }) => {
             <div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="logo-container flex items-center justify-center">
-                  <Image
-                    src="/images/Shamudro-Bari.png"
-                    alt="Logo"
-                    width={150}
-                    height={60}
-                  />
+                  {data?.[0]?.hotelID === 1 ? (
+                    <Image
+                      src="/images/marmaid-logo.png"
+                      alt="Logo"
+                      width={150}
+                      height={60}
+                    />
+                  ) : (
+                    <Image
+                      src="/images/Shamudro-Bari.png"
+                      alt="Logo"
+                      width={150}
+                      height={60}
+                    />
+                  )}
                 </div>
                 <div className="mt-8 text-center">
                   <h4
@@ -145,16 +154,29 @@ const Invoice = ({ params }) => {
                     {data?.[0]?.hotelName} INVOICE
                   </h4>
                 </div>
-                <div className="text-center">
-                  <div className="mt-8 text-black text-left">
-                    <p>
-                      Address: N.H.A building No- 09, Samudra Bari, Kolatoli,
-                      Cox’s Bazar
-                    </p>
-                    <p>Front Desk no: 01886628295</p>
-                    <p>Reservation no: 01886628296</p>
+                {data?.[0]?.hotelID === 1 ? (
+                  <div className="text-center">
+                    <div className="mt-8 text-black text-left">
+                      <p>
+                        Address: Block # A, Plot # 17, Kolatoli Main Road, Cox’s
+                        Bazar 4700
+                      </p>
+                      <p>Front Desk no: </p>
+                      <p>Reservation no: </p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center">
+                    <div className="mt-8 text-black text-left">
+                      <p>
+                        Address: N.H.A building No- 09, Samudra Bari, Kolatoli,
+                        Cox’s Bazar
+                      </p>
+                      <p>Front Desk no: 01886628295</p>
+                      <p>Reservation no: 01886628296</p>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex justify-between">
                 <h3
@@ -191,9 +213,12 @@ const Invoice = ({ params }) => {
                   style={{ fontSize: "10px" }} // Reduce text size within the table further
                 >
                   <thead>
-                    <tr className="bg-red-700 text-white">
+                    <tr
+                      className={`${
+                        data?.[0]?.hotelID === 1 ? "bg-blue-700" : "bg-red-700"
+                      } text-white`}>
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        Apartment
+                        Room
                       </th>
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Check-in
@@ -211,7 +236,7 @@ const Invoice = ({ params }) => {
                         Children
                       </th>
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        Kitchen Facilities
+                        BreakFast Included
                       </th>
 
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
