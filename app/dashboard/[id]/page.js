@@ -136,7 +136,12 @@ const Invoice = ({ params }) => {
                   />
                 </div>
                 <div className="mt-8 text-center">
-                  <h4 className="uppercase text-red-700 font-semibold text-xl">
+                  <h4
+                    className={`uppercase ${
+                      data?.[0]?.hotelID === 1
+                        ? "text-blue-700"
+                        : "text-red-700"
+                    } font-semibold text-xl`}>
                     {data?.[0]?.hotelName} INVOICE
                   </h4>
                 </div>
@@ -152,10 +157,16 @@ const Invoice = ({ params }) => {
                 </div>
               </div>
               <div className="flex justify-between">
-                <h3 className="font-bold text-red-700">
+                <h3
+                  className={`font-bold ${
+                    data?.[0]?.hotelID === 1 ? "text-blue-700" : "text-red-700"
+                  } `}>
                   Invoice Number: {data?.[0]?.bookingNo || "N/A"}
                 </h3>
-                <p className="text-red-700 font-bold">
+                <p
+                  className={`${
+                    data?.[0]?.hotelID === 1 ? "text-blue-700" : "text-red-700"
+                  }  font-bold`}>
                   Booking Date:
                   {moment(data?.[0]?.createTime).format("D MMM YYYY") ||
                     "02 October 2024"}
