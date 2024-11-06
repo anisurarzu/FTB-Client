@@ -1162,7 +1162,7 @@ const BookingInfo = () => {
                     />
                   </Form.Item>
                 </div>
-                <div style={{ flex: 1 }}>
+                {/*  <div style={{ flex: 1 }}>
                   <Form.Item label="E-mail" className="mb-2">
                     <Input
                       name="email"
@@ -1171,7 +1171,7 @@ const BookingInfo = () => {
                       required={false}
                     />
                   </Form.Item>
-                </div>
+                </div> */}
               </div>
 
               <div style={{ display: "flex", gap: "16px" }}>
