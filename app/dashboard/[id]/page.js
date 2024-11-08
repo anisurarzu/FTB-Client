@@ -90,7 +90,10 @@ const Invoice = ({ params }) => {
   };
 
   return (
-    <Watermark content="Samudra Bari 2024">
+    <Watermark
+      content={`${
+        data?.[0]?.hotelID === 1 ? "Mermaid 2024" : "Samudra Bari 2024"
+      }`}>
       {loading ? (
         <Spin tip="Loading...">
           <Alert
@@ -161,8 +164,8 @@ const Invoice = ({ params }) => {
                         Address: Block # A, Plot # 17, Kolatoli Main Road, Cox’s
                         Bazar 4700
                       </p>
-                      <p>Front Desk no: </p>
-                      <p>Reservation no: </p>
+                      <p>Front Desk no: 01818083949</p>
+                      <p>Reservation no: 01898841012</p>
                     </div>
                   </div>
                 ) : (
@@ -236,7 +239,9 @@ const Invoice = ({ params }) => {
                         Children
                       </th>
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        BreakFast Included
+                        {data?.[0]?.hotelID === 1
+                          ? "BreakFast Included"
+                          : " Kitchen Facilities"}
                       </th>
 
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
@@ -303,7 +308,9 @@ const Invoice = ({ params }) => {
                   Booked by: {data?.[0]?.bookedByID || "N/A"}
                 </p>
                 <p className="py-1">
-                  Check in - 12:30 PM & Check out - 11:00 AM
+                  {data?.[0]?.hotelID === 1
+                    ? "Check in - 1.00 PM & Check out - 11:00 AM"
+                    : "Check in - 12:30 PM & Check out - 11:00 AM"}
                 </p>
               </div>
               <p className="text-black">
