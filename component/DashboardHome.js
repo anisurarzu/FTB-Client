@@ -391,7 +391,7 @@ const DashboardHome = () => {
                     <Statistic
                       title={
                         <span className="text-white">
-                          Last 30 Days Booking By FTB Agents
+                          Last 30 Days Booking By FTB
                         </span>
                       }
                       value={totalBillForLast30DaysByFTB}
