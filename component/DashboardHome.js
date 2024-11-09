@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -116,12 +115,20 @@ const DashboardHome = () => {
 
   // Filter bookings based on selected hotel ID
 
-  const filteredTodayBookings = filteredBookings.filter((booking) => {
+  const filteredTodayBookingsFTB = filteredBookings.filter((booking) => {
     const createTime = dayjs(booking.createTime).format("D MMM YYYY");
     return createTime === today && booking.bookedByID !== "SBFrontDesk";
   });
+  const filteredTodayBookingsByEveryOne = filteredBookings.filter((booking) => {
+    const createTime = dayjs(booking.createTime).format("D MMM YYYY");
+    return createTime === today;
+  });
 
-  const totalBillForToday = filteredTodayBookings.reduce(
+  const totalBillForTodayByFTB = filteredTodayBookingsFTB.reduce(
+    (sum, booking) => sum + booking.totalBill,
+    0
+  );
+  const totalBillForTodayByEveryOne = filteredTodayBookingsFTB.reduce(
     (sum, booking) => sum + booking.totalBill,
     0
   );
@@ -133,18 +140,29 @@ const DashboardHome = () => {
   dayjs.extend(isBetween);
   const thirtyDaysAgo = dayjs().subtract(30, "day");
 
-  const filteredLast30DaysBookings = filteredBookings.filter((booking) => {
+  const filteredLast30DaysBookingsByFTB = filteredBookings.filter((booking) => {
     const createTime = dayjs(booking.createTime);
     return (
       createTime.isBetween(thirtyDaysAgo, today, "day", "[]") &&
       booking.bookedByID !== "SBFrontDesk"
     );
   });
+  const filteredLast30DaysBookingsByEveryOne = filteredBookings.filter(
+    (booking) => {
+      const createTime = dayjs(booking.createTime);
+      return createTime.isBetween(thirtyDaysAgo, today, "day", "[]");
+    }
+  );
 
-  const totalBillForLast30Days = filteredLast30DaysBookings.reduce(
+  const totalBillForLast30DaysByFTB = filteredLast30DaysBookingsByFTB.reduce(
     (sum, booking) => sum + booking.totalBill,
     0
   );
+  const totalBillForLast30DaysByEveryOne =
+    filteredLast30DaysBookingsByEveryOne.reduce(
+      (sum, booking) => sum + booking.totalBill,
+      0
+    );
 
   const generateMonthlyBillData = (data) => {
     const monthlyTotals = {
@@ -260,9 +278,9 @@ const DashboardHome = () => {
     return {
       key: user.id,
       username: user.loginID,
-      totalBillForToday: totalBillForUserToday,
+      totalBillForTodayByFTB: totalBillForUserToday,
       totalBillForUserLast7Days: totalBillForUserLast7Days,
-      totalBillForLast30Days: totalBillForUserLast30Days,
+      totalBillForLast30DaysByFTB: totalBillForUserLast30Days,
       totalBillOverall: totalBillForUserOverall,
     };
   });
@@ -341,7 +359,24 @@ const DashboardHome = () => {
                           {"Today's Booking By FTB Agents"}
                         </span>
                       }
-                      value={totalBillForToday}
+                      value={totalBillForTodayByFTB}
+                      prefix={<CheckCircleOutlined className="text-white" />}
+                      valueStyle={{ color: "white" }}
+                    />
+                  </Card>
+                </Col>
+                <Col xs={24} sm={12} md={8} lg={6}>
+                  <Card
+                    style={{
+                      background: "linear-gradient(45deg, #8A99EB, #AFC7F3)",
+                    }}>
+                    <Statistic
+                      title={
+                        <span className="text-white">
+                          {"Today's Booking By FTB Everyone"}
+                        </span>
+                      }
+                      value={totalBillForTodayByEveryOne}
                       prefix={<CheckCircleOutlined className="text-white" />}
                       valueStyle={{ color: "white" }}
                     />
@@ -359,7 +394,7 @@ const DashboardHome = () => {
                           Last 30 Days Booking By FTB
                         </span>
                       }
-                      value={totalBillForLast30Days}
+                      value={totalBillForLast30DaysByFTB}
                       prefix={<CheckCircleOutlined className="text-white" />}
                       valueStyle={{ color: "white" }}
                     />
@@ -373,16 +408,18 @@ const DashboardHome = () => {
                     }}>
                     <Statistic
                       title={
-                        <span className="text-white">Last 30 Days Booking</span>
+                        <span className="text-white">
+                          Last 30 Days Booking By Everyone
+                        </span>
                       }
-                      value={totalBillForLast30Days}
+                      value={totalBillForLast30DaysByEveryOne}
                       prefix={<CheckCircleOutlined className="text-white" />}
                       valueStyle={{ color: "white" }}
                     />
                   </Card>
                 </Col>
 
-                <Col xs={24} sm={12} md={8} lg={6}>
+                {/* <Col xs={24} sm={12} md={8} lg={6}>
                   <Card
                     style={{
                       background: "linear-gradient(45deg, #8A99EB, #AFC7F3)",
@@ -398,7 +435,7 @@ const DashboardHome = () => {
                       valueStyle={{ color: "white" }}
                     />
                   </Card>
-                </Col>
+                </Col> */}
               </Row>
               {/* <div className="">
 
@@ -467,13 +504,13 @@ const DashboardHome = () => {
                           {user.username}
                         </td>
                         <td className="border border-tableBorder text-center p-2">
-                          {user.totalBillForToday}
+                          {user.totalBillForTodayByFTB}
                         </td>
                         <td className="border border-tableBorder text-center p-2">
                           {user.totalBillForUserLast7Days}
                         </td>
                         <td className="border border-tableBorder text-center p-2">
-                          {user.totalBillForLast30Days}
+                          {user.totalBillForLast30DaysByFTB}
                         </td>
                         <td className="border border-tableBorder text-center p-2">
                           {user.totalBillOverall}
