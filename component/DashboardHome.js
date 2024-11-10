@@ -128,7 +128,7 @@ const DashboardHome = () => {
     (sum, booking) => sum + booking.totalBill,
     0
   );
-  const totalBillForTodayByEveryOne = filteredTodayBookingsFTB.reduce(
+  const totalBillForTodayByEveryOne = filteredTodayBookingsByEveryOne.reduce(
     (sum, booking) => sum + booking.totalBill,
     0
   );
