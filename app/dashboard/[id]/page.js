@@ -28,8 +28,13 @@ const Invoice = ({ params }) => {
       setLoading(true);
       const response = await coreAxios.get(`/bookings/bookingNo/${id}`);
       if (response?.status === 200) {
-        calculateTotals(response?.data); // Calculate totals after data is fetched
-        setData(response?.data);
+        // Filter out items where statusID is 255
+        const filteredData = response?.data.filter(
+          (item) => item.statusID !== 255
+        );
+
+        calculateTotals(filteredData); // Calculate totals with filtered data
+        setData(filteredData); // Set state with filtered data
         setLoading(false);
       } else {
         message.error("Failed to load data");

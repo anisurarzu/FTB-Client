@@ -119,6 +119,7 @@ const DashboardHome = () => {
     const createTime = dayjs(booking.createTime).format("D MMM YYYY");
     return createTime === today && booking.bookedByID !== "SBFrontDesk";
   });
+
   const filteredTodayBookingsByEveryOne = filteredBookings.filter((booking) => {
     const createTime = dayjs(booking.createTime).format("D MMM YYYY");
     return createTime === today;
@@ -128,6 +129,7 @@ const DashboardHome = () => {
     (sum, booking) => sum + booking.totalBill,
     0
   );
+
   const totalBillForTodayByEveryOne = filteredTodayBookingsByEveryOne.reduce(
     (sum, booking) => sum + booking.totalBill,
     0
