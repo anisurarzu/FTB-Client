@@ -97,7 +97,13 @@ const Invoice = ({ params }) => {
   return (
     <Watermark
       content={`${
-        data?.[0]?.hotelID === 1 ? "Mermaid 2024" : "Samudra Bari 2024"
+        data?.[0]?.hotelID === 1
+          ? "Mermaid 2024"
+          : data?.[0]?.hotelID === 2
+          ? "Hotel Golden Hill"
+          : data?.[0]?.hotelID === 3
+          ? "Sea Paradise"
+          : "Samudra Bari 2024"
       }`}>
       {loading ? (
         <Spin tip="Loading...">
@@ -143,12 +149,26 @@ const Invoice = ({ params }) => {
                       width={150}
                       height={60}
                     />
+                  ) : data?.[0]?.hotelID === 2 ? (
+                    <Image
+                      src="/images/goldenhil.png"
+                      alt="Logo"
+                      width={150}
+                      height={60}
+                    />
+                  ) : data?.[0]?.hotelID === 3 ? (
+                    <Image
+                      src="/images/seaParaadise.png"
+                      alt="Logo"
+                      width={180}
+                      height={80}
+                    />
                   ) : (
                     <Image
                       src="/images/Shamudro-Bari.png"
                       alt="Logo"
-                      width={150}
-                      height={60}
+                      width={180}
+                      height={80}
                     />
                   )}
                 </div>
@@ -171,6 +191,28 @@ const Invoice = ({ params }) => {
                       </p>
                       <p>Front Desk no: 01818083949</p>
                       <p>Reservation no: 01898841012</p>
+                    </div>
+                  </div>
+                ) : data?.[0]?.hotelID === 2 ? (
+                  <div className="text-center">
+                    <div className="mt-8 text-black text-left">
+                      <p>
+                        {`Address: Plot #65, Block# B, Sugandha Point, Kolatoli, Cox's Bazar`}
+                      </p>
+                      <p>Front Desk no: 01313708031</p>
+                      <p>Reservation no: 01898841013</p>
+                    </div>
+                  </div>
+                ) : data?.[0]?.hotelID === 3 ? (
+                  <div className="text-center">
+                    <div className="mt-8 text-black text-left">
+                      <p>
+                      { ` Address: Kolatoli Beach Road, Kolatoli Cox's Bazar-4700.`}
+
+                      </p>
+                      <p>Front Desk no: 01898841012</p>
+                      <p>Reservation no: 01321143586
+                      </p>
                     </div>
                   </div>
                 ) : (
@@ -315,7 +357,9 @@ const Invoice = ({ params }) => {
                 <p className="py-1">
                   {data?.[0]?.hotelID === 1
                     ? "Check in - 1.00 PM & Check out - 11:00 AM"
-                    : "Check in - 12:30 PM & Check out - 11:00 AM"}
+                    : data?.[0]?.hotelID === 2
+                    ? "Check in - 1.00 PM & Check out - 11:00 AM"
+                    : data?.[0]?.hotelID === 3?"Check-in 2 PM & Check out - 12 PM ": "Check in - 12:30 PM & Check out - 11:00 AM"}
                 </p>
               </div>
               <p className="text-black">
