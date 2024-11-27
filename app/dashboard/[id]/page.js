@@ -177,9 +177,7 @@ const Invoice = ({ params }) => {
                     className={`uppercase ${
                       data?.[0]?.hotelID === 1
                         ? "text-blue-700"
-                        : data?.[0]?.hotelID === 2
-                        ? "text-red-700"
-                        : "text-blue-950"
+                        : "text-red-700"
                     } font-semibold text-xl`}>
                     {data?.[0]?.hotelName} INVOICE
                   </h4>
@@ -231,21 +229,13 @@ const Invoice = ({ params }) => {
               <div className="flex justify-between">
                 <h3
                   className={`font-bold ${
-                    data?.[0]?.hotelID === 1
-                      ? "text-blue-700"
-                      : data?.[0]?.hotelID === 2
-                      ? "text-red-700"
-                      : "text-blue-950"
+                    data?.[0]?.hotelID === 1 ? "text-blue-700" : "text-red-700"
                   } `}>
                   Invoice Number: {data?.[0]?.bookingNo || "N/A"}
                 </h3>
                 <p
                   className={`${
-                    data?.[0]?.hotelID === 1
-                      ? "text-blue-700"
-                      : data?.[0]?.hotelID === 2
-                      ? "text-red-700"
-                      : "text-blue-950"
+                    data?.[0]?.hotelID === 1 ? "text-blue-700" : "text-red-700"
                   }  font-bold`}>
                   Booking Date:
                   {moment(data?.[0]?.createTime).format("D MMM YYYY") ||
@@ -273,11 +263,7 @@ const Invoice = ({ params }) => {
                   <thead>
                     <tr
                       className={`${
-                        data?.[0]?.hotelID === 1
-                          ? "bg-blue-700"
-                          : data?.[0]?.hotelID === 2
-                          ? "text-red-700"
-                          : "text-blue-950"
+                        data?.[0]?.hotelID === 1 ? "bg-blue-700" : "bg-red-700"
                       } text-white`}>
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Room
