@@ -32,8 +32,15 @@ const DashboardHome = () => {
   const defaultHotelID = ""; // Default hotel ID
   const [userData, setUserData] = useState([]); // State for user data
 
+  // Retrieve user information from local storage
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  console.log("userInfo", userInfo);
+
+  // Extract the hotelID if it exists in userInfo
+  const userHotelID = userInfo?.hotelID;
+
   useEffect(() => {
-    fetchBookings();
+    // fetchBookings();
     fetchHotelInfo();
     fetchUsers();
     fetchBookingsByHotelID(21);
@@ -99,15 +106,35 @@ const DashboardHome = () => {
 
   const fetchHotelInfo = async () => {
     try {
+      // Retrieve user information from local storage
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+
+      // Extract the loginID, role, and hotelID from userInfo
+      const userRole = userInfo?.role?.value;
+      const userHotelID = userInfo?.hotelID;
+
+      // Fetch the hotel data
       const response = await coreAxios.get("hotel");
+
+      console.log("userRole", userRole);
+      console.log("userHotelID", userHotelID);
+
       if (Array.isArray(response.data)) {
-        setHotelInfo(response.data);
-        // handleHotelChange(7); // Initialize with default hotel ID
+        let filteredHotels = response.data;
+
+        // If the role is "hoteladmin", filter hotels by the user's hotelID
+        if (userRole === "hoteladmin" && userHotelID) {
+          filteredHotels = filteredHotels.filter(
+            (hotel) => hotel.hotelID === userHotelID
+          );
+        }
+
+        setHotelInfo(filteredHotels);
       } else {
         setHotelInfo([]); // or handle appropriately
       }
     } catch (error) {
-      // message.error("Failed to fetch hotel information.");
+      message.error("Failed to fetch hotel information.");
     }
   };
 

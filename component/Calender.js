@@ -12,6 +12,7 @@ import {
   Select,
   Row,
   Col,
+  message,
 } from "antd";
 import dayjs from "dayjs";
 import coreAxios from "@/utils/axiosInstance";
@@ -32,22 +33,78 @@ const CustomCalendar = () => {
   const [showFullMonth, setShowFullMonth] = useState(false); // New state for toggling
 
   useEffect(() => {
+    // fetchHotelInfo();
     fetchHotelInformation();
   }, []);
 
   const fetchHotelInformation = async () => {
     try {
       setLoading(true);
+
+      // Retrieve user information from local storage
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      const userRole = userInfo?.role?.value;
+      const userHotelID = userInfo?.hotelID;
+
       const res = await coreAxios.get(`hotel`);
+
       if (res?.status === 200) {
+        let hotelData = res?.data;
+
+        // Apply filtering for "hoteladmin" role
+        if (userRole === "hoteladmin" && userHotelID) {
+          hotelData = hotelData.filter(
+            (hotel) => hotel.hotelID === userHotelID
+          );
+        }
+
         setLoading(false);
-        setHotelData(res?.data);
-        if (res?.data?.length > 0) {
-          setSelectedHotel(res?.data[0].hotelName);
+        setHotelData(hotelData);
+
+        if (hotelData?.length > 0) {
+          setSelectedHotel(hotelData[0].hotelName);
         }
       }
     } catch (err) {
       setLoading(false);
+      message.error("Failed to fetch hotel information.");
+    }
+  };
+
+  const fetchHotelInfo = async () => {
+    try {
+      // Retrieve user information from local storage
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+
+      // Extract the loginID, role, and hotelID from userInfo
+      const userRole = userInfo?.role?.value;
+      const userHotelID = userInfo?.hotelID;
+
+      // Fetch the hotel data
+      const response = await coreAxios.get("hotel");
+
+      console.log("userRole", userRole);
+      console.log("userHotelID", userHotelID);
+
+      if (Array.isArray(response.data)) {
+        let filteredHotels = response.data;
+
+        // If the role is "hoteladmin", filter hotels by the user's hotelID
+        if (userRole === "hoteladmin" && userHotelID) {
+          filteredHotels = filteredHotels.filter(
+            (hotel) => hotel.hotelID === userHotelID
+          );
+        }
+
+        setHotelData(filteredHotels);
+        if (res?.data?.length > 0) {
+          setSelectedHotel(res?.data[0].hotelName);
+        }
+      } else {
+        setHotelData([]); // or handle appropriately
+      }
+    } catch (error) {
+      message.error("Failed to fetch hotel information.");
     }
   };
 
