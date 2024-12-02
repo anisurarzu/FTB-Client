@@ -28,10 +28,27 @@ const RoomAvailabilityPage = () => {
   const fetchHotelInformation = async () => {
     try {
       setLoading(true);
+
+      // Retrieve user information from local storage
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      const userRole = userInfo?.role?.value;
+      const userHotelID = userInfo?.hotelID;
+
+      // Fetch hotel data
       const res = await coreAxios.get(`hotel`);
       setLoading(false);
+
       if (res?.status === 200) {
-        setHotelData(res?.data);
+        let hotelData = res?.data;
+
+        // Apply filtering for "hoteladmin" role
+        if (userRole === "hoteladmin" && userHotelID) {
+          hotelData = hotelData.filter(
+            (hotel) => hotel.hotelID === userHotelID
+          );
+        }
+
+        setHotelData(hotelData);
       }
     } catch (error) {
       setLoading(false);
