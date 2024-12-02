@@ -65,44 +65,27 @@ const BookingInfo = () => {
     }
   };
 
-  // const fetchHotelInfo = async () => {
-  //   try {
-  //     const response = await coreAxios.get("hotel");
-  //     if (Array.isArray(response.data)) {
-  //       setHotelInfo(response.data);
-  //     } else {
-  //       setHotelInfo([]); // or handle appropriately
-  //     }
-  //   } catch (error) {
-  //     message.error("Failed to fetch hotel information.");
-  //   }
-  // };
   const fetchHotelInfo = async () => {
     try {
       // Retrieve user information from local storage
       const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-
-      // Extract the loginID, role, and hotelID from userInfo
       const userRole = userInfo?.role?.value;
       const userHotelID = userInfo?.hotelID;
 
       // Fetch the hotel data
       const response = await coreAxios.get("hotel");
 
-      console.log("userRole", userRole);
-      console.log("userHotelID", userHotelID);
-
       if (Array.isArray(response.data)) {
-        let filteredHotels = response.data;
+        let hotelData = response.data;
 
-        // If the role is "hoteladmin", filter hotels by the user's hotelID
+        // Apply filtering for "hoteladmin" role
         if (userRole === "hoteladmin" && userHotelID) {
-          filteredHotels = filteredHotels.filter(
+          hotelData = hotelData.filter(
             (hotel) => hotel.hotelID === userHotelID
           );
         }
 
-        setHotelInfo(filteredHotels);
+        setHotelInfo(hotelData);
       } else {
         setHotelInfo([]); // or handle appropriately
       }
@@ -345,7 +328,7 @@ const BookingInfo = () => {
 
             // Refresh hotel and booking information
             fetchHotelInfo();
-            fetchBookingsByHotelID(values?.hotelID);
+            fetchBookings();
             if (updateBookingResponse.status === 200) {
               const newBooking = {
                 ...values,
@@ -382,7 +365,7 @@ const BookingInfo = () => {
 
               // Refresh hotel and booking information
               fetchHotelInfo();
-              fetchBookingsByHotelID(values?.hotelID);
+              fetchBookings();
             } else {
               message.error("Failed to update room booking status.");
             }
@@ -428,7 +411,7 @@ const BookingInfo = () => {
 
           // Refresh hotel and booking information
           fetchHotelInfo();
-          fetchBookingsByHotelID(values?.hotelID);
+          fetchBookings();
         } else {
           message.error("Failed to update room booking status.");
         }
@@ -485,42 +468,37 @@ const BookingInfo = () => {
     },
   });
 
-  // const fetchBookings = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await coreAxios.get("bookings");
-  //     if (response.status === 200) {
-  //       setBookings(response?.data);
-  //       setFilteredBookings(response?.data);
-  //       setLoading(false);
-  //     }
-  //   } catch (error) {
-  //     message.error("Failed to fetch bookings.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-  const fetchBookingsByHotelID = async (hotelID) => {
+  const fetchBookings = async () => {
     setLoading(true);
     try {
-      const response = await coreAxios.post("getBookingByHotelID", {
-        hotelID: hotelID,
-      }); // Use POST and send hotelID in the body
+      // Retrieve user information from local storage
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      const userRole = userInfo?.role?.value;
+      const userHotelID = userInfo?.hotelID;
+
+      // Fetch the bookings data
+      const response = await coreAxios.get("bookings");
+
       if (response.status === 200) {
-        // const filtered = response?.data?.filter(
-        //   (data) => data.statusID !== 255
-        // );
-        setBookings(response?.data);
-        setFilteredBookings(response?.data);
-        setLoading(false);
+        let bookingsData = response?.data;
+
+        // Filter bookings if the role is "hoteladmin"
+        if (userRole === "hoteladmin" && userHotelID) {
+          bookingsData = bookingsData.filter(
+            (booking) => booking.hotelID === userHotelID
+          );
+        }
+
+        setBookings(bookingsData);
+        setFilteredBookings(bookingsData);
       }
     } catch (error) {
-      setFilteredBookings([]);
-      message.error("No Bookings Presents For This Hotel.");
+      message.error("Failed to fetch bookings.");
     } finally {
       setLoading(false);
     }
   };
+
   const fetchBookingsReportByBookingNo = async (bookingNo) => {
     setLoading(true);
     try {
@@ -537,8 +515,7 @@ const BookingInfo = () => {
 
   useEffect(() => {
     fetchHotelInfo();
-    // fetchBookings();
-    fetchBookingsByHotelID(21);
+    fetchBookings();
     fetchRoomCategories();
   }, []);
 
@@ -671,7 +648,6 @@ const BookingInfo = () => {
       setLoading(false);
     }
   };
-  console.log("-----", formik?.values);
 
   const handleDelete2 = async (key) => {
     setLoading(true);
@@ -964,9 +940,9 @@ const BookingInfo = () => {
                     <th className="border border-tableBorder text-center p-2">
                       Phone
                     </th>
-                    <th className="border border-tableBorder text-center p-2">
+                    {/* <th className="border border-tableBorder text-center p-2">
                       Hotel
-                    </th>
+                    </th> */}
                     <th className="border border-tableBorder text-center p-2">
                       Flat Type
                     </th>
@@ -1060,9 +1036,9 @@ const BookingInfo = () => {
                         {booking.phone}
                       </td>
                       {/* Hotel Name */}
-                      <td className="border border-tableBorder text-center p-2">
+                      {/* <td className="border border-tableBorder text-center p-2">
                         {booking.hotelName}
-                      </td>
+                      </td> */}
                       {/* Flat Type */}
                       <td className="border border-tableBorder text-center p-2">
                         {booking.roomCategoryName}
