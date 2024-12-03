@@ -11,6 +11,7 @@ import {
   UnorderedListOutlined,
   MenuOutlined,
   CalendarOutlined,
+  InfoCircleOutlined,
 } from "@ant-design/icons";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -23,6 +24,7 @@ import HotelRoom from "@/component/HotelRoom";
 import BookingInfo from "@/component/BookingInfo";
 import Calender from "@/component/Calender";
 import RoomAvailabilityPage from "@/component/RoomSearchPage";
+import AllBookingInfo from "@/component/AllBookingInfo";
 
 const { Header, Sider, Content } = Layout;
 
@@ -50,8 +52,14 @@ const rolePermissions = {
     {
       key: "6",
       label: "Booking Info",
-      icon: <SettingOutlined />,
+      icon: <InfoCircleOutlined />,
       component: <BookingInfo />,
+    },
+    {
+      key: "10",
+      label: "All Booking Info",
+      icon: <InfoCircleOutlined />,
+      component: <AllBookingInfo />,
     },
     // {
     //   key: "3",
@@ -77,6 +85,7 @@ const rolePermissions = {
       icon: <UsergroupAddOutlined />,
       component: <AgentInformation />,
     },
+
     { key: "8", label: "Settings", icon: <SettingOutlined />, component: null },
   ],
   agentadmin: [
@@ -101,8 +110,14 @@ const rolePermissions = {
     {
       key: "6",
       label: "Booking Info",
-      icon: <SettingOutlined />,
+      icon: <InfoCircleOutlined />,
       component: <BookingInfo />,
+    },
+    {
+      key: "10",
+      label: "All Booking Info",
+      icon: <InfoCircleOutlined />,
+      component: <AllBookingInfo />,
     },
   ],
   hoteladmin: [
@@ -127,8 +142,14 @@ const rolePermissions = {
     {
       key: "6",
       label: "Booking Info",
-      icon: <SettingOutlined />,
+      icon: <InfoCircleOutlined />,
       component: <BookingInfo />,
+    },
+    {
+      key: "10",
+      label: "All Booking Info",
+      icon: <InfoCircleOutlined />,
+      component: <AllBookingInfo />,
     },
   ],
   admin: [
@@ -156,7 +177,12 @@ const rolePermissions = {
       icon: <SettingOutlined />,
       component: <BookingInfo />,
     },
-
+    {
+      key: "10",
+      label: "All Booking Info",
+      icon: <InfoCircleOutlined />,
+      component: <AllBookingInfo />,
+    },
     {
       key: "5",
       label: "Hotel Info",

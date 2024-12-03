@@ -228,7 +228,7 @@ const Invoice = ({ params }) => {
                   <div className="mt-8 text-black text-left">
                     <p>
                       {`Address: Shopno Bilash Holiday Suites, Block # A, Plot #
-                      28, kolatoli Residential Area, Cox's Bazar, Bangladesh`}
+                      28, kolatoli Residential Area, Cox's Bazar`}
                     </p>
                     <p>Front Desk no: 01322838204</p>
                     <p>Reservation no: 01898841014</p>
