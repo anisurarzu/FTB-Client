@@ -43,7 +43,7 @@ const DashboardHome = () => {
     // fetchBookings();
     fetchHotelInfo();
     fetchUsers();
-    fetchBookingsByHotelID(21);
+    fetchBookingsByHotelID(userHotelID);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const fetchUsers = async () => {
@@ -328,7 +328,7 @@ const DashboardHome = () => {
         <div>
           <div className="">
             <Formik
-              initialValues={{ hotelID: 21 }} // Only hotelID in initial values
+              initialValues={{ hotelID: userHotelID || 0 }} // Only hotelID in initial values
               onSubmit={(values) => {
                 // Log selected value
                 // Update filtered bookings based on selected hotel

@@ -103,6 +103,8 @@ const Invoice = ({ params }) => {
           ? "Hotel Golden Hill"
           : data?.[0]?.hotelID === 3
           ? "Sea Paradise"
+          : data?.[0]?.hotelID === 4
+          ? "Shopno Bilash Holiday Suites"
           : "Samudra Bari 2024"
       }`}>
       {loading ? (
@@ -163,6 +165,13 @@ const Invoice = ({ params }) => {
                       width={180}
                       height={80}
                     />
+                  ) : data?.[0]?.hotelID === 4 ? (
+                    <Image
+                      src="/images/Sopno.png"
+                      alt="Logo"
+                      width={180}
+                      height={80}
+                    />
                   ) : (
                     <Image
                       src="/images/Shamudro-Bari.png"
@@ -177,6 +186,8 @@ const Invoice = ({ params }) => {
                     className={`uppercase ${
                       data?.[0]?.hotelID === 1
                         ? "text-blue-700"
+                        : data?.[0]?.hotelID === 4
+                        ? "text-[#2B388F]"
                         : "text-red-700"
                     } font-semibold text-xl`}>
                     {data?.[0]?.hotelName} INVOICE
@@ -213,6 +224,15 @@ const Invoice = ({ params }) => {
                       <p>Reservation no: 01321143586</p>
                     </div>
                   </div>
+                ) : data?.[0]?.hotelID === 4 ? (
+                  <div className="mt-8 text-black text-left">
+                    <p>
+                      {`Address: Shopno Bilash Holiday Suites, Block # A, Plot #
+                      28, kolatoli Residential Area, Cox's Bazar, Bangladesh`}
+                    </p>
+                    <p>Front Desk no: 01322838204</p>
+                    <p>Reservation no: 01898841014</p>
+                  </div>
                 ) : (
                   <div className="text-center">
                     <div className="mt-8 text-black text-left">
@@ -229,13 +249,21 @@ const Invoice = ({ params }) => {
               <div className="flex justify-between">
                 <h3
                   className={`font-bold ${
-                    data?.[0]?.hotelID === 1 ? "text-blue-700" : "text-red-700"
+                    data?.[0]?.hotelID === 1
+                      ? "text-blue-700"
+                      : data?.[0]?.hotelID === 4
+                      ? "text-[#2B388F]"
+                      : "text-red-700"
                   } `}>
                   Invoice Number: {data?.[0]?.bookingNo || "N/A"}
                 </h3>
                 <p
                   className={`${
-                    data?.[0]?.hotelID === 1 ? "text-blue-700" : "text-red-700"
+                    data?.[0]?.hotelID === 1
+                      ? "text-blue-700"
+                      : data?.[0]?.hotelID === 4
+                      ? "text-[#2B388F]"
+                      : "text-red-700"
                   }  font-bold`}>
                   Booking Date:
                   {moment(data?.[0]?.createTime).format("D MMM YYYY") ||
@@ -263,7 +291,11 @@ const Invoice = ({ params }) => {
                   <thead>
                     <tr
                       className={`${
-                        data?.[0]?.hotelID === 1 ? "bg-blue-700" : "bg-red-700"
+                        data?.[0]?.hotelID === 1
+                          ? "bg-blue-700"
+                          : data?.[0]?.hotelID === 4
+                          ? "bg-[#2B388F]"
+                          : "bg-red-700"
                       } text-white`}>
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Room
