@@ -75,8 +75,43 @@ const AllBookingInfo = () => {
           );
         }
 
-        setBookings(bookingsData);
-        setFilteredBookings(bookingsData);
+        // setBookings(bookingsData);
+        // setFilteredBookings(bookingsData);
+        // filterBookings();
+
+        if (!selectedHotel && !dates.length) {
+          setFilteredBookings(bookings);
+          return;
+        }
+
+        const [startDate, endDate] = dates.map((date) =>
+          dayjs(date).format("YYYY-MM-DD")
+        );
+
+        const filtered2 = bookingsData?.filter((booking) => {
+          const matchHotel = selectedHotel
+            ? booking.hotelName === selectedHotel
+            : true;
+          const matchDate =
+            dates.length > 0
+              ? dayjs(booking.checkInDate).isBetween(
+                  startDate,
+                  endDate,
+                  "day",
+                  "[]"
+                ) ||
+                dayjs(booking.checkOutDate).isBetween(
+                  startDate,
+                  endDate,
+                  "day",
+                  "[]"
+                )
+              : true;
+
+          return matchHotel && matchDate;
+        });
+
+        setFilteredBookings(filtered2);
       }
     } catch (error) {
       message.error("Failed to fetch bookings.");
@@ -84,42 +119,6 @@ const AllBookingInfo = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const filterBookings = () => {
-    if (!selectedHotel && !dates.length) {
-      setFilteredBookings(bookings);
-      return;
-    }
-
-    const [startDate, endDate] = dates.map((date) =>
-      dayjs(date).format("YYYY-MM-DD")
-    );
-
-    const filtered = bookings.filter((booking) => {
-      const matchHotel = selectedHotel
-        ? booking.hotelName === selectedHotel
-        : true;
-      const matchDate =
-        dates.length > 0
-          ? dayjs(booking.checkInDate).isBetween(
-              startDate,
-              endDate,
-              "day",
-              "[]"
-            ) ||
-            dayjs(booking.checkOutDate).isBetween(
-              startDate,
-              endDate,
-              "day",
-              "[]"
-            )
-          : true;
-
-      return matchHotel && matchDate;
-    });
-
-    setFilteredBookings(filtered);
   };
 
   const exportToExcel = () => {
@@ -201,7 +200,7 @@ const AllBookingInfo = () => {
           style={{ width: "50%" }}
         />
 
-        <Button type="primary" onClick={filterBookings}>
+        <Button type="primary" onClick={fetchBookings}>
           Apply Filters
         </Button>
 
@@ -232,38 +231,89 @@ const AllBookingInfo = () => {
         <table border="1" style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th>Booking No</th>
-              <th>Full Name</th>
-              <th>Check-In Date</th>
-              <th>Check-Out Date</th>
-              <th>Hotel Name</th>
-              <th>Room</th>
-              <th>Total Bill</th>
-              <th>Advance Payment</th>
-              <th>Due Payment</th>
+              <th style={{ border: "1px solid black" }}>Booking No</th>
+              <th style={{ border: "1px solid black" }}>Full Name</th>
+              <th style={{ border: "1px solid black" }}>Check-In Date</th>
+              <th style={{ border: "1px solid black" }}>Check-Out Date</th>
+              <th style={{ border: "1px solid black" }}>Hotel Name</th>
+              <th style={{ border: "1px solid black" }}>Room</th>
+              <th style={{ border: "1px solid black" }}>Total Bill</th>
+              <th style={{ border: "1px solid black" }}>Advance Payment</th>
+              <th style={{ border: "1px solid black" }}>Due Payment</th>
             </tr>
           </thead>
           <tbody>
             {filteredBookings.length ? (
               filteredBookings.map((booking) => (
                 <tr key={booking._id}>
-                  <td>{booking.bookingNo}</td>
-                  <td>{booking.fullName}</td>
-                  <td>{dayjs(booking.checkInDate).format("DD MMM YYYY")}</td>
-                  <td>{dayjs(booking.checkOutDate).format("DD MMM YYYY")}</td>
-                  <td>{booking.hotelName}</td>
-                  <td>
+                  <td style={{ border: "1px solid black" }}>
+                    {booking.bookingNo}
+                  </td>
+                  <td style={{ border: "1px solid black" }}>
+                    {booking.fullName}
+                  </td>
+                  <td style={{ border: "1px solid black" }}>
+                    {dayjs(booking.checkInDate).format("DD MMM YYYY")}
+                  </td>
+                  <td style={{ border: "1px solid black" }}>
+                    {dayjs(booking.checkOutDate).format("DD MMM YYYY")}
+                  </td>
+                  <td style={{ border: "1px solid black" }}>
+                    {booking.hotelName}
+                  </td>
+                  <td style={{ border: "1px solid black" }}>
                     {booking.roomCategoryName} ({booking.roomNumberName})
                   </td>
-                  <td>{booking.totalBill}</td>
-                  <td>{booking.advancePayment}</td>
-                  <td>{booking.duePayment}</td>
+                  <td style={{ border: "1px solid black" }}>
+                    {booking.totalBill}
+                  </td>
+                  <td style={{ border: "1px solid black" }}>
+                    {booking.advancePayment}
+                  </td>
+                  <td style={{ border: "1px solid black" }}>
+                    {booking.duePayment}
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="9" style={{ textAlign: "center" }}>
+                <td
+                  colSpan="9"
+                  style={{ textAlign: "center", border: "1px solid black" }}>
                   No bookings available.
+                </td>
+              </tr>
+            )}
+
+            {/* Summary Row for Totals */}
+            {filteredBookings.length > 0 && (
+              <tr>
+                <td
+                  colSpan="6"
+                  style={{
+                    textAlign: "right",
+                    fontWeight: "bold",
+                    border: "1px solid black",
+                  }}>
+                  Total:
+                </td>
+                <td style={{ border: "1px solid black", fontWeight: "bold" }}>
+                  {filteredBookings.reduce(
+                    (sum, booking) => sum + booking.totalBill,
+                    0
+                  )}
+                </td>
+                <td style={{ border: "1px solid black", fontWeight: "bold" }}>
+                  {filteredBookings.reduce(
+                    (sum, booking) => sum + booking.advancePayment,
+                    0
+                  )}
+                </td>
+                <td style={{ border: "1px solid black", fontWeight: "bold" }}>
+                  {filteredBookings.reduce(
+                    (sum, booking) => sum + booking.duePayment,
+                    0
+                  )}
                 </td>
               </tr>
             )}

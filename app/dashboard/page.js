@@ -113,12 +113,12 @@ const rolePermissions = {
       icon: <InfoCircleOutlined />,
       component: <BookingInfo />,
     },
-    {
-      key: "10",
-      label: "All Booking Info",
-      icon: <InfoCircleOutlined />,
-      component: <AllBookingInfo />,
-    },
+    // {
+    //   key: "10",
+    //   label: "All Booking Info",
+    //   icon: <InfoCircleOutlined />,
+    //   component: <AllBookingInfo />,
+    // },
   ],
   hoteladmin: [
     {
@@ -145,12 +145,12 @@ const rolePermissions = {
       icon: <InfoCircleOutlined />,
       component: <BookingInfo />,
     },
-    {
-      key: "10",
-      label: "All Booking Info",
-      icon: <InfoCircleOutlined />,
-      component: <AllBookingInfo />,
-    },
+    // {
+    //   key: "10",
+    //   label: "All Booking Info",
+    //   icon: <InfoCircleOutlined />,
+    //   component: <AllBookingInfo />,
+    // },
   ],
   admin: [
     {
