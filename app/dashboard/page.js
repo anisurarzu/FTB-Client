@@ -23,6 +23,8 @@ import HotelRoom from "@/component/HotelRoom";
 import BookingInfo from "@/component/BookingInfo";
 import Calender from "@/component/Calender";
 import RoomAvailabilityPage from "@/component/RoomSearchPage";
+import TransactionMessage from "@/component/TransactionMessage";
+// Import the new component
 
 const { Header, Sider, Content } = Layout;
 
@@ -180,6 +182,8 @@ const Dashboard = ({ sliders }) => {
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [messageVisible, setMessageVisible] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -196,6 +200,23 @@ const Dashboard = ({ sliders }) => {
     const timer = setTimeout(() => setLoading(false), 1000);
     return () => clearTimeout(timer);
   }, [router, selectedMenu]);
+  useEffect(() => {
+    // Simulate a message when the user enters Premier Mode
+    const showMessage = () => {
+      setMessage("Now You Are in Premier Mode of this software");
+      setMessageVisible(true);
+
+      // Hide the message after some time (let's say 5 seconds)
+      setTimeout(() => {
+        setMessageVisible(false);
+      }, 5000);
+    };
+
+    // Simulate entering Premier Mode after 2 seconds (for demo purposes)
+    const timer = setTimeout(showMessage, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -237,6 +258,7 @@ const Dashboard = ({ sliders }) => {
 
   return (
     <Layout className="min-h-screen">
+      {messageVisible && <TransactionMessage message={message} />}
       {/* Sidebar for Desktop */}
       <Sider
         collapsible
