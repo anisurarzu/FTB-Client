@@ -433,6 +433,9 @@ const BookingInfo = () => {
       hotelID: 0,
       hotelName: "",
       isKitchen: false,
+      kitchenTotalBill: 0,
+      extraBedTotalBill: 0,
+      extraBed: false,
       roomCategoryID: 0,
       roomCategoryName: "",
       roomNumberID: 0,
@@ -570,6 +573,9 @@ const BookingInfo = () => {
         ...formik.values,
         bookedBy: record?.username,
         isKitchen: record?.isKitchen,
+        kitchenTotalBill: record?.kitchenTotalBill,
+        extraBed: record?.extraBed,
+        extraBedTotalBill: record?.extraBedTotalBill,
         bookedByID: record?.loginID,
         updatedByID: userInfo ? userInfo?.loginID : "",
         fullName: record.fullName,
@@ -1407,6 +1413,44 @@ const BookingInfo = () => {
                       } // Update formik value on switch toggle
                     />
                   </Form.Item>
+                  {formik.values.isKitchen && ( // Conditionally render totalBill field if isKitchen is true
+                    <Form.Item label="Total Bill (Kitchen)" className="mb-2">
+                      <Input
+                        type="number"
+                        value={formik.values.kitchenTotalBill || ""}
+                        onChange={(e) =>
+                          formik.setFieldValue(
+                            "kitchenTotalBill",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </Form.Item>
+                  )}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Form.Item label="Extra Bed?" className="mb-2">
+                    <Switch
+                      checked={formik.values.extraBed} // Use formik's value for extraBed
+                      onChange={(checked) =>
+                        formik.setFieldValue("extraBed", checked)
+                      } // Update formik value on switch toggle
+                    />
+                  </Form.Item>
+                  {formik.values.extraBed && ( // Conditionally render totalBill field if extraBed is true
+                    <Form.Item label="Total Bill (Extra Bed)" className="mb-2">
+                      <Input
+                        type="number"
+                        value={formik.values.extraBedTotalBill || ""}
+                        onChange={(e) =>
+                          formik.setFieldValue(
+                            "extraBedTotalBill",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </Form.Item>
+                  )}
                 </div>
               </div>
 

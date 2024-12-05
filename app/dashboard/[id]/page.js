@@ -18,8 +18,11 @@ const Invoice = ({ params }) => {
   const [data, setData] = useState([]);
   const [totals, setTotals] = useState({
     totalAdvance: 0,
+    extraBedTotalBill: 0,
+    kitchenTotalBill: 0,
     totalDue: 0,
     totalBill: 0,
+    finalTotal: 0,
   });
   const { id } = params;
 
@@ -86,11 +89,23 @@ const Invoice = ({ params }) => {
       (sum, booking) => sum + (booking?.totalBill || 0),
       0
     );
+    const kitchenTotalBill = bookings.reduce(
+      (sum, booking) => sum + (booking?.kitchenTotalBill || 0),
+      0
+    );
+    const extraBedTotalBill = bookings.reduce(
+      (sum, booking) => sum + (booking?.extraBedTotalBill || 0),
+      0
+    );
+    const finalTotal = totalBill + kitchenTotalBill + extraBedTotalBill;
 
     setTotals({
       totalAdvance,
       totalDue,
       totalBill,
+      kitchenTotalBill,
+      extraBedTotalBill,
+      finalTotal,
     });
   };
 
@@ -230,7 +245,7 @@ const Invoice = ({ params }) => {
                       {`Address: Shopno Bilash Holiday Suites, Block # A, Plot #
                       28, kolatoli Residential Area, Cox's Bazar`}
                     </p>
-                    <p>Front Desk no: 01322838204</p>
+                    <p>Front Desk no: 01711877621</p>
                     <p>Reservation no: 01898841014</p>
                   </div>
                 ) : (
@@ -315,11 +330,6 @@ const Invoice = ({ params }) => {
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Children
                       </th>
-                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        {data?.[0]?.hotelID === 1
-                          ? "BreakFast Included"
-                          : " Kitchen Facilities"}
-                      </th>
 
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Bill (Per Night)
@@ -352,9 +362,14 @@ const Invoice = ({ params }) => {
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.children || "N/A"}
                         </td>
-                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        {/* <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.isKitchen ? "Yes" : "No"}
                         </td>
+                        {data?.[0]?.hotelID === 4 && (
+                          <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                            {booking?.extraBed ? "Yes" : "No"}
+                          </td>
+                        )} */}
 
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.roomPrice || "N/A"}
@@ -367,13 +382,68 @@ const Invoice = ({ params }) => {
                   </tbody>
                 </table>
               </div>
+
+              <div className="mt-2 text-black">
+                <p className="font-bold text-md">Additional Details</p>
+                <table
+                  className="table-auto w-full border-collapse border border-gray-400 mt-4 text-left text-xs" // Smaller text
+                  style={{ fontSize: "10px" }} // Reduce text size within the table further
+                >
+                  <thead>
+                    <tr
+                      className={`${
+                        data?.[0]?.hotelID === 1
+                          ? "bg-blue-700"
+                          : data?.[0]?.hotelID === 4
+                          ? "bg-[#2B388F]"
+                          : "bg-red-700"
+                      } text-white`}>
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        {data?.[0]?.hotelID === 1
+                          ? "BreakFast Included"
+                          : " Kitchen Facilities"}
+                      </th>
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        Bill (Kitchen)
+                      </th>
+
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        Extra Bed
+                      </th>
+
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        Bill (Extra Bed)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data?.map((booking, index) => (
+                      <tr key={index}>
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.isKitchen ? "Yes" : "No"}
+                        </td>
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.kitchenTotalBill || "N/A"}
+                        </td>
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.extraBed ? "Yes" : "No"}
+                        </td>
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.extraBedTotalBill || "N/A"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
               <p className="font-bold text-md mt-2 text-black">
                 Note: {data?.[0]?.note}
               </p>
 
               <div className="mt-8 text-black">
                 <p className="font-bold text-md">Payment Information:</p>
-                <p>Total Bill: {totals.totalBill} taka</p>
+                <p>Total Bill: {totals?.finalTotal} taka</p>
                 <p>Total Advance: {totals.totalAdvance} taka</p>
                 <p>Total Due: {totals.totalDue} taka</p>
                 <p>Payment Method: {data?.[0]?.paymentMethod} </p>
