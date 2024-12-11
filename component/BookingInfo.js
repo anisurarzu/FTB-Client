@@ -968,6 +968,9 @@ const BookingInfo = () => {
                       Nights
                     </th>
                     <th className="border border-tableBorder text-center p-2">
+                      Advance
+                    </th>
+                    <th className="border border-tableBorder text-center p-2">
                       Total
                     </th>
                     <th className="border border-tableBorder text-center p-2">
@@ -1068,6 +1071,9 @@ const BookingInfo = () => {
                       {/* Nights */}
                       <td className="border border-tableBorder text-center p-2">
                         {booking.nights}
+                      </td>
+                      <td className="border border-tableBorder text-center p-2">
+                        {booking.advancePayment}
                       </td>
                       {/* Total Bill */}
                       <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
