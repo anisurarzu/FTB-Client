@@ -55,11 +55,24 @@ const DashboardHome = () => {
         setUsers(response.data);
         const allUsers = response.data;
 
-        // Filter out users with role "Super Admin" or "Admin"
-        const filtered = allUsers.users?.filter(
-          (user) =>
-            user.role.value !== "superadmin" && user.role.value !== "admin"
-        );
+        // Filter the users list
+        const filtered = allUsers.users?.filter((user) => {
+          // Exclude "superadmin" and "admin" roles
+          if (user.role.value === "superadmin" || user.role.value === "admin") {
+            return false;
+          }
+
+          // Include the logged-in hotel admin
+          if (
+            userInfo.role.value === "hoteladmin" &&
+            user.loginID === userInfo.loginID
+          ) {
+            return true;
+          }
+
+          // Include non-hoteladmin users
+          return user.role.value !== "hoteladmin";
+        });
 
         setFilteredUsers(filtered);
       }
