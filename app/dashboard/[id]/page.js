@@ -460,7 +460,7 @@ const Invoice = ({ params }) => {
                     : data?.[0]?.hotelID === 2
                     ? "Check in - 1.00 PM & Check out - 11:00 AM"
                     : data?.[0]?.hotelID === 4
-                    ? "11:30 PM & Check out - 11:00 AM "
+                    ? "11:30 AM & Check out - 11:00 AM "
                     : data?.[0]?.hotelID === 3
                     ? "Check-in 2 PM & Check out - 12 PM "
                     : "Check in - 12:30 PM & Check out - 11:00 AM"}
