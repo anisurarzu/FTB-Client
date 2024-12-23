@@ -15,13 +15,15 @@ const AllBookingInfo = () => {
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [hotels, setHotels] = useState([]);
+  const [users, setUsers] = useState([]);
   const [selectedHotel, setSelectedHotel] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [dates, setDates] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchHotelInformation();
-    // fetchBookings();
+    fetchUsers();
   }, []);
 
   const fetchHotelInformation = async () => {
@@ -53,44 +55,43 @@ const AllBookingInfo = () => {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const response = await coreAxios.get("auth/users");
+      if (response.status === 200) {
+        setUsers(response.data?.users);
+      }
+    } catch (error) {
+      console.error("Failed to fetch users", error);
+      message.error("Failed to load users. Please try again.");
+    }
+  };
+
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-      const userRole = userInfo?.role?.value;
-      const userHotelID = userInfo?.hotelID;
+      const userLoginID = selectedUser; // Use selected user for login ID
 
+      // Fetch bookings from API
       const response = await coreAxios.get("bookings");
 
       if (response.status === 200) {
-        const filtered = response?.data?.filter(
-          (data) => data.statusID !== 255
-        );
-
-        let bookingsData = filtered;
-
-        if (userRole === "hoteladmin" && userHotelID) {
-          bookingsData = bookingsData.filter(
-            (booking) => booking.hotelID === userHotelID
-          );
-        }
-
-        // setBookings(bookingsData);
-        // setFilteredBookings(bookingsData);
-        // filterBookings();
-
-        if (!selectedHotel && !dates.length) {
-          setFilteredBookings(bookings);
-          return;
-        }
+        const filtered = response.data.filter((data) => data.statusID !== 255); // Filter out statusID 255
 
         const [startDate, endDate] = dates.map((date) =>
           dayjs(date).format("YYYY-MM-DD")
         );
 
-        const filtered2 = bookingsData?.filter((booking) => {
+        // Apply filters based on the provided criteria
+        const filteredByCriteria = filtered.filter((booking) => {
           const matchHotel = selectedHotel
-            ? booking.hotelName === selectedHotel
+            ? booking.hotelID === selectedHotel
+            : true;
+          const matchUser = selectedUser
+            ? booking.bookedByID === selectedUser
+            : true;
+          const matchLoginID = userLoginID
+            ? booking.bookedByID === userLoginID
             : true;
           const matchDate =
             dates.length > 0
@@ -99,19 +100,18 @@ const AllBookingInfo = () => {
                   endDate,
                   "day",
                   "[]"
-                ) ||
-                dayjs(booking.checkOutDate).isBetween(
-                  startDate,
-                  endDate,
-                  "day",
-                  "[]"
                 )
               : true;
 
-          return matchHotel && matchDate;
+          return matchHotel && matchUser && matchLoginID && matchDate;
         });
 
-        setFilteredBookings(filtered2);
+        // Sort the bookings by checkInDate (sequential order)
+        const sortedBookings = filteredByCriteria.sort((a, b) =>
+          dayjs(a.checkInDate).isBefore(dayjs(b.checkInDate)) ? -1 : 1
+        );
+
+        setFilteredBookings(sortedBookings);
       }
     } catch (error) {
       message.error("Failed to fetch bookings.");
@@ -140,6 +140,25 @@ const AllBookingInfo = () => {
     }
 
     const doc = new jsPDF();
+
+    // Prepare header data
+    const startDate =
+      dates.length > 0 ? dayjs(dates[0]).format("DD MMM YYYY") : "N/A";
+    const endDate =
+      dates.length > 1 ? dayjs(dates[1]).format("DD MMM YYYY") : "N/A";
+    const userName = selectedUser
+      ? users.find((user) => user.loginID === selectedUser)?.username || "N/A"
+      : "All Users";
+    const hotelName = selectedHotel || "All Hotels";
+
+    // Title and header in PDF
+    doc.text("Booking Information", 14, 10);
+    doc.setFontSize(12);
+    doc.text(`Date Range: ${startDate} to ${endDate}`, 14, 20);
+    doc.text(`User: ${userName}`, 14, 30);
+    doc.text(`Hotel: ${hotelName}`, 14, 40);
+
+    // Table Columns
     const columns = [
       "Booking No",
       "Full Name",
@@ -151,6 +170,8 @@ const AllBookingInfo = () => {
       "Advance Payment",
       "Due Payment",
     ];
+
+    // Table Rows
     const rows = filteredBookings.map((booking) => [
       booking.bookingNo,
       booking.fullName,
@@ -163,9 +184,47 @@ const AllBookingInfo = () => {
       booking.duePayment,
     ]);
 
-    doc.text("Booking Information", 14, 10);
-    doc.autoTable({ head: [columns], body: rows, startY: 20 });
-    doc.save(`Bookings_${dayjs().format("YYYYMMDD")}.pdf`);
+    // Auto table (add the table data below the header)
+    doc.autoTable({
+      head: [columns],
+      body: rows,
+      startY: 50, // start the table from Y position 50
+    });
+
+    // Calculate the totals row
+    const totalRow = [
+      "", // Empty cell for alignment
+      "Total:",
+      "",
+      "",
+      "",
+      "",
+      filteredBookings
+        .reduce((acc, booking) => acc + booking.totalBill, 0)
+        .toFixed(2),
+      filteredBookings
+        .reduce((acc, booking) => acc + booking.advancePayment, 0)
+        .toFixed(2),
+      filteredBookings
+        .reduce((acc, booking) => acc + booking.duePayment, 0)
+        .toFixed(2),
+    ];
+
+    // Add the totals row
+    doc.autoTable({
+      body: [totalRow],
+      startY: doc.lastAutoTable.finalY + 10, // Place after last table
+      styles: { fontSize: 10, fontWeight: "bold", cellPadding: 4 },
+      columnStyles: { 0: { halign: "center" } }, // Make "Total" column centered
+    });
+
+    // Save the file with a dynamic filename based on the filters
+    const fileName =
+      `${hotelName}_${userName}_${startDate}_to_${endDate}_Bookings.pdf`.replace(
+        /\s+/g,
+        "_"
+      );
+    doc.save(fileName);
   };
 
   return (
@@ -188,8 +247,20 @@ const AllBookingInfo = () => {
           value={selectedHotel}
           onChange={(value) => setSelectedHotel(value)}>
           {hotels.map((hotel) => (
-            <Option key={hotel.hotelID} value={hotel.hotelName}>
+            <Option key={hotel.hotelID} value={hotel.hotelID}>
               {hotel.hotelName}
+            </Option>
+          ))}
+        </Select>
+
+        <Select
+          placeholder="Select User"
+          style={{ width: "25%" }}
+          value={selectedUser}
+          onChange={(value) => setSelectedUser(value)}>
+          {users.map((user) => (
+            <Option key={user.id} value={user.loginID}>
+              {user.username}
             </Option>
           ))}
         </Select>
@@ -197,7 +268,7 @@ const AllBookingInfo = () => {
         <RangePicker
           value={dates}
           onChange={(dates) => setDates(dates || [])}
-          style={{ width: "50%" }}
+          style={{ width: "40%" }}
         />
 
         <Button type="primary" onClick={fetchBookings}>
