@@ -57,7 +57,7 @@ const rolePermissions = {
     },
     {
       key: "10",
-      label: "All Booking Info",
+      label: "Report Dashboard",
       icon: <InfoCircleOutlined />,
       component: <AllBookingInfo />,
     },
@@ -179,7 +179,7 @@ const rolePermissions = {
     },
     {
       key: "10",
-      label: "All Booking Info",
+      label: "Report Dashboard",
       icon: <InfoCircleOutlined />,
       component: <AllBookingInfo />,
     },
