@@ -70,31 +70,29 @@ const AllBookingInfo = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-      const userLoginID = userInfo?.loginID;
+      const userLoginID = selectedUser; // Use selected user for login ID
 
+      // Fetch bookings from API
       const response = await coreAxios.get("bookings");
 
       if (response.status === 200) {
-        const filtered = response?.data?.filter(
-          (data) => data.statusID !== 255
-        );
+        const filtered = response.data.filter((data) => data.statusID !== 255); // Filter out statusID 255
 
         const [startDate, endDate] = dates.map((date) =>
           dayjs(date).format("YYYY-MM-DD")
         );
 
-        // Filtering the bookings based on the selected criteria
+        // Apply filters based on the provided criteria
         const filteredByCriteria = filtered.filter((booking) => {
           const matchHotel = selectedHotel
-            ? booking.hotelName === selectedHotel // Filter by hotelName instead of hotelID
-            : true; // If no hotel selected, don't filter by hotelName
+            ? booking.hotelID === selectedHotel
+            : true;
           const matchUser = selectedUser
             ? booking.bookedByID === selectedUser
-            : true; // If no user selected, don't filter by bookedByID
+            : true;
           const matchLoginID = userLoginID
             ? booking.bookedByID === userLoginID
-            : true; // Match logged-in user
+            : true;
           const matchDate =
             dates.length > 0
               ? dayjs(booking.checkInDate).isBetween(
@@ -103,12 +101,17 @@ const AllBookingInfo = () => {
                   "day",
                   "[]"
                 )
-              : true; // Match date range if provided
+              : true;
 
           return matchHotel && matchUser && matchLoginID && matchDate;
         });
 
-        setFilteredBookings(filteredByCriteria);
+        // Sort the bookings by checkInDate (sequential order)
+        const sortedBookings = filteredByCriteria.sort((a, b) =>
+          dayjs(a.checkInDate).isBefore(dayjs(b.checkInDate)) ? -1 : 1
+        );
+
+        setFilteredBookings(sortedBookings);
       }
     } catch (error) {
       message.error("Failed to fetch bookings.");
@@ -174,7 +177,7 @@ const AllBookingInfo = () => {
       booking.fullName,
       dayjs(booking.checkInDate).format("DD MMM YYYY"),
       dayjs(booking.checkOutDate).format("DD MMM YYYY"),
-      booking.hotelName, // Display hotelName
+      booking.hotelName,
       `${booking.roomCategoryName} (${booking.roomNumberName})`,
       booking.totalBill,
       booking.advancePayment,
@@ -242,14 +245,14 @@ const AllBookingInfo = () => {
           placeholder="Select Hotel"
           style={{ width: "25%" }}
           value={selectedHotel}
-          onChange={(value) => setSelectedHotel(value)} // Capture hotelName directly
-        >
+          onChange={(value) => setSelectedHotel(value)}>
           {hotels.map((hotel) => (
-            <Option key={hotel.hotelID} value={hotel.hotelName}>
+            <Option key={hotel.hotelID} value={hotel.hotelID}>
               {hotel.hotelName}
             </Option>
           ))}
         </Select>
+
         <Select
           placeholder="Select User"
           style={{ width: "25%" }}
@@ -261,20 +264,24 @@ const AllBookingInfo = () => {
             </Option>
           ))}
         </Select>
+
         <RangePicker
           value={dates}
           onChange={(dates) => setDates(dates || [])}
           style={{ width: "40%" }}
         />
+
         <Button type="primary" onClick={fetchBookings}>
           Apply Filters
         </Button>
+
         <Button
           icon={<DownloadOutlined />}
           onClick={exportToExcel}
           disabled={!filteredBookings.length}>
           Export to Excel
         </Button>
+
         <Button
           icon={<DownloadOutlined />}
           onClick={exportToPDF}
