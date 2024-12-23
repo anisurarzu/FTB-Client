@@ -70,29 +70,31 @@ const AllBookingInfo = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const userLoginID = selectedUser; // Use selected user for login ID
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      const userLoginID = userInfo?.loginID;
 
-      // Fetch bookings from API
       const response = await coreAxios.get("bookings");
 
       if (response.status === 200) {
-        const filtered = response.data.filter((data) => data.statusID !== 255); // Filter out statusID 255
+        const filtered = response?.data?.filter(
+          (data) => data.statusID !== 255
+        );
 
         const [startDate, endDate] = dates.map((date) =>
           dayjs(date).format("YYYY-MM-DD")
         );
 
-        // Apply filters based on the provided criteria
+        // Filtering the bookings based on the selected criteria
         const filteredByCriteria = filtered.filter((booking) => {
           const matchHotel = selectedHotel
-            ? booking.hotelID === selectedHotel
-            : true;
+            ? booking.hotelName === selectedHotel // Filter by hotelName instead of hotelID
+            : true; // If no hotel selected, don't filter by hotelName
           const matchUser = selectedUser
             ? booking.bookedByID === selectedUser
-            : true;
+            : true; // If no user selected, don't filter by bookedByID
           const matchLoginID = userLoginID
             ? booking.bookedByID === userLoginID
-            : true;
+            : true; // Match logged-in user
           const matchDate =
             dates.length > 0
               ? dayjs(booking.checkInDate).isBetween(
@@ -101,17 +103,12 @@ const AllBookingInfo = () => {
                   "day",
                   "[]"
                 )
-              : true;
+              : true; // Match date range if provided
 
           return matchHotel && matchUser && matchLoginID && matchDate;
         });
 
-        // Sort the bookings by checkInDate (sequential order)
-        const sortedBookings = filteredByCriteria.sort((a, b) =>
-          dayjs(a.checkInDate).isBefore(dayjs(b.checkInDate)) ? -1 : 1
-        );
-
-        setFilteredBookings(sortedBookings);
+        setFilteredBookings(filteredByCriteria);
       }
     } catch (error) {
       message.error("Failed to fetch bookings.");
@@ -177,7 +174,7 @@ const AllBookingInfo = () => {
       booking.fullName,
       dayjs(booking.checkInDate).format("DD MMM YYYY"),
       dayjs(booking.checkOutDate).format("DD MMM YYYY"),
-      booking.hotelName,
+      booking.hotelName, // Display hotelName
       `${booking.roomCategoryName} (${booking.roomNumberName})`,
       booking.totalBill,
       booking.advancePayment,
@@ -245,14 +242,14 @@ const AllBookingInfo = () => {
           placeholder="Select Hotel"
           style={{ width: "25%" }}
           value={selectedHotel}
-          onChange={(value) => setSelectedHotel(value)}>
+          onChange={(value) => setSelectedHotel(value)} // Capture hotelName directly
+        >
           {hotels.map((hotel) => (
-            <Option key={hotel.hotelID} value={hotel.hotelID}>
+            <Option key={hotel.hotelID} value={hotel.hotelName}>
               {hotel.hotelName}
             </Option>
           ))}
         </Select>
-
         <Select
           placeholder="Select User"
           style={{ width: "25%" }}
@@ -260,28 +257,24 @@ const AllBookingInfo = () => {
           onChange={(value) => setSelectedUser(value)}>
           {users.map((user) => (
             <Option key={user.id} value={user.loginID}>
-              {user.username}
+              {user.loginID}
             </Option>
           ))}
         </Select>
-
         <RangePicker
           value={dates}
           onChange={(dates) => setDates(dates || [])}
           style={{ width: "40%" }}
         />
-
         <Button type="primary" onClick={fetchBookings}>
           Apply Filters
         </Button>
-
         <Button
           icon={<DownloadOutlined />}
           onClick={exportToExcel}
           disabled={!filteredBookings.length}>
           Export to Excel
         </Button>
-
         <Button
           icon={<DownloadOutlined />}
           onClick={exportToPDF}
