@@ -306,8 +306,9 @@ const AllBookingInfo = () => {
               <th style={{ border: "1px solid black" }}>Full Name</th>
               <th style={{ border: "1px solid black" }}>Check-In Date</th>
               <th style={{ border: "1px solid black" }}>Check-Out Date</th>
-              <th style={{ border: "1px solid black" }}>Hotel Name</th>
+              {/* <th style={{ border: "1px solid black" }}>Hotel Name</th> */}
               <th style={{ border: "1px solid black" }}>Room</th>
+              <th style={{ border: "1px solid black" }}>No. Of Nights</th>
               <th style={{ border: "1px solid black" }}>Total Bill</th>
               <th style={{ border: "1px solid black" }}>Advance Payment</th>
               <th style={{ border: "1px solid black" }}>Due Payment</th>
@@ -329,11 +330,14 @@ const AllBookingInfo = () => {
                   <td style={{ border: "1px solid black" }}>
                     {dayjs(booking.checkOutDate).format("DD MMM YYYY")}
                   </td>
-                  <td style={{ border: "1px solid black" }}>
+                  {/* <td style={{ border: "1px solid black" }}>
                     {booking.hotelName}
-                  </td>
+                  </td> */}
                   <td style={{ border: "1px solid black" }}>
                     {booking.roomCategoryName} ({booking.roomNumberName})
+                  </td>
+                  <td style={{ border: "1px solid black" }}>
+                    {booking.nights}
                   </td>
                   <td style={{ border: "1px solid black" }}>
                     {booking.totalBill}
