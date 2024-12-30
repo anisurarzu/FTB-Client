@@ -17,6 +17,7 @@ import coreAxios from "@/utils/axiosInstance";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import { Formik, Form, Field } from "formik";
+import UserBookingInfo from "./UserBookingInfo";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -55,26 +56,39 @@ const DashboardHome = () => {
         setUsers(response.data);
         const allUsers = response.data;
 
-        // Filter the users list
-        const filtered = allUsers.users?.filter((user) => {
-          // Exclude "superadmin" and "admin" roles
-          if (user.role.value === "superadmin" || user.role.value === "admin") {
-            return false;
-          }
+        if (userInfo?.role?.value === "agentadmin") {
+          // Filter out users with role "Super Admin" or "Admin"
 
-          // Include the logged-in hotel admin
-          if (
-            userInfo.role.value === "hoteladmin" &&
-            user.loginID === userInfo.loginID
-          ) {
-            return true;
-          }
+          const filtered = allUsers.users?.filter(
+            (user) =>
+              user.role.value !== "superadmin" && user.role.value !== "admin"
+          );
+          setFilteredUsers(filtered);
+        } else if (userInfo?.role?.value === "superadmin") {
+        } else {
+          // Filter the users list
+          const filtered = allUsers.users?.filter((user) => {
+            // Exclude "superadmin" and "admin" roles
+            if (
+              user.role.value === "superadmin" ||
+              user.role.value === "admin"
+            ) {
+              return false;
+            }
 
-          // Include non-hoteladmin users
-          return user.role.value !== "hoteladmin";
-        });
+            // Include the logged-in hotel admin
+            if (
+              userInfo.role.value === "hoteladmin" &&
+              user.loginID === userInfo.loginID
+            ) {
+              return true;
+            }
 
-        setFilteredUsers(filtered);
+            // Include non-hoteladmin users
+            return user.role.value !== "hoteladmin";
+          });
+          setFilteredUsers(filtered);
+        }
       }
     } catch (error) {
       message.error("Failed to fetch users. Please try again.");
@@ -128,9 +142,6 @@ const DashboardHome = () => {
 
       // Fetch the hotel data
       const response = await coreAxios.get("hotel");
-
-      console.log("userRole", userRole);
-      console.log("userHotelID", userHotelID);
 
       if (Array.isArray(response.data)) {
         let filteredHotels = response.data;
@@ -493,77 +504,10 @@ const DashboardHome = () => {
             </div>
           )}
 
-          <div className="bg-white p-4 lg:p-6 rounded-lg shadow-lg mt-4">
-            <Title
-              level={4}
-              className="text-[#8ABF55] mb-4 text-center lg:text-left">
-              User-wise Booking Overview
-            </Title>
-
-            {/* Responsive Table */}
-            <div className="relative overflow-x-auto shadow-md">
-              <div style={{ overflowX: "auto" }}>
-                <table className="w-full text-xs text-left rtl:text-right dark:text-gray-400">
-                  {/* Table Header */}
-                  <thead>
-                    <tr style={{ backgroundColor: "#8CA0ED", color: "white" }}>
-                      <th className="border border-tableBorder text-center p-2">
-                        User ID
-                      </th>
-                      <th className="border border-tableBorder text-center p-2">
-                        {`Today's Booking`}
-                      </th>
-                      <th className="border border-tableBorder text-center p-2">
-                        Last 7 Days Booking
-                      </th>
-                      <th className="border border-tableBorder text-center p-2">
-                        Last 30 Days Booking
-                      </th>
-                      <th className="border border-tableBorder text-center p-2">
-                        Overall Booking
-                      </th>
-                    </tr>
-                  </thead>
-
-                  {/* Table Body */}
-                  <tbody>
-                    {userTableData?.map((user, index) => (
-                      <tr
-                        key={user.key}
-                        style={{
-                          backgroundColor:
-                            index % 2 === 0 ? "#9CDFFB" : "#ABCDF5",
-                          transition: "background-color 0.3s ease",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#8CA0ED")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor =
-                            index % 2 === 0 ? "#9CDFFB" : "#ABCDF5")
-                        }>
-                        <td className="border border-tableBorder text-center p-2">
-                          {user.username}
-                        </td>
-                        <td className="border border-tableBorder text-center p-2">
-                          {user.totalBillForTodayByFTB}
-                        </td>
-                        <td className="border border-tableBorder text-center p-2">
-                          {user.totalBillForUserLast7Days}
-                        </td>
-                        <td className="border border-tableBorder text-center p-2">
-                          {user.totalBillForLast30DaysByFTB}
-                        </td>
-                        <td className="border border-tableBorder text-center p-2">
-                          {user.totalBillOverall}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          <UserBookingInfo
+            userTableData={userTableData}
+            title={"User-wise Booking Overview"}
+          />
         </div>
       )}
     </div>
