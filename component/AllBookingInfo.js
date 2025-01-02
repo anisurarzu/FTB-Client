@@ -17,6 +17,7 @@ const AllBookingInfo = () => {
   const [hotels, setHotels] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedHotel, setSelectedHotel] = useState(null);
+  const [selectedHotelName, setSelectedHotelName] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [dates, setDates] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -149,14 +150,22 @@ const AllBookingInfo = () => {
     const userName = selectedUser
       ? users.find((user) => user.loginID === selectedUser)?.username || "N/A"
       : "All Users";
-    const hotelName = selectedHotel || "All Hotels";
+    const hotelName = selectedHotelName || "All Hotels";
 
-    // Title and header in PDF
-    doc.text("Booking Information", 14, 10);
+    // Header Section
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("Booking Information", 14, 20);
+
     doc.setFontSize(12);
-    doc.text(`Date Range: ${startDate} to ${endDate}`, 14, 20);
-    doc.text(`User: ${userName}`, 14, 30);
-    doc.text(`Hotel: ${hotelName}`, 14, 40);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Hotel: ${hotelName}`, 14, 30);
+    doc.text(`User: ${userName}`, 14, 35);
+    doc.text(`Date Range: ${startDate} to ${endDate}`, 14, 40);
+
+    // Add line break
+    doc.setLineWidth(0.5);
+    doc.line(14, 45, 196, 45);
 
     // Table Columns
     const columns = [
@@ -164,7 +173,7 @@ const AllBookingInfo = () => {
       "Full Name",
       "Check-In Date",
       "Check-Out Date",
-      "Hotel Name",
+      "No Of Nights",
       "Room",
       "Total Bill",
       "Advance Payment",
@@ -177,48 +186,78 @@ const AllBookingInfo = () => {
       booking.fullName,
       dayjs(booking.checkInDate).format("DD MMM YYYY"),
       dayjs(booking.checkOutDate).format("DD MMM YYYY"),
-      booking.hotelName,
+      booking.nights,
       `${booking.roomCategoryName} (${booking.roomNumberName})`,
-      booking.totalBill,
-      booking.advancePayment,
-      booking.duePayment,
+      booking.totalBill.toFixed(2),
+      booking.advancePayment.toFixed(2),
+      booking.duePayment.toFixed(2),
     ]);
 
     // Auto table (add the table data below the header)
     doc.autoTable({
       head: [columns],
       body: rows,
-      startY: 50, // start the table from Y position 50
+      startY: 50,
+      theme: "grid", // Modern grid theme
+      headStyles: {
+        fillColor: [22, 160, 133], // Header background color
+        textColor: [255, 255, 255], // Header text color
+        fontSize: 10,
+      },
+      bodyStyles: {
+        fontSize: 9,
+        halign: "center", // Center align text
+      },
+      alternateRowStyles: { fillColor: [240, 240, 240] }, // Row striping
     });
 
-    // Calculate the totals row
-    const totalRow = [
-      "", // Empty cell for alignment
-      "Total:",
-      "",
-      "",
-      "",
-      "",
-      filteredBookings
-        .reduce((acc, booking) => acc + booking.totalBill, 0)
+    // Totals Row
+    const totals = {
+      totalBill: filteredBookings
+        .reduce((acc, b) => acc + b.totalBill, 0)
         .toFixed(2),
-      filteredBookings
-        .reduce((acc, booking) => acc + booking.advancePayment, 0)
+      advancePayment: filteredBookings
+        .reduce((acc, b) => acc + b.advancePayment, 0)
         .toFixed(2),
-      filteredBookings
-        .reduce((acc, booking) => acc + booking.duePayment, 0)
+      duePayment: filteredBookings
+        .reduce((acc, b) => acc + b.duePayment, 0)
         .toFixed(2),
-    ];
+    };
 
-    // Add the totals row
+    // Add Totals Section
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(40);
+    const finalY = doc.lastAutoTable.finalY + 10;
+
+    doc.text(`Summary`, 14, finalY);
     doc.autoTable({
-      body: [totalRow],
-      startY: doc.lastAutoTable.finalY + 10, // Place after last table
-      styles: { fontSize: 10, fontWeight: "bold", cellPadding: 4 },
-      columnStyles: { 0: { halign: "center" } }, // Make "Total" column centered
+      body: [
+        [
+          "",
+          "",
+          "",
+          "",
+          "",
+          "Totals:",
+          `Total Bill: ${totals.totalBill}`,
+          `Advance Payment: ${totals.advancePayment}`,
+          `Due Payment: ${totals.duePayment}`,
+        ],
+      ],
+      startY: finalY + 5,
+      styles: { fillColor: [240, 240, 240], fontSize: 9, halign: "center" },
+      columnStyles: { 5: { fontStyle: "bold" } },
     });
 
-    // Save the file with a dynamic filename based on the filters
+    // Footer
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setFontSize(10);
+    const timestamp = dayjs().format("DD MMM YYYY HH:mm:ss");
+    doc.text(`Generated on: ${timestamp}`, 14, pageHeight - 10);
+    doc.text(`Page 1 of 1`, 190, pageHeight - 10, { align: "right" });
+
+    // Save the file
     const fileName =
       `${hotelName}_${userName}_${startDate}_to_${endDate}_Bookings.pdf`.replace(
         /\s+/g,
@@ -245,7 +284,17 @@ const AllBookingInfo = () => {
           placeholder="Select Hotel"
           style={{ width: "25%" }}
           value={selectedHotel}
-          onChange={(value) => setSelectedHotel(value)}>
+          onChange={(value) => {
+            setSelectedHotel(value);
+
+            // Find the selected hotel name
+            const selectedHotelObj = hotels.find(
+              (hotel) => hotel.hotelID === value
+            );
+            setSelectedHotelName(
+              selectedHotelObj ? selectedHotelObj.hotelName : ""
+            );
+          }}>
           {hotels.map((hotel) => (
             <Option key={hotel.hotelID} value={hotel.hotelID}>
               {hotel.hotelName}

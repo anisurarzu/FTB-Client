@@ -65,6 +65,13 @@ const DashboardHome = () => {
           );
           setFilteredUsers(filtered);
         } else if (userInfo?.role?.value === "superadmin") {
+          // Filter out users with role "Super Admin" or "Admin"
+
+          const filtered = allUsers.users?.filter(
+            (user) =>
+              user.role.value !== "superadmin" && user.role.value !== "admin"
+          );
+          setFilteredUsers(filtered);
         } else {
           // Filter the users list
           const filtered = allUsers.users?.filter((user) => {
