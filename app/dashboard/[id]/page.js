@@ -290,6 +290,9 @@ const Invoice = ({ params }) => {
                 <p className="font-bold text-md">Bill To:</p>
                 <p>Guest Name: {data?.[0]?.fullName || "Ahmed Niloy"}</p>
                 <p>Phone: {data?.[0]?.phone || "01625441918"}</p>
+                {data[0]?.email && (
+                  <p>Email: {data?.[0]?.email || "01625441918"}</p>
+                )}
                 <p>NID/Passport: {data?.[0]?.nidPassport || "3762373821"}</p>
                 <p>
                   Address: {data?.[0]?.address || "Jinjira, Keranigong, Dhaka"}

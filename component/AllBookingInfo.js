@@ -153,31 +153,33 @@ const AllBookingInfo = () => {
     const hotelName = selectedHotelName || "All Hotels";
 
     // Header Section
-    doc.setFontSize(18);
+    doc.setFontSize(14); // Reduced font size
     doc.setFont("helvetica", "bold");
-    doc.text("Booking Information", 14, 20);
+    doc.text("Booking Information", 14, 15);
 
-    doc.setFontSize(12);
+    doc.setFontSize(10); // Reduced font size
     doc.setFont("helvetica", "normal");
-    doc.text(`Hotel: ${hotelName}`, 14, 30);
-    doc.text(`User: ${userName}`, 14, 35);
-    doc.text(`Date Range: ${startDate} to ${endDate}`, 14, 40);
+    doc.text(`Hotel: ${hotelName}`, 14, 22);
+    doc.text(`User: ${userName}`, 14, 27);
+    doc.text(`Date Range: ${startDate} to ${endDate}`, 14, 32);
 
     // Add line break
-    doc.setLineWidth(0.5);
-    doc.line(14, 45, 196, 45);
+    doc.setLineWidth(0.3);
+    doc.line(14, 35, 196, 35);
 
     // Table Columns
     const columns = [
       "Booking No",
       "Full Name",
-      "Check-In Date",
-      "Check-Out Date",
+      "Check-In",
+      "Check-Out",
       "No Of Nights",
       "Room",
+      "Method",
+      "TrxID",
       "Total Bill",
-      "Advance Payment",
-      "Due Payment",
+      "Advance",
+      "Due",
     ];
 
     // Table Rows
@@ -188,6 +190,9 @@ const AllBookingInfo = () => {
       dayjs(booking.checkOutDate).format("DD MMM YYYY"),
       booking.nights,
       `${booking.roomCategoryName} (${booking.roomNumberName})`,
+
+      booking.paymentMethod,
+      booking.transactionId,
       booking.totalBill.toFixed(2),
       booking.advancePayment.toFixed(2),
       booking.duePayment.toFixed(2),
@@ -197,18 +202,19 @@ const AllBookingInfo = () => {
     doc.autoTable({
       head: [columns],
       body: rows,
-      startY: 50,
+      startY: 38,
       theme: "grid", // Modern grid theme
       headStyles: {
         fillColor: [22, 160, 133], // Header background color
         textColor: [255, 255, 255], // Header text color
-        fontSize: 10,
+        fontSize: 9, // Reduced header font size
       },
       bodyStyles: {
-        fontSize: 9,
+        fontSize: 8, // Reduced body font size
         halign: "center", // Center align text
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }, // Row striping
+      margin: { top: 10, bottom: 10 }, // Reduced row height
     });
 
     // Totals Row
@@ -225,10 +231,10 @@ const AllBookingInfo = () => {
     };
 
     // Add Totals Section
-    doc.setFontSize(10);
+    doc.setFontSize(9); // Reduced font size
     doc.setFont("helvetica", "bold");
     doc.setTextColor(40);
-    const finalY = doc.lastAutoTable.finalY + 10;
+    const finalY = doc.lastAutoTable.finalY + 7;
 
     doc.text(`Summary`, 14, finalY);
     doc.autoTable({
@@ -245,14 +251,14 @@ const AllBookingInfo = () => {
           `Due Payment: ${totals.duePayment}`,
         ],
       ],
-      startY: finalY + 5,
-      styles: { fillColor: [240, 240, 240], fontSize: 9, halign: "center" },
+      startY: finalY + 4,
+      styles: { fillColor: [240, 240, 240], fontSize: 8, halign: "center" }, // Adjusted font size
       columnStyles: { 5: { fontStyle: "bold" } },
     });
 
     // Footer
     const pageHeight = doc.internal.pageSize.height;
-    doc.setFontSize(10);
+    doc.setFontSize(8); // Reduced font size
     const timestamp = dayjs().format("DD MMM YYYY HH:mm:ss");
     doc.text(`Generated on: ${timestamp}`, 14, pageHeight - 10);
     doc.text(`Page 1 of 1`, 190, pageHeight - 10, { align: "right" });
@@ -353,14 +359,16 @@ const AllBookingInfo = () => {
             <tr>
               <th style={{ border: "1px solid black" }}>Booking No</th>
               <th style={{ border: "1px solid black" }}>Full Name</th>
-              <th style={{ border: "1px solid black" }}>Check-In Date</th>
-              <th style={{ border: "1px solid black" }}>Check-Out Date</th>
+              <th style={{ border: "1px solid black" }}>Check-In</th>
+              <th style={{ border: "1px solid black" }}>Check-Out</th>
               {/* <th style={{ border: "1px solid black" }}>Hotel Name</th> */}
               <th style={{ border: "1px solid black" }}>Room</th>
               <th style={{ border: "1px solid black" }}>No. Of Nights</th>
+              <th style={{ border: "1px solid black" }}>Method</th>
+              <th style={{ border: "1px solid black" }}>TrxID</th>
               <th style={{ border: "1px solid black" }}>Total Bill</th>
-              <th style={{ border: "1px solid black" }}>Advance Payment</th>
-              <th style={{ border: "1px solid black" }}>Due Payment</th>
+              <th style={{ border: "1px solid black" }}>Advance</th>
+              <th style={{ border: "1px solid black" }}>Due</th>
             </tr>
           </thead>
           <tbody>
@@ -389,6 +397,12 @@ const AllBookingInfo = () => {
                     {booking.nights}
                   </td>
                   <td style={{ border: "1px solid black" }}>
+                    {booking.paymentMethod}
+                  </td>
+                  <td style={{ border: "1px solid black" }}>
+                    {booking.transactionId}
+                  </td>
+                  <td style={{ border: "1px solid black" }}>
                     {booking.totalBill}
                   </td>
                   <td style={{ border: "1px solid black" }}>
@@ -402,7 +416,7 @@ const AllBookingInfo = () => {
             ) : (
               <tr>
                 <td
-                  colSpan="9"
+                  colSpan="11"
                   style={{ textAlign: "center", border: "1px solid black" }}>
                   No bookings available.
                 </td>
@@ -413,7 +427,7 @@ const AllBookingInfo = () => {
             {filteredBookings.length > 0 && (
               <tr>
                 <td
-                  colSpan="6"
+                  colSpan="8"
                   style={{
                     textAlign: "right",
                     fontWeight: "bold",
