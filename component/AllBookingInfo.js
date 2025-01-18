@@ -357,58 +357,87 @@ const AllBookingInfo = () => {
         <table border="1" style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th style={{ border: "1px solid black" }}>Booking No</th>
-              <th style={{ border: "1px solid black" }}>Full Name</th>
-              <th style={{ border: "1px solid black" }}>Check-In</th>
-              <th style={{ border: "1px solid black" }}>Check-Out</th>
-              {/* <th style={{ border: "1px solid black" }}>Hotel Name</th> */}
-              <th style={{ border: "1px solid black" }}>Room</th>
-              <th style={{ border: "1px solid black" }}>No. Of Nights</th>
-              <th style={{ border: "1px solid black" }}>Method</th>
-              <th style={{ border: "1px solid black" }}>TrxID</th>
-              <th style={{ border: "1px solid black" }}>Total Bill</th>
-              <th style={{ border: "1px solid black" }}>Advance</th>
-              <th style={{ border: "1px solid black" }}>Due</th>
+              <th style={{ border: "1px solid black", textAlign: "center" }}>
+                Booking No
+              </th>
+              <th style={{ border: "1px solid black", textAlign: "center" }}>
+                Full Name
+              </th>
+              <th style={{ border: "1px solid black", textAlign: "center" }}>
+                Check-In
+              </th>
+              <th style={{ border: "1px solid black", textAlign: "center" }}>
+                Check-Out
+              </th>
+              <th style={{ border: "1px solid black", textAlign: "center" }}>
+                Room
+              </th>
+              <th style={{ border: "1px solid black", textAlign: "center" }}>
+                No. Of Nights
+              </th>
+              <th style={{ border: "1px solid black", textAlign: "center" }}>
+                Method
+              </th>
+              <th style={{ border: "1px solid black", textAlign: "center" }}>
+                TrxID
+              </th>
+              <th style={{ border: "1px solid black", textAlign: "center" }}>
+                Total Bill
+              </th>
+              <th style={{ border: "1px solid black", textAlign: "center" }}>
+                Advance
+              </th>
+              <th style={{ border: "1px solid black", textAlign: "center" }}>
+                Due
+              </th>
             </tr>
           </thead>
           <tbody>
             {filteredBookings.length ? (
               filteredBookings.map((booking) => (
                 <tr key={booking._id}>
-                  <td style={{ border: "1px solid black" }}>
+                  <td
+                    style={{ border: "1px solid black", textAlign: "center" }}>
                     {booking.bookingNo}
                   </td>
-                  <td style={{ border: "1px solid black" }}>
+                  <td
+                    style={{ border: "1px solid black", textAlign: "center" }}>
                     {booking.fullName}
                   </td>
-                  <td style={{ border: "1px solid black" }}>
+                  <td
+                    style={{ border: "1px solid black", textAlign: "center" }}>
                     {dayjs(booking.checkInDate).format("DD MMM YYYY")}
                   </td>
-                  <td style={{ border: "1px solid black" }}>
+                  <td
+                    style={{ border: "1px solid black", textAlign: "center" }}>
                     {dayjs(booking.checkOutDate).format("DD MMM YYYY")}
                   </td>
-                  {/* <td style={{ border: "1px solid black" }}>
-                    {booking.hotelName}
-                  </td> */}
-                  <td style={{ border: "1px solid black" }}>
+                  <td
+                    style={{ border: "1px solid black", textAlign: "center" }}>
                     {booking.roomCategoryName} ({booking.roomNumberName})
                   </td>
-                  <td style={{ border: "1px solid black" }}>
+                  <td
+                    style={{ border: "1px solid black", textAlign: "center" }}>
                     {booking.nights}
                   </td>
-                  <td style={{ border: "1px solid black" }}>
+                  <td
+                    style={{ border: "1px solid black", textAlign: "center" }}>
                     {booking.paymentMethod}
                   </td>
-                  <td style={{ border: "1px solid black" }}>
+                  <td
+                    style={{ border: "1px solid black", textAlign: "center" }}>
                     {booking.transactionId}
                   </td>
-                  <td style={{ border: "1px solid black" }}>
+                  <td
+                    style={{ border: "1px solid black", textAlign: "center" }}>
                     {booking.totalBill}
                   </td>
-                  <td style={{ border: "1px solid black" }}>
+                  <td
+                    style={{ border: "1px solid black", textAlign: "center" }}>
                     {booking.advancePayment}
                   </td>
-                  <td style={{ border: "1px solid black" }}>
+                  <td
+                    style={{ border: "1px solid black", textAlign: "center" }}>
                     {booking.duePayment}
                   </td>
                 </tr>
@@ -417,7 +446,10 @@ const AllBookingInfo = () => {
               <tr>
                 <td
                   colSpan="11"
-                  style={{ textAlign: "center", border: "1px solid black" }}>
+                  style={{
+                    textAlign: "center",
+                    border: "1px solid black",
+                  }}>
                   No bookings available.
                 </td>
               </tr>
@@ -435,19 +467,34 @@ const AllBookingInfo = () => {
                   }}>
                   Total:
                 </td>
-                <td style={{ border: "1px solid black", fontWeight: "bold" }}>
+                <td
+                  style={{
+                    border: "1px solid black",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                  }}>
                   {filteredBookings.reduce(
                     (sum, booking) => sum + booking.totalBill,
                     0
                   )}
                 </td>
-                <td style={{ border: "1px solid black", fontWeight: "bold" }}>
+                <td
+                  style={{
+                    border: "1px solid black",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                  }}>
                   {filteredBookings.reduce(
                     (sum, booking) => sum + booking.advancePayment,
                     0
                   )}
                 </td>
-                <td style={{ border: "1px solid black", fontWeight: "bold" }}>
+                <td
+                  style={{
+                    border: "1px solid black",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                  }}>
                   {filteredBookings.reduce(
                     (sum, booking) => sum + booking.duePayment,
                     0

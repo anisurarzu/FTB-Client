@@ -389,9 +389,8 @@ const Invoice = ({ params }) => {
               <div className="mt-2 text-black">
                 <p className="font-bold text-md">Additional Details</p>
                 <table
-                  className="table-auto w-full border-collapse border border-gray-400 mt-4 text-left text-xs" // Smaller text
-                  style={{ fontSize: "10px" }} // Reduce text size within the table further
-                >
+                  className="table-auto w-full border-collapse border border-gray-400 mt-4 text-left text-xs"
+                  style={{ fontSize: "10px" }}>
                   <thead>
                     <tr
                       className={`${
@@ -409,33 +408,35 @@ const Invoice = ({ params }) => {
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Bill (Kitchen)
                       </th>
-
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Extra Bed
                       </th>
-
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Bill (Extra Bed)
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data?.map((booking, index) => (
-                      <tr key={index}>
-                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                          {booking?.isKitchen ? "Yes" : "No"}
-                        </td>
-                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                          {booking?.kitchenTotalBill || "N/A"}
-                        </td>
-                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                          {booking?.extraBed ? "Yes" : "No"}
-                        </td>
-                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                          {booking?.extraBedTotalBill || "N/A"}
-                        </td>
-                      </tr>
-                    ))}
+                    {data
+                      ?.filter(
+                        (booking) => booking.isKitchen || booking.extraBed
+                      ) // Filter out rows where both are false
+                      .map((booking, index) => (
+                        <tr key={index}>
+                          <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                            {booking.isKitchen ? "Yes" : "No"}
+                          </td>
+                          <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                            {booking.kitchenTotalBill || "N/A"}
+                          </td>
+                          <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                            {booking.extraBed ? "Yes" : "No"}
+                          </td>
+                          <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                            {booking.extraBedTotalBill || "N/A"}
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
