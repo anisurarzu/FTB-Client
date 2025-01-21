@@ -796,26 +796,26 @@ const BookingInfo = () => {
           email: bookingDetails.email,
           hotelName: bookingDetails.hotelName,
           hotelID: bookingDetails.hotelID,
-          // roomCategoryName: bookingDetails.roomCategoryID,
-          // roomNumberID: bookingDetails.roomNumberID,
-          // roomPrice: bookingDetails.roomPrice,
-          // checkInDate: checkInDate,
-          // checkOutDate: checkOutDate,
-          // adults: bookingDetails.adults,
-          // children: bookingDetails.children,
-          // nights: bookingDetails.nights,
-          // totalBill: bookingDetails.totalBill,
-          // advancePayment: bookingDetails.advancePayment,
-          // duePayment: bookingDetails.duePayment,
+          roomCategoryName: bookingDetails.roomCategoryName,
+          roomNumberName: bookingDetails.roomNumberName,
+          roomPrice: bookingDetails.roomPrice,
+          checkInDate: checkInDate,
+          checkOutDate: checkOutDate,
+          adults: bookingDetails.adults,
+          children: bookingDetails.children,
+          nights: bookingDetails.nights,
+          totalBill: bookingDetails.totalBill,
+          advancePayment: bookingDetails.advancePayment,
+          duePayment: bookingDetails.duePayment,
           paymentMethod: bookingDetails.paymentMethod,
           transactionId: bookingDetails.transactionId,
-          // note: bookingDetails.note,
+          note: bookingDetails.note,
         });
         message.success("Booking details loaded successfully!");
       }
     }
   };
-  console.log("hotelID", hotelInfo);
+
   const handleHotelChange = (hotelID) => {
     setLoading(true);
     setSelectedHotel2(hotelID); // Update selected hotel when dropdown changes
