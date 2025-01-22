@@ -447,7 +447,7 @@ const Invoice = ({ params }) => {
 
               <div className="mt-8 text-black">
                 <p className="font-bold text-md">Payment Information:</p>
-                <p>Total Bill: {totals?.finalTotal} taka</p>
+                <p>Total Bill: {totals?.totalBill} taka</p>
                 <p>Total Advance: {totals.totalAdvance} taka</p>
                 <p>Total Due: {totals.totalDue} taka</p>
                 <p>Payment Method: {data?.[0]?.paymentMethod} </p>

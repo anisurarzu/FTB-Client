@@ -1303,7 +1303,24 @@ const BookingInfo = () => {
                     <Input
                       name="roomPrice"
                       value={formik.values.roomPrice}
-                      onChange={formik.handleChange}
+                      onChange={(e) => {
+                        formik.handleChange(e);
+
+                        // Calculate and update totalBill
+                        const roomPrice = e.target.value;
+                        const nights = formik.values.nights;
+                        const kitchenTotalBill =
+                          formik.values.kitchenTotalBill || 0;
+                        const extraBedTotalBill =
+                          formik.values.extraBedTotalBill || 0;
+
+                        const totalBill =
+                          (nights && roomPrice ? nights * roomPrice : 0) +
+                          parseFloat(kitchenTotalBill) +
+                          parseFloat(extraBedTotalBill);
+
+                        formik.setFieldValue("totalBill", totalBill);
+                      }}
                       required={true}
                     />
                   </Form.Item>
@@ -1338,11 +1355,26 @@ const BookingInfo = () => {
                   <Form.Item label="Number of Nights" className="mb-2">
                     <Input
                       name="nights"
-                      required={true}
                       value={formik.values.nights}
                       onChange={(e) => {
                         formik.handleChange(e);
+
+                        // Calculate and update totalBill
+                        const nights = e.target.value;
+                        const roomPrice = formik.values.roomPrice;
+                        const kitchenTotalBill =
+                          formik.values.kitchenTotalBill || 0;
+                        const extraBedTotalBill =
+                          formik.values.extraBedTotalBill || 0;
+
+                        const totalBill =
+                          (nights && roomPrice ? nights * roomPrice : 0) +
+                          parseFloat(kitchenTotalBill) +
+                          parseFloat(extraBedTotalBill);
+
+                        formik.setFieldValue("totalBill", totalBill);
                       }}
+                      required={true}
                     />
                   </Form.Item>
                 </div>
@@ -1351,8 +1383,7 @@ const BookingInfo = () => {
                     <Input
                       name="totalBill"
                       value={formik.values.totalBill}
-                      onChange={formik.handleChange}
-                      required={true}
+                      readOnly // Making this field read-only to prevent manual editing
                     />
                   </Form.Item>
                 </div>
@@ -1424,12 +1455,26 @@ const BookingInfo = () => {
                       <Input
                         type="number"
                         value={formik.values.kitchenTotalBill || ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           formik.setFieldValue(
                             "kitchenTotalBill",
                             e.target.value
-                          )
-                        }
+                          );
+
+                          // Recalculate totalBill
+                          const kitchenTotalBill = e.target.value || 0;
+                          const nights = formik.values.nights || 0;
+                          const roomPrice = formik.values.roomPrice || 0;
+                          const extraBedTotalBill =
+                            formik.values.extraBedTotalBill || 0;
+
+                          const totalBill =
+                            (nights && roomPrice ? nights * roomPrice : 0) +
+                            parseFloat(kitchenTotalBill) +
+                            parseFloat(extraBedTotalBill);
+
+                          formik.setFieldValue("totalBill", totalBill);
+                        }}
                       />
                     </Form.Item>
                   )}
@@ -1448,12 +1493,26 @@ const BookingInfo = () => {
                       <Input
                         type="number"
                         value={formik.values.extraBedTotalBill || ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           formik.setFieldValue(
                             "extraBedTotalBill",
                             e.target.value
-                          )
-                        }
+                          );
+
+                          // Recalculate totalBill
+                          const extraBedTotalBill = e.target.value || 0;
+                          const nights = formik.values.nights || 0;
+                          const roomPrice = formik.values.roomPrice || 0;
+                          const kitchenTotalBill =
+                            formik.values.kitchenTotalBill || 0;
+
+                          const totalBill =
+                            (nights && roomPrice ? nights * roomPrice : 0) +
+                            parseFloat(kitchenTotalBill) +
+                            parseFloat(extraBedTotalBill);
+
+                          formik.setFieldValue("totalBill", totalBill);
+                        }}
                       />
                     </Form.Item>
                   )}
