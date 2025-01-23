@@ -392,50 +392,55 @@ const Invoice = ({ params }) => {
                   className="table-auto w-full border-collapse border border-gray-400 mt-4 text-left text-xs"
                   style={{ fontSize: "10px" }}>
                   <thead>
-                    <tr
-                      className={`${
-                        data?.[0]?.hotelID === 1
-                          ? "bg-blue-700"
-                          : data?.[0]?.hotelID === 4
-                          ? "bg-[#2B388F]"
-                          : "bg-red-700"
-                      } text-white`}>
-                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        {data?.[0]?.hotelID === 1
-                          ? "BreakFast Included"
-                          : " Kitchen Facilities"}
-                      </th>
-                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        Bill (Kitchen)
-                      </th>
-                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        Extra Bed
-                      </th>
-                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        Bill (Extra Bed)
-                      </th>
-                    </tr>
+                    {data?.some((booking) => booking.isKitchen) && ( // Check if isKitchen is true for any row
+                      <tr className="bg-blue-700 text-white">
+                        <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          Kitchen Facilities
+                        </th>
+                        <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          Bill (Kitchen)
+                        </th>
+                      </tr>
+                    )}
+                    {data?.some((booking) => booking.extraBed) && ( // Check if extraBed is true for any row
+                      <tr className="bg-green-700 text-white">
+                        <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          Extra Bed
+                        </th>
+                        <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          Bill (Extra Bed)
+                        </th>
+                      </tr>
+                    )}
                   </thead>
                   <tbody>
                     {data
                       ?.filter(
                         (booking) => booking.isKitchen || booking.extraBed
-                      ) // Filter out rows where both are false
+                      ) // Filter rows where either condition is true
                       .map((booking, index) => (
-                        <tr key={index}>
-                          <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                            {booking.isKitchen ? "Yes" : "No"}
-                          </td>
-                          <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                            {booking.kitchenTotalBill || "N/A"}
-                          </td>
-                          <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                            {booking.extraBed ? "Yes" : "No"}
-                          </td>
-                          <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                            {booking.extraBedTotalBill || "N/A"}
-                          </td>
-                        </tr>
+                        <>
+                          {booking.isKitchen && ( // Render only if isKitchen is true
+                            <tr key={`kitchen-${index}`}>
+                              <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                                Yes
+                              </td>
+                              <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                                {booking.kitchenTotalBill || "N/A"}
+                              </td>
+                            </tr>
+                          )}
+                          {booking.extraBed && ( // Render only if extraBed is true
+                            <tr key={`extrabed-${index}`}>
+                              <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                                Yes
+                              </td>
+                              <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                                {booking.extraBedTotalBill || "N/A"}
+                              </td>
+                            </tr>
+                          )}
+                        </>
                       ))}
                   </tbody>
                 </table>

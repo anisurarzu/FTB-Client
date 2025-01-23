@@ -178,8 +178,8 @@ const AllBookingInfo = () => {
       "Method",
       "TrxID",
       "Total Bill",
-      "Advance",
-      "Due",
+      /* "Advance",
+      "Due", */
     ];
 
     // Table Rows
@@ -194,8 +194,8 @@ const AllBookingInfo = () => {
       booking.paymentMethod,
       booking.transactionId,
       booking.totalBill.toFixed(2),
-      booking.advancePayment.toFixed(2),
-      booking.duePayment.toFixed(2),
+      /*  booking.advancePayment.toFixed(2),
+      booking.duePayment.toFixed(2), */
     ]);
 
     // Auto table (add the table data below the header)
