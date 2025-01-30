@@ -46,6 +46,9 @@ const BookingInfo = () => {
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState([]);
   const [prevData, setPrevData] = useState();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState("");
+  const [currentBooking, setCurrentBooking] = useState(null);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -625,48 +628,20 @@ const BookingInfo = () => {
     return dates;
   }
 
-  const handleDelete = async (value) => {
-    console.log("value", value);
-    setLoading(true);
-    try {
-      // Now, proceed to delete the booking using the delete API
-      const deleteResponse = await coreAxios.delete("/bookings/delete", {
-        data: {
-          hotelID: value?.hotelID,
-          categoryName: value?.roomCategoryName,
-          roomName: value?.roomNumberName,
-          bookingID: value?.bookingID,
-          datesToDelete: getAllDatesBetween(
-            value?.checkInDate,
-            value?.checkOutDate
-          ),
-        },
-      });
-
-      if (deleteResponse.status === 200) {
-        // message.success("Booking deleted successfully!");
-        handleDelete2(value?._id);
-        // fetchBookings(); // Refresh the bookings list after deletion
-      }
-    } catch (error) {
-      message.error("Failed to delete booking.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDelete2 = async (key) => {
     setLoading(true);
     try {
       const canceledBy = userInfo?.loginID; // Replace this with the actual user performing the deletion (e.g., from user context)
 
       const res = await coreAxios.put(`/booking/soft/${key}`, {
-        canceledBy: canceledBy, // Pass the canceledBy field in the request body
+        canceledBy: canceledBy,
+        reason: cancellationReason, // Pass the canceledBy field in the request body
       });
 
       if (res.status === 200) {
-        message.success("Booking deleted successfully!");
         fetchBookings(); // Fetch the updated list of bookings
+        message.success("Booking cancelled successfully.");
+        setIsModalVisible(false);
       }
     } catch (error) {
       message.error("Failed to delete booking.");
@@ -878,6 +853,58 @@ const BookingInfo = () => {
     } else {
       formik.setFieldValue("nights", 0); // Reset nights if one of the dates is not set
     }
+  };
+  // booking cancle functionality
+  const handleCancelReasonChange = (e) => {
+    setCancellationReason(e.target.value);
+  };
+
+  const showModal = (booking) => {
+    setCurrentBooking(booking); // Store the current booking object
+    setIsModalVisible(true); // Show the modal
+  };
+
+  const handleOk = async () => {
+    if (!cancellationReason.trim()) {
+      message.error("Please provide a reason for cancellation.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Now, proceed to delete the booking using the delete API
+      const deleteResponse = await coreAxios.delete("/bookings/delete", {
+        data: {
+          hotelID: currentBooking?.hotelID,
+          categoryName: currentBooking?.roomCategoryName,
+          roomName: currentBooking?.roomNumberName,
+          bookingID: currentBooking?.bookingID,
+          datesToDelete: getAllDatesBetween(
+            currentBooking?.checkInDate,
+            currentBooking?.checkOutDate
+          ),
+        },
+      });
+
+      if (deleteResponse.status === 200) {
+        // message.success("Booking deleted successfully!");
+        handleDelete2(currentBooking?._id);
+        // fetchBookings(); // Refresh the bookings list after deletion
+      }
+    } catch (error) {
+      message.error("Failed to delete booking.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false); // Close the modal without doing anything
+  };
+
+  const handleDelete = (booking) => {
+    // Open the modal to confirm cancellation
+    showModal(booking);
   };
 
   return (
@@ -1091,11 +1118,17 @@ const BookingInfo = () => {
                           "Confirmed"
                         )}
                       </td>
-                      <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
-                        {booking?.statusID === 255
-                          ? booking?.canceledBy
-                          : booking?.bookedByID}
+                      <td className="border border-tableBorder text-center p-2  text-green-900">
+                        <p className="font-semibold">
+                          {booking?.statusID === 255
+                            ? booking?.canceledBy
+                            : booking?.bookedByID}
+                        </p>
+                        {booking?.reason && (
+                          <p className="text-[7px]">[{booking?.reason}]</p>
+                        )}
                       </td>
+
                       <td className="border  border-tableBorder text-center   text-blue-900">
                         {booking?.updatedByID}{" "}
                         {booking?.updatedByID &&
@@ -1120,6 +1153,34 @@ const BookingInfo = () => {
                             </Popconfirm>
                           </div>
                         )}
+
+                        {/* Cancellation Modal */}
+                        <Modal
+                          title="Cancel Booking"
+                          visible={isModalVisible}
+                          onOk={handleOk}
+                          onCancel={handleCancel}
+                          confirmLoading={loading}
+                          okText="Confirm Cancellation"
+                          cancelText="Cancel"
+                          className="custom-modal"
+                          // Apply backdrop filter to blur the background
+                          destroyOnClose={true} // Optional: Clean up modal on close
+                        >
+                          <div>
+                            <label htmlFor="reason" className="font-medium">
+                              Cancellation Reason:
+                            </label>
+                            <Input
+                              type="text"
+                              id="reason"
+                              value={cancellationReason}
+                              onChange={handleCancelReasonChange}
+                              placeholder="Enter cancellation reason"
+                              autoFocus
+                            />
+                          </div>
+                        </Modal>
                       </td>
                     </tr>
                   ))}
