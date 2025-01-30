@@ -187,7 +187,7 @@ const AgentInformation = () => {
       username: record.username,
       email: record.email,
       phoneNumber: record.phoneNumber,
-      password: record.palinPassword,
+      password: record.password,
       currentAddress: record.currentAddress,
       role: record.role.value,
       gender: record.gender,
@@ -423,7 +423,7 @@ const AgentInformation = () => {
               name="password"
               placeholder="Enter password"
               value={formik.values.password}
-              required
+              required={isEditing ? false : true}
               onChange={formik.handleChange}
             />
           </div>
