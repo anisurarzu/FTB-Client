@@ -2,7 +2,7 @@
 
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { Input, Button } from "antd";
+import { Input, Button, Alert } from "antd";
 import { useRouter } from "next/navigation";
 import coreAxios from "@/utils/axiosInstance";
 import { useState } from "react";
@@ -11,6 +11,7 @@ import { UserOutlined, LockOutlined } from "@ant-design/icons";
 const Login = () => {
   const router = useRouter();
   const [buttonLoading, setButtonLoading] = useState(false);
+  const [loginError, setLoginError] = useState(""); // State to hold error messages
 
   const validationSchema = Yup.object({
     loginID: Yup.string().required("User ID is required"),
@@ -22,6 +23,8 @@ const Login = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     setSubmitting(true);
     setButtonLoading(true);
+    setLoginError(""); // Reset error message before submitting
+
     try {
       const response = await coreAxios.post(`auth/login`, values);
 
@@ -34,6 +37,14 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Login failed:", error);
+      // Display error message based on the backend response
+      if (error.response && error.response.data && error.response.data.error) {
+        setLoginError(error.response.data.error); // Set the error message
+      } else {
+        setLoginError(
+          "An error occurred during login. Please try again later."
+        );
+      }
     } finally {
       setSubmitting(false);
       setButtonLoading(false);
@@ -70,6 +81,17 @@ const Login = () => {
             <h2 className="text-3xl font-semibold text-center text-gray-800 mb-8">
               Login
             </h2>
+
+            {/* Display error message if there's a login error */}
+            {loginError && (
+              <Alert
+                message={loginError}
+                type="error"
+                showIcon
+                className="mb-6"
+              />
+            )}
+
             <Formik
               initialValues={{ loginID: "", password: "" }}
               validationSchema={validationSchema}

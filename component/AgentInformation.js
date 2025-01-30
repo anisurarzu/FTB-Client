@@ -135,7 +135,6 @@ const AgentInformation = () => {
               username: values.username,
               email: values.email,
               phoneNumber: values.phoneNumber,
-
               password: values?.password,
               plainPassword: values?.password,
               currentAddress: values.currentAddress,
@@ -188,7 +187,7 @@ const AgentInformation = () => {
       username: record.username,
       email: record.email,
       phoneNumber: record.phoneNumber,
-
+      password: record.palinPassword,
       currentAddress: record.currentAddress,
       role: record.role.value,
       gender: record.gender,
@@ -414,21 +413,20 @@ const AgentInformation = () => {
               required={true}
             />
           </div>
-          {!isEditing && (
-            <div className="mb-4">
-              <label htmlFor="password" className="block mb-1">
-                Password
-              </label>
-              <Input.Password
-                id="password"
-                name="password"
-                placeholder="Enter password"
-                value={formik.values.password}
-                required
-                onChange={formik.handleChange}
-              />
-            </div>
-          )}
+
+          <div className="mb-4">
+            <label htmlFor="password" className="block mb-1">
+              Password
+            </label>
+            <Input.Password
+              id="password"
+              name="password"
+              placeholder="Enter password"
+              value={formik.values.password}
+              required
+              onChange={formik.handleChange}
+            />
+          </div>
 
           <div className="mb-4">
             <label htmlFor="currentAddress" className="block mb-1">
