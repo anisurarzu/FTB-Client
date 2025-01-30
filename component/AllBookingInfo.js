@@ -178,8 +178,6 @@ const AllBookingInfo = () => {
       "Method",
       "TrxID",
       "Total Bill",
-      /* "Advance",
-      "Due", */
     ];
 
     // Table Rows
@@ -190,12 +188,9 @@ const AllBookingInfo = () => {
       dayjs(booking.checkOutDate).format("DD MMM YYYY"),
       booking.nights,
       `${booking.roomCategoryName} (${booking.roomNumberName})`,
-
       booking.paymentMethod,
       booking.transactionId,
       booking.totalBill.toFixed(2),
-      /*  booking.advancePayment.toFixed(2),
-      booking.duePayment.toFixed(2), */
     ]);
 
     // Auto table (add the table data below the header)
@@ -214,6 +209,17 @@ const AllBookingInfo = () => {
         halign: "center", // Center align text
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }, // Row striping
+      columnStyles: {
+        7: {
+          // TrxID column settings
+          fontSize: 6, // Reduced font size
+          cellWidth: 40, // Narrow width for TrxID column
+          halign: "center", // Center align text
+          textColor: [0, 0, 0], // Black text color
+          valign: "middle", // Vertically align text
+          overflow: "linebreak", // Enable word breaking in TrxID column
+        },
+      },
       margin: { top: 10, bottom: 10 }, // Reduced row height
     });
 
@@ -230,10 +236,10 @@ const AllBookingInfo = () => {
         .toFixed(2),
     };
 
-    // Add Totals Section
+    // Add Totals Section with bold black text
     doc.setFontSize(9); // Reduced font size
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(40);
+    doc.setTextColor(0, 0, 0); // Black text color for totals
     const finalY = doc.lastAutoTable.finalY + 7;
 
     doc.text(`Summary`, 14, finalY);
@@ -252,8 +258,13 @@ const AllBookingInfo = () => {
         ],
       ],
       startY: finalY + 4,
-      styles: { fillColor: [240, 240, 240], fontSize: 8, halign: "center" }, // Adjusted font size
-      columnStyles: { 5: { fontStyle: "bold" } },
+      styles: {
+        fillColor: [240, 240, 240], // Background color for totals row
+        fontSize: 9, // Adjusted font size
+        halign: "center",
+        textColor: [0, 0, 0], // Set text color to black for totals
+      },
+      columnStyles: { 5: { fontStyle: "bold" } }, // Bold "Totals" label
     });
 
     // Footer
