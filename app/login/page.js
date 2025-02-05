@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import coreAxios from "@/utils/axiosInstance";
 import { useEffect, useState } from "react";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 
 const Login = () => {
   const router = useRouter();
@@ -27,7 +28,7 @@ const Login = () => {
   });
 
   useEffect(() => {
-    // Get Geolocation
+    // ✅ Geolocation Handling for Desktop & Mobile
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -37,11 +38,18 @@ const Login = () => {
             longitude: position.coords.longitude.toString(),
           }));
         },
-        (error) => console.error("Error getting location:", error)
+        (error) => {
+          console.warn("Geolocation permission denied. Using default values.");
+          setLocation((prev) => ({
+            ...prev,
+            latitude: "0.0",
+            longitude: "0.0",
+          }));
+        }
       );
     }
 
-    // Get Public IP
+    // ✅ Get Public IP
     const fetchPublicIP = async () => {
       try {
         const response = await fetch("https://api64.ipify.org?format=json");
@@ -53,7 +61,7 @@ const Login = () => {
     };
     fetchPublicIP();
 
-    // Get Private IP (WebRTC Trick)
+    // ✅ Get Private IP (Using WebRTC)
     const getPrivateIP = async () => {
       try {
         const peerConnection = new RTCPeerConnection({ iceServers: [] });
@@ -83,6 +91,7 @@ const Login = () => {
     setSubmitting(true);
     setButtonLoading(true);
     setLoginError(""); // Reset error message before submitting
+
     const loginData = {
       loginID: values?.loginID,
       password: values?.password,
@@ -90,8 +99,9 @@ const Login = () => {
       longitude: location.longitude,
       publicIP: location.publicIP,
       privateIP: location.privateIP,
-      loginTime: new Date(),
+      loginTime: dayjs().format("YYYY-MM-DD HH:mm:ss"),
     };
+
     try {
       const response = await coreAxios.post(`auth/login`, loginData);
 
@@ -104,9 +114,8 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Login failed:", error);
-      // Display error message based on the backend response
       if (error.response && error.response.data && error.response.data.error) {
-        setLoginError(error.response.data.error); // Set the error message
+        setLoginError(error.response.data.error); // Show error message from backend
       } else {
         setLoginError(
           "An error occurred during login. Please try again later."
