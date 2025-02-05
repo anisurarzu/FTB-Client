@@ -5,13 +5,19 @@ import * as Yup from "yup";
 import { Input, Button, Alert } from "antd";
 import { useRouter } from "next/navigation";
 import coreAxios from "@/utils/axiosInstance";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 
 const Login = () => {
   const router = useRouter();
   const [buttonLoading, setButtonLoading] = useState(false);
   const [loginError, setLoginError] = useState(""); // State to hold error messages
+  const [location, setLocation] = useState({
+    latitude: "",
+    longitude: "",
+    publicIP: "",
+    privateIP: "",
+  });
 
   const validationSchema = Yup.object({
     loginID: Yup.string().required("User ID is required"),
@@ -20,13 +26,74 @@ const Login = () => {
       .required("Password is required"),
   });
 
+  useEffect(() => {
+    // Get Geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation((prev) => ({
+            ...prev,
+            latitude: position.coords.latitude.toString(),
+            longitude: position.coords.longitude.toString(),
+          }));
+        },
+        (error) => console.error("Error getting location:", error)
+      );
+    }
+
+    // Get Public IP
+    const fetchPublicIP = async () => {
+      try {
+        const response = await fetch("https://api64.ipify.org?format=json");
+        const data = await response.json();
+        setLocation((prev) => ({ ...prev, publicIP: data.ip }));
+      } catch (error) {
+        console.error("Error fetching public IP:", error);
+      }
+    };
+    fetchPublicIP();
+
+    // Get Private IP (WebRTC Trick)
+    const getPrivateIP = async () => {
+      try {
+        const peerConnection = new RTCPeerConnection({ iceServers: [] });
+        peerConnection.createDataChannel("");
+        peerConnection
+          .createOffer()
+          .then((offer) => peerConnection.setLocalDescription(offer));
+
+        peerConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            const ipMatch = event.candidate.candidate.match(
+              /(?:\d{1,3}\.){3}\d{1,3}/
+            );
+            if (ipMatch) {
+              setLocation((prev) => ({ ...prev, privateIP: ipMatch[0] }));
+            }
+          }
+        };
+      } catch (error) {
+        console.error("Error getting private IP:", error);
+      }
+    };
+    getPrivateIP();
+  }, []);
+
   const handleSubmit = async (values, { setSubmitting }) => {
     setSubmitting(true);
     setButtonLoading(true);
     setLoginError(""); // Reset error message before submitting
-
+    const loginData = {
+      loginID: values?.loginID,
+      password: values?.password,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      publicIP: location.publicIP,
+      privateIP: location.privateIP,
+      loginTime: new Date(),
+    };
     try {
-      const response = await coreAxios.post(`auth/login`, values);
+      const response = await coreAxios.post(`auth/login`, loginData);
 
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
