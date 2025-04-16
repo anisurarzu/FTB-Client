@@ -196,7 +196,7 @@ const Invoice = ({ params }) => {
                     />
                   ) : (
                     <Image
-                      src="/images/Shamudro-Bari.png"
+                      src="/images/Shamudro-Bari-1.png"
                       alt="Logo"
                       width={180}
                       height={80}
