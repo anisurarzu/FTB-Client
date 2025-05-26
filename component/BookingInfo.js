@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,12 +15,10 @@ import {
   DatePicker,
   Tooltip,
   Select,
-  Row,
-  Col,
   Pagination,
   Alert,
-  Option,
   Switch,
+  Skeleton,
 } from "antd";
 import { useFormik } from "formik";
 import axios from "axios";
@@ -29,22 +29,20 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import { v4 as uuidv4 } from "uuid";
 import coreAxios from "@/utils/axiosInstance";
 import { CopyOutlined } from "@ant-design/icons";
-import Link from "next/link"; // For routing
+import Link from "next/link";
+
+dayjs.extend(isBetween);
 
 const BookingInfo = () => {
   const [visible, setVisible] = useState(false);
-
-  const [selectedHotel2, setSelectedHotel2] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editingKey, setEditingKey] = useState(null);
   const [bookings, setBookings] = useState([]);
-  const [guestInfo, setGuestInfo] = useState(null);
   const [hotelInfo, setHotelInfo] = useState([]);
   const [roomCategories, setRoomCategories] = useState([]);
   const [roomNumbers, setRoomNumbers] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [reportData, setReportData] = useState([]);
   const [prevData, setPrevData] = useState();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
@@ -54,15 +52,16 @@ const BookingInfo = () => {
     pageSize: 10,
   });
   const [searchText, setSearchText] = useState("");
+  const [dateFilter, setDateFilter] = useState(null);
+
+  const userInfo = localStorage.getItem("userInfo")
+    ? JSON.parse(localStorage.getItem("userInfo"))
+    : null;
 
   const fetchRoomCategories = async () => {
     try {
       const response = await coreAxios.get("hotelCategory");
-      if (Array.isArray(response.data)) {
-        setRoomCategories(response.data);
-      } else {
-        setRoomCategories([]); // or handle appropriately
-      }
+      setRoomCategories(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       message.error("Failed to fetch room categories.");
     }
@@ -70,27 +69,18 @@ const BookingInfo = () => {
 
   const fetchHotelInfo = async () => {
     try {
-      // Retrieve user information from local storage
-      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
       const userRole = userInfo?.role?.value;
       const userHotelID = userInfo?.hotelID;
-
-      // Fetch the hotel data
       const response = await coreAxios.get("hotel");
 
       if (Array.isArray(response.data)) {
         let hotelData = response.data;
-
-        // Apply filtering for "hoteladmin" role
         if (userRole === "hoteladmin" && userHotelID) {
-          hotelData = hotelData.filter(
-            (hotel) => hotel.hotelID === userHotelID
-          );
+          hotelData = hotelData.filter((hotel) => hotel.hotelID === userHotelID);
         }
-
         setHotelInfo(hotelData);
       } else {
-        setHotelInfo([]); // or handle appropriately
+        setHotelInfo([]);
       }
     } catch (error) {
       message.error("Failed to fetch hotel information.");
@@ -98,31 +88,20 @@ const BookingInfo = () => {
   };
 
   const fetchHotelCategories = async (value) => {
-    console.log("value", value);
-    // Filter the hotel data by hotelID
     const hotel = hotelInfo.find((hotel) => hotel.hotelID === value);
-
-    // console.log("---------", hotel);
-    // Check if hotel is found and has roomCategories
     if (hotel && hotel.roomCategories) {
-      // Set the roomCategories to the state
       setRoomCategories(hotel.roomCategories);
     } else {
-      // Handle the case where the hotel is not found or no roomCategories exist
-      // console.log("Hotel not found or no room categories available.");
       setRoomCategories([]);
     }
   };
 
-  // Function to check if two date ranges overlap
-  // Function to check if two date ranges overlap
   const areDatesOverlapping = (checkInDate, checkOutDate, bookedDates) => {
     return bookedDates.some((bookedDate) => {
       const booked = dayjs(bookedDate);
       const checkIn = dayjs(checkInDate);
       const checkOut = dayjs(checkOutDate);
 
-      // Check if the booked date is within the range [checkInDate, checkOutDate]
       return (
         (booked.isAfter(checkIn, "day") && booked.isBefore(checkOut, "day")) ||
         booked.isSame(checkIn, "day") ||
@@ -131,130 +110,52 @@ const BookingInfo = () => {
     });
   };
 
-  // const fetchRoomNumbers = async (value) => {
-  //   const room = roomCategories.find((room) => room._id === value);
-
-  //   if (room && room.roomNumbers) {
-  //     const availableRooms = room.roomNumbers.filter((roomNumber) => {
-  //       // Check if the room has any bookedDates
-  //       if (roomNumber.bookedDates.length > 0) {
-  //         // Subtract one day from the checkout date
-  //         const adjustedCheckOutDate = dayjs(
-  //           formik.values.checkOutDate
-  //         ).subtract(1, "day");
-
-  //         // Check for overlapping dates with the adjusted checkout date
-  //         const isOverlapping = areDatesOverlapping(
-  //           formik.values.checkInDate,
-  //           adjustedCheckOutDate,
-  //           roomNumber.bookedDates
-  //         );
-
-  //         // If there's an overlap, exclude the room from available rooms
-  //         return !isOverlapping;
-  //       }
-
-  //       // If no bookedDates exist, the room is available
-  //       return true;
-  //     });
-
-  //     // Set the filtered available rooms to state
-  //     setRoomNumbers(availableRooms);
-  //   } else {
-  //     // Handle the case where the room or room numbers are not available
-  //     setRoomNumbers([]);
-  //   }
-  // };
   const fetchRoomNumbers = async (value) => {
     const room = roomCategories.find((room) => room._id === value);
-
     if (room && room.roomNumbers) {
       const availableRooms = room.roomNumbers.filter((roomNumber) => {
-        // Check if the room has any bookedDates
         if (roomNumber.bookedDates.length > 0) {
           const checkInDate = dayjs(formik.values.checkInDate);
           const checkOutDate = dayjs(formik.values.checkOutDate);
-
-          // Conditionally adjust the checkout date if check-in and check-out dates are different
           const adjustedCheckOutDate = checkInDate.isSame(checkOutDate, "day")
-            ? checkOutDate // If check-in and check-out are the same, use checkout directly
-            : checkOutDate.subtract(1, "day"); // Otherwise, subtract one day
+            ? checkOutDate
+            : checkOutDate.subtract(1, "day");
 
-          // Check for overlapping dates with the adjusted checkout date
           const isOverlapping = areDatesOverlapping(
             checkInDate,
             adjustedCheckOutDate,
             roomNumber.bookedDates
           );
-
-          // If there's an overlap, exclude the room from available rooms
           return !isOverlapping;
         }
-
-        // If no bookedDates exist, the room is available
         return true;
       });
-
-      // Set the filtered available rooms to state
       setRoomNumbers(availableRooms);
     } else {
-      // Handle the case where the room or room numbers are not available
       setRoomNumbers([]);
     }
   };
 
-  const fetchGuestInfo = async (name) => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`/api/guest?name=${name}`);
-      if (response.data) {
-        setGuestInfo(response.data);
-        formik.setValues({
-          fullName: response.data.fullName,
-          nidPassport: response.data.nidPassport,
-          address: response.data.address,
-          phone: response.data.phone,
-          email: response.data.email,
-        });
-      } else {
-        setGuestInfo(null);
-      }
-    } catch (error) {
-      message.error("Failed to fetch guest information.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Retrieve the userInfo from localStorage
-  const userInfo = localStorage.getItem("userInfo")
-    ? JSON.parse(localStorage.getItem("userInfo"))
-    : null;
-
   const updateRoomBookingStatus = async (values) => {
     setLoading(true);
 
-    // Utility function to generate all dates between two dates
     const getBookedDates = (checkInDate, checkOutDate) => {
       const startDate = dayjs(checkInDate);
       const endDate = dayjs(checkOutDate);
       const bookedDates = [];
-
-      // Push dates from check-in to check-out (exclusive)
       for (let d = startDate; d.isBefore(endDate); d = d.add(1, "day")) {
         bookedDates.push(d.format("YYYY-MM-DD"));
       }
       return bookedDates;
     };
 
-    // Prepare the dynamic booking update payload based on form data
     const bookingUpdatePayload = {
-      hotelID: values?.hotelID, // Now included in the body
-      categoryName: values?.roomCategoryName, // Use roomCategoryName to match your structure
-      roomName: values?.roomNumberName, // Now included in the body
+      hotelID: values?.hotelID,
+      categoryName: values?.roomCategoryName,
+      roomName: values?.roomNumberName,
       booking: {
         name: values.roomNumberName,
-        bookedDates: getBookedDates(values.checkInDate, values.checkOutDate), // Use utility function
+        bookedDates: getBookedDates(values.checkInDate, values.checkOutDate),
         bookings: [
           {
             guestName: values.fullName,
@@ -276,7 +177,6 @@ const BookingInfo = () => {
     };
 
     try {
-      // Make the API call to update the room booking
       if (isEditing) {
         const deleteResponse = await coreAxios.delete("/bookings/delete", {
           data: {
@@ -286,138 +186,14 @@ const BookingInfo = () => {
             datesToDelete: getAllDatesBetween(
               prevData?.checkInDate,
               prevData?.checkOutDate
-            ), // Dates to delete
+            ),
           },
         });
         if (deleteResponse.status === 200) {
-          const updateBookingResponse = await coreAxios.put(
-            `/hotel/room/updateBooking`, // Same route as before
-            bookingUpdatePayload // Send full payload in request body
-          );
-
-          if (updateBookingResponse.status === 200) {
-            const newBooking = {
-              ...values,
-              checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
-              checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
-              key: uuidv4(), // Generate a unique key for this booking
-              bookingID: updateBookingResponse?.data?.hotel?._id, // Correctly extracting the bookingId from response
-            };
-
-            // First, create or update the booking in the booking collection
-            let response;
-            if (isEditing) {
-              response = await coreAxios.put(
-                `booking/${editingKey}`,
-                newBooking
-              );
-            } else {
-              response = await coreAxios.post("booking", newBooking);
-            }
-
-            if (response.status === 200) {
-              message.success("Booking created/updated successfully!");
-            } else {
-              message.error("Failed to create/update booking.");
-            }
-
-            // Clean up after successful update
-            setVisible(false);
-            setIsEditing(false);
-            setEditingKey(null);
-            setBookings([]);
-            setFilteredBookings([]);
-            message.success("Room booking status updated successfully!");
-
-            // Refresh hotel and booking information
-            fetchHotelInfo();
-            fetchBookings();
-            if (updateBookingResponse.status === 200) {
-              const newBooking = {
-                ...values,
-                checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
-                checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
-                key: uuidv4(), // Generate a unique key for this booking
-                bookingID: updateBookingResponse?.data?.hotel?._id, // Correctly extracting the bookingId from response
-              };
-
-              // First, create or update the booking in the booking collection
-              let response;
-              if (isEditing) {
-                response = await coreAxios.put(
-                  `booking/${editingKey}`,
-                  newBooking
-                );
-              } else {
-                response = await coreAxios.post("booking", newBooking);
-              }
-
-              if (response.status === 200) {
-                message.success("Booking created/updated successfully!");
-              } else {
-                message.error("Failed to create/update booking.");
-              }
-
-              // Clean up after successful update
-              setVisible(false);
-              setIsEditing(false);
-              setEditingKey(null);
-              setBookings([]);
-              setFilteredBookings([]);
-              message.success("Room booking status updated successfully!");
-
-              // Refresh hotel and booking information
-              fetchHotelInfo();
-              fetchBookings();
-            } else {
-              message.error("Failed to update room booking status.");
-            }
-          } else {
-            message.error("Failed to update room booking status.");
-          }
+          await processBookingUpdate(bookingUpdatePayload, values);
         }
       } else {
-        const updateBookingResponse = await coreAxios.put(
-          `/hotel/room/updateBooking`, // Same route as before
-          bookingUpdatePayload // Send full payload in request body
-        );
-        if (updateBookingResponse.status === 200) {
-          const newBooking = {
-            ...values,
-            checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
-            checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
-            key: uuidv4(), // Generate a unique key for this booking
-            bookingID: updateBookingResponse?.data?.hotel?._id, // Correctly extracting the bookingId from response
-          };
-
-          // First, create or update the booking in the booking collection
-          let response;
-          if (isEditing) {
-            response = await coreAxios.put(`booking/${editingKey}`, newBooking);
-          } else {
-            response = await coreAxios.post("booking", newBooking);
-          }
-
-          if (response.status === 200) {
-            message.success("Booking created/updated successfully!");
-          } else {
-            message.error("Failed to create/update booking.");
-          }
-
-          // Clean up after successful update
-          setVisible(false);
-          setIsEditing(false);
-          setEditingKey(null);
-          setBookings([]);
-          setFilteredBookings([]);
-          message.success("Room booking status updated successfully!");
-
-          // Refresh hotel and booking information
-          fetchHotelInfo();
-          fetchBookings();
-        } else {
-          message.error("Failed to update room booking status.");
-        }
+        await processBookingUpdate(bookingUpdatePayload, values);
       }
     } catch (error) {
       message.error("An error occurred while updating the booking.");
@@ -425,334 +201,6 @@ const BookingInfo = () => {
       setLoading(false);
     }
   };
-
-  const formik = useFormik({
-    initialValues: {
-      fullName: "",
-      nidPassport: "",
-      address: "",
-      phone: "",
-      email: "",
-      hotelID: 0,
-      hotelName: "",
-      isKitchen: false,
-      kitchenTotalBill: 0,
-      extraBedTotalBill: 0,
-      extraBed: false,
-      roomCategoryID: 0,
-      roomCategoryName: "",
-      roomNumberID: 0,
-      roomNumberName: "",
-      roomPrice: 0,
-      checkInDate: dayjs(), // Set default to current date
-      // checkOutDate: dayjs().add(1, "day"), // One day after the current date
-      nights: 0,
-      totalBill: 0,
-      advancePayment: 0,
-      duePayment: 0,
-      paymentMethod: "",
-      transactionId: "",
-      note: "",
-      bookedBy: userInfo ? userInfo?.username : "",
-      bookedByID: userInfo ? userInfo?.loginID : "",
-      updatedByID: "Not Updated",
-      reference: "",
-      adults: 0,
-      children: 0,
-    },
-
-    onSubmit: async (values, { resetForm }) => {
-      try {
-        setLoading(true);
-        await updateRoomBookingStatus(values);
-        resetForm();
-      } catch (error) {
-        message.error("Failed to add/update booking.");
-      } finally {
-        setLoading(false);
-      }
-    },
-  });
-
-  const fetchBookings = async () => {
-    setLoading(true);
-    try {
-      // Retrieve user information from local storage
-      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-      const userRole = userInfo?.role?.value;
-      const userHotelID = userInfo?.hotelID;
-
-      // Fetch the bookings data
-      const response = await coreAxios.get("bookings");
-
-      if (response.status === 200) {
-        let bookingsData = response?.data;
-
-        // Filter bookings if the role is "hoteladmin"
-        if (userRole === "hoteladmin" && userHotelID) {
-          bookingsData = bookingsData.filter(
-            (booking) => booking.hotelID === userHotelID
-          );
-        }
-
-        setBookings(bookingsData);
-        setFilteredBookings(bookingsData);
-      }
-    } catch (error) {
-      message.error("Failed to fetch bookings.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchBookingsReportByBookingNo = async (bookingNo) => {
-    setLoading(true);
-    try {
-      const response = await coreAxios.get(`bookings/bookingNo/${"FTB-01"}`);
-      if (response.status === 200) {
-        setReportData(response?.data);
-      }
-    } catch (error) {
-      message.error("Failed to fetch bookings report.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchHotelInfo();
-    fetchBookings();
-    fetchRoomCategories();
-  }, []);
-
-  const handleHotelInfo = (value) => {
-    console.log("hotel_value", value);
-    // Find the selected hotel based on the value
-    const selectedHotel = hotelInfo.find((hotel) => hotel.hotelID === value);
-
-    // Update formik values
-    formik.setFieldValue("roomCategoryID", 0); // Reset room category
-    formik.setFieldValue("roomCategoryName", ""); // Reset room category name
-    formik.setFieldValue("roomNumberID", ""); // Reset room number
-    formik.setFieldValue("roomNumberName", ""); // Reset room number name
-    formik.setFieldValue("hotelID", value); // Set the selected hotel ID
-    formik.setFieldValue(
-      "hotelName",
-      selectedHotel ? selectedHotel.hotelName : ""
-    ); // Set the selected hotel name
-    fetchHotelCategories(value); // Fetch room categories for the selected hotel
-  };
-
-  const handleRoomCategoryChange = (value) => {
-    console.log("cat_value", value);
-    // Find the selected category based on the value
-    const selectedCategory = roomCategories.find(
-      (category) => category._id === value
-    );
-
-    // Update formik values
-    formik.setFieldValue("roomNumberID", 0); // Reset room number
-    formik.setFieldValue("roomNumberName", ""); // Reset room number name
-    formik.setFieldValue("roomCategoryID", value); // Set the selected category ID
-    formik.setFieldValue(
-      "roomCategoryName",
-      selectedCategory ? selectedCategory.name : ""
-    ); // Set the selected category name
-    fetchRoomNumbers(value); // Fetch room numbers for the selected category
-  };
-
-  const handleEdit = (record) => {
-    console.log("editeddata", record);
-    setEditingKey(record?._id);
-    setPrevData(record);
-    // formik.setValues(record);
-    fetchHotelCategories(record?.hotelID);
-    fetchRoomNumbers(record?.roomCategoryID);
-
-    const checkInDate = dayjs(record.checkInDate);
-    const checkOutDate = dayjs(record.checkOutDate);
-    if (record) {
-      formik.setValues({
-        ...formik.values,
-        bookedBy: record?.username,
-        isKitchen: record?.isKitchen,
-        kitchenTotalBill: record?.kitchenTotalBill,
-        extraBed: record?.extraBed,
-        extraBedTotalBill: record?.extraBedTotalBill,
-        bookedByID: record?.loginID,
-        updatedByID: userInfo ? userInfo?.loginID : "",
-        fullName: record.fullName,
-        nidPassport: record.nidPassport,
-        address: record.address,
-        phone: record.phone,
-        email: record.email,
-        hotelID: record.hotelID,
-        hotelName: record.hotelName,
-        roomCategoryName: record.roomCategoryName,
-        roomNumberID: record.roomNumberID,
-        roomNumberName: record?.roomNumberName,
-        roomPrice: record.roomPrice,
-        checkInDate: checkInDate,
-        checkOutDate: checkOutDate,
-        adults: record.adults,
-        children: record.children,
-        nights: record.nights,
-        totalBill: record.totalBill,
-        advancePayment: record.advancePayment,
-        duePayment: record.duePayment,
-        paymentMethod: record.paymentMethod,
-        transactionId: record.transactionId,
-        note: record.note,
-      });
-    }
-    setVisible(true);
-    setIsEditing(true);
-  };
-
-  // Function to generate all dates between two given dates
-  // Function to generate all dates between two given dates
-  function getAllDatesBetween(startDate, endDate) {
-    const dates = [];
-    let currentDate = dayjs(startDate);
-
-    while (currentDate.isBefore(endDate) || currentDate.isSame(endDate)) {
-      dates.push(currentDate.format("YYYY-MM-DD"));
-      currentDate = currentDate.add(1, "day");
-    }
-
-    // Check if start date is not the first of the month, then remove last date
-    if (dayjs(startDate).date() !== 1) {
-      dates.pop(); // Remove the last date
-    }
-
-    return dates;
-  }
-
-  const handleDelete2 = async (key) => {
-    setLoading(true);
-    try {
-      const canceledBy = userInfo?.loginID; // Replace this with the actual user performing the deletion (e.g., from user context)
-
-      const res = await coreAxios.put(`/booking/soft/${key}`, {
-        canceledBy: canceledBy,
-        reason: cancellationReason, // Pass the canceledBy field in the request body
-      });
-
-      if (res.status === 200) {
-        fetchBookings(); // Fetch the updated list of bookings
-        message.success("Booking cancelled successfully.");
-        setIsModalVisible(false);
-      }
-    } catch (error) {
-      message.error("Failed to delete booking.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePriceChange = (e) => {
-    const { name, value } = e.target;
-
-    // Update the price or nights based on the changed input
-    formik.setFieldValue(name, value);
-
-    // Calculate totalBill based on roomPrice and nights
-    const roomPrice = name === "roomPrice" ? value : formik.values.roomPrice;
-    const nights = name === "nights" ? value : formik.values.nights;
-    const totalBill = roomPrice * nights;
-
-    // Calculate the due payment based on the advancePayment and totalBill
-    const advancePayment = formik.values.advancePayment || 0;
-    const duePayment = totalBill - advancePayment;
-
-    // Update totalBill and duePayment fields in formik
-    formik.setFieldValue("totalBill", totalBill);
-    formik.setFieldValue("duePayment", duePayment >= 0 ? duePayment : 0);
-  };
-
-  const handleNightsChange = (e) => {
-    const nights = parseInt(e.target.value) || 0; // Get the new value for nights
-    formik.setFieldValue("nights", nights);
-
-    const roomPrice = formik.values.roomPrice || 0;
-    const totalBill = roomPrice * nights;
-
-    // Get the current advance payment
-    let advancePayment = parseFloat(formik.values.advancePayment) || 0;
-
-    // Adjust advance payment if it exceeds totalBill
-    if (advancePayment > totalBill) {
-      advancePayment = totalBill;
-    }
-
-    // Calculate the due payment
-    const duePayment = totalBill - advancePayment;
-
-    // Update totalBill, advancePayment, and duePayment in formik
-    formik.setFieldValue("totalBill", totalBill);
-    formik.setFieldValue("advancePayment", advancePayment);
-    formik.setFieldValue("duePayment", duePayment >= 0 ? duePayment : 0);
-  };
-
-  // Function to handle advance payment and calculate due payment
-  const handleAdvancePaymentChange = (e) => {
-    const advancePayment = e.target.value;
-    const totalBill = formik.values.totalBill;
-
-    // Calculate due payment
-    const duePayment = totalBill - advancePayment;
-
-    // Set the field values in formik
-    formik.setFieldValue("advancePayment", advancePayment);
-    formik.setFieldValue("duePayment", duePayment >= 0 ? duePayment : 0); // Ensure due payment is non-negative
-  };
-  // Handle pagination
-  const handleTableChange = (newPagination) => {
-    setPagination(newPagination);
-  };
-
-  // Handle global search
-  // Global search
-  const handleSearch = (e) => {
-    const value = e.target.value.toLowerCase();
-    setSearchText(value);
-    const filteredData = bookings.filter(
-      (r) =>
-        r.bookingNo.toLowerCase().includes(value) ||
-        r.bookedByID.toLowerCase().includes(value) ||
-        r.fullName.toLowerCase().includes(value) ||
-        r.roomCategoryName.toLowerCase().includes(value) ||
-        r.roomNumberName.toLowerCase().includes(value) ||
-        r.hotelName.toLowerCase().includes(value) ||
-        r.phone.toLowerCase().includes(value)
-    );
-    setFilteredBookings(filteredData);
-    setPagination({ ...pagination, current: 1 }); // Reset to page 1 after filtering
-  };
-
-  // Paginate the filtered data
-  const paginatedBookings = filteredBookings.slice(
-    (pagination.current - 1) * pagination.pageSize,
-    pagination.current * pagination.pageSize
-  );
-
-  const fetchBookingDetails = async (bookingNo) => {
-    try {
-      const response = await coreAxios.get(`/bookings/bookingNo/${bookingNo}`);
-      if (response?.status === 200) {
-        console.log("-----", response?.data?.[0]?.hotelID);
-        // Fetch hotel categories based on the hotelID from booking details
-        await fetchHotelCategories(response?.data?.[0]?.hotelID);
-      }
-      return response.data;
-    } catch (error) {
-      message.error(
-        "Failed to fetch booking details. Please check the booking number."
-      );
-      return null;
-    }
-  };
-
   const handleBlur = async (e) => {
     const { value } = e.target;
     if (value) {
@@ -790,43 +238,228 @@ const BookingInfo = () => {
       }
     }
   };
-  console.log("hotelID", hotelInfo);
-  const handleHotelChange = (hotelID) => {
-    setLoading(true);
-    setSelectedHotel2(hotelID); // Update selected hotel when dropdown changes
 
-    const selectedHotel = hotelInfo.find((hotel) => hotel.hotelID === hotelID);
-
-    // Update formik values
-
-    // Reset room number name
-    formik.setFieldValue("hotelID2", hotelID); // Set the selected hotel ID
-    formik.setFieldValue(
-      "hotelName2",
-      selectedHotel ? selectedHotel.hotelName : ""
+  const processBookingUpdate = async (payload, values) => {
+    const updateBookingResponse = await coreAxios.put(
+      `/hotel/room/updateBooking`,
+      payload
     );
+    if (updateBookingResponse.status === 200) {
+      const newBooking = {
+        ...values,
+        checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
+        checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
+        key: uuidv4(),
+        bookingID: updateBookingResponse?.data?.hotel?._id,
+      };
 
-    // Filter bookings by hotelID
-    const filteredData = bookings.filter(
-      (booking) => booking.hotelID === hotelID
-    );
+      const response = isEditing
+        ? await coreAxios.put(`booking/${editingKey}`, newBooking)
+        : await coreAxios.post("booking", newBooking);
 
-    setFilteredBookings(filteredData); // Set the filtered bookings
-    setPagination({ ...pagination, current: 1 }); // Reset pagination to page 1
-
-    setLoading(false);
+      if (response.status === 200) {
+        message.success("Booking created/updated successfully!");
+        setVisible(false);
+        setIsEditing(false);
+        setEditingKey(null);
+        fetchHotelInfo();
+        fetchBookings();
+      }
+    }
   };
 
-  // night calculations
+  const formik = useFormik({
+    initialValues: {
+      fullName: "",
+      nidPassport: "",
+      address: "",
+      phone: "",
+      email: "",
+      hotelID: 0,
+      hotelName: "",
+      isKitchen: false,
+      kitchenTotalBill: 0,
+      extraBedTotalBill: 0,
+      extraBed: false,
+      roomCategoryID: 0,
+      roomCategoryName: "",
+      roomNumberID: 0,
+      roomNumberName: "",
+      roomPrice: 0,
+      checkInDate: dayjs(),
+      nights: 0,
+      totalBill: 0,
+      advancePayment: 0,
+      duePayment: 0,
+      paymentMethod: "",
+      transactionId: "",
+      note: "",
+      bookedBy: userInfo?.username || "",
+      bookedByID: userInfo?.loginID || "",
+      updatedByID: "Not Updated",
+      reference: "",
+      adults: 0,
+      children: 0,
+    },
+    onSubmit: async (values, { resetForm }) => {
+      try {
+        setLoading(true);
+        await updateRoomBookingStatus(values);
+        resetForm();
+      } catch (error) {
+        message.error("Failed to add/update booking.");
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
+
+  const fetchBookings = async () => {
+    setLoading(true);
+    try {
+      const userRole = userInfo?.role?.value;
+      const userHotelID = userInfo?.hotelID;
+      const response = await coreAxios.get("bookings");
+
+      if (response.status === 200) {
+        let bookingsData = response?.data;
+        if (userRole === "hoteladmin" && userHotelID) {
+          bookingsData = bookingsData.filter(
+            (booking) => booking.hotelID === userHotelID
+          );
+        }
+        setBookings(bookingsData);
+        setFilteredBookings(bookingsData);
+      }
+    } catch (error) {
+      message.error("Failed to fetch bookings.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHotelInfo();
+    fetchBookings();
+    fetchRoomCategories();
+  }, []);
+
+  const handleHotelInfo = (value) => {
+    const selectedHotel = hotelInfo.find((hotel) => hotel.hotelID === value);
+    formik.setValues({
+      ...formik.values,
+      roomCategoryID: 0,
+      roomCategoryName: "",
+      roomNumberID: "",
+      roomNumberName: "",
+      hotelID: value,
+      hotelName: selectedHotel?.hotelName || "",
+    });
+    fetchHotelCategories(value);
+  };
+
+  const handleRoomCategoryChange = (value) => {
+    const selectedCategory = roomCategories.find(
+      (category) => category._id === value
+    );
+    formik.setValues({
+      ...formik.values,
+      roomNumberID: 0,
+      roomNumberName: "",
+      roomCategoryID: value,
+      roomCategoryName: selectedCategory?.name || "",
+    });
+    fetchRoomNumbers(value);
+  };
+
+  const handleEdit = (record) => {
+    setEditingKey(record?._id);
+    setPrevData(record);
+    fetchHotelCategories(record?.hotelID);
+    fetchRoomNumbers(record?.roomCategoryID);
+
+    const checkInDate = dayjs(record.checkInDate);
+    const checkOutDate = dayjs(record.checkOutDate);
+    formik.setValues({
+      ...formik.values,
+      bookedBy: record?.username,
+      isKitchen: record?.isKitchen,
+      kitchenTotalBill: record?.kitchenTotalBill,
+      extraBed: record?.extraBed,
+      extraBedTotalBill: record?.extraBedTotalBill,
+      bookedByID: record?.loginID,
+      updatedByID: userInfo?.loginID || "",
+      fullName: record.fullName,
+      nidPassport: record.nidPassport,
+      address: record.address,
+      phone: record.phone,
+      email: record.email,
+      hotelID: record.hotelID,
+      hotelName: record.hotelName,
+      roomCategoryName: record.roomCategoryName,
+      roomNumberID: record.roomNumberID,
+      roomNumberName: record?.roomNumberName,
+      roomPrice: record.roomPrice,
+      checkInDate: checkInDate,
+      checkOutDate: checkOutDate,
+      adults: record.adults,
+      children: record.children,
+      nights: record.nights,
+      totalBill: record.totalBill,
+      advancePayment: record.advancePayment,
+      duePayment: record.duePayment,
+      paymentMethod: record.paymentMethod,
+      transactionId: record.transactionId,
+      note: record.note,
+    });
+    setVisible(true);
+    setIsEditing(true);
+  };
+
+  const getAllDatesBetween = (startDate, endDate) => {
+    const dates = [];
+    let currentDate = dayjs(startDate);
+    while (currentDate.isBefore(endDate) || currentDate.isSame(endDate)) {
+      dates.push(currentDate.format("YYYY-MM-DD"));
+      currentDate = currentDate.add(1, "day");
+    }
+    if (dayjs(startDate).date() !== 1) {
+      dates.pop();
+    }
+    return dates;
+  };
+
+  const handleDelete2 = async (key) => {
+    setLoading(true);
+    try {
+      const res = await coreAxios.put(`/booking/soft/${key}`, {
+        canceledBy: userInfo?.loginID,
+        reason: cancellationReason,
+      });
+      if (res.status === 200) {
+        fetchBookings();
+        message.success("Booking cancelled successfully.");
+        setIsModalVisible(false);
+      }
+    } catch (error) {
+      message.error("Failed to delete booking.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCheckInChange = (date) => {
     if (!isEditing) {
-      formik.setFieldValue("hotelName", "");
-      formik.setFieldValue("hotelID", 0);
-      formik.setFieldValue("roomCategoryID", 0);
-      formik.setFieldValue("roomCategoryName", "");
-      formik.setFieldValue("roomNumberID", 0);
-      formik.setFieldValue("roomNumberName", "");
-      formik.setFieldValue("checkOutDate", "");
+      formik.setValues({
+        ...formik.values,
+        hotelName: "",
+        hotelID: 0,
+        roomCategoryID: 0,
+        roomCategoryName: "",
+        roomNumberID: 0,
+        roomNumberName: "",
+        checkOutDate: "",
+      });
     }
     formik.setFieldValue("checkInDate", date);
     calculateNights(date, formik.values.checkOutDate);
@@ -834,12 +467,15 @@ const BookingInfo = () => {
 
   const handleCheckOutChange = (date) => {
     if (!isEditing) {
-      formik.setFieldValue("hotelName", "");
-      formik.setFieldValue("hotelID", 0);
-      formik.setFieldValue("roomCategoryID", 0);
-      formik.setFieldValue("roomCategoryName", "");
-      formik.setFieldValue("roomNumberID", 0);
-      formik.setFieldValue("roomNumberName", "");
+      formik.setValues({
+        ...formik.values,
+        hotelName: "",
+        hotelID: 0,
+        roomCategoryID: 0,
+        roomCategoryName: "",
+        roomNumberID: 0,
+        roomNumberName: "",
+      });
     }
     formik.setFieldValue("checkOutDate", date);
     calculateNights(formik.values.checkInDate, date);
@@ -848,20 +484,20 @@ const BookingInfo = () => {
   const calculateNights = (checkIn, checkOut) => {
     if (checkIn && checkOut) {
       const diffTime = Math.abs(checkOut - checkIn);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       formik.setFieldValue("nights", diffDays);
     } else {
-      formik.setFieldValue("nights", 0); // Reset nights if one of the dates is not set
+      formik.setFieldValue("nights", 0);
     }
   };
-  // booking cancle functionality
+
   const handleCancelReasonChange = (e) => {
     setCancellationReason(e.target.value);
   };
 
   const showModal = (booking) => {
-    setCurrentBooking(booking); // Store the current booking object
-    setIsModalVisible(true); // Show the modal
+    setCurrentBooking(booking);
+    setIsModalVisible(true);
   };
 
   const handleOk = async () => {
@@ -872,7 +508,6 @@ const BookingInfo = () => {
 
     setLoading(true);
     try {
-      // Now, proceed to delete the booking using the delete API
       const deleteResponse = await coreAxios.delete("/bookings/delete", {
         data: {
           hotelID: currentBooking?.hotelID,
@@ -887,9 +522,7 @@ const BookingInfo = () => {
       });
 
       if (deleteResponse.status === 200) {
-        // message.success("Booking deleted successfully!");
         handleDelete2(currentBooking?._id);
-        // fetchBookings(); // Refresh the bookings list after deletion
       }
     } catch (error) {
       message.error("Failed to delete booking.");
@@ -899,27 +532,96 @@ const BookingInfo = () => {
   };
 
   const handleCancel = () => {
-    setIsModalVisible(false); // Close the modal without doing anything
+    setIsModalVisible(false);
   };
 
   const handleDelete = (booking) => {
-    // Open the modal to confirm cancellation
     showModal(booking);
   };
 
+  const handleSearch = (e) => {
+    const value = e.target.value.toLowerCase();
+    setSearchText(value);
+    filterBookings(value, dateFilter);
+  };
+
+  const handleDateFilterChange = (date) => {
+    setDateFilter(date);
+    filterBookings(searchText, date);
+  };
+
+  const filterBookings = (searchValue, dateValue) => {
+    let filteredData = bookings;
+    
+    // Apply text search filter
+    if (searchValue) {
+      filteredData = filteredData.filter(
+        (r) =>
+          r.bookingNo.toLowerCase().includes(searchValue) ||
+          r.bookedByID.toLowerCase().includes(searchValue) ||
+          r.fullName.toLowerCase().includes(searchValue) ||
+          r.roomCategoryName.toLowerCase().includes(searchValue) ||
+          r.roomNumberName.toLowerCase().includes(searchValue) ||
+          r.hotelName.toLowerCase().includes(searchValue) ||
+          r.phone.toLowerCase().includes(searchValue)
+      );
+    }
+    
+    // Apply date filter
+    if (dateValue) {
+      filteredData = filteredData.filter((booking) =>
+        dayjs(booking.checkInDate).isSame(dateValue, "day")
+      );
+    }
+    
+    setFilteredBookings(filteredData);
+    setPagination({ ...pagination, current: 1 });
+  };
+  const handleAdvancePaymentChange = (e) => {
+    const advancePayment = e.target.value;s
+    const totalBill = formik.values.totalBill;
+
+    // Calculate due payment
+    const duePayment = totalBill - advancePayment;
+
+    // Set the field values in formik
+    formik.setFieldValue("advancePayment", advancePayment);
+    formik.setFieldValue("duePayment", duePayment >= 0 ? duePayment : 0); // Ensure due payment is non-negative
+  };
+
+  const handleHotelChange = (hotelID) => {
+    setLoading(true);
+    const selectedHotel = hotelInfo.find((hotel) => hotel.hotelID === hotelID);
+    formik.setValues({
+      ...formik.values,
+      hotelID2: hotelID,
+      hotelName2: selectedHotel?.hotelName || "",
+    });
+
+    const filteredData = bookings.filter((booking) => booking.hotelID === hotelID);
+    setFilteredBookings(filteredData);
+    setPagination({ ...pagination, current: 1 });
+    setLoading(false);
+  };
+
+  const paginatedBookings = filteredBookings.slice(
+    (pagination.current - 1) * pagination.pageSize,
+    pagination.current * pagination.pageSize
+  );
+
+  const renderSkeleton = () => (
+    <div className="p-4">
+      <Skeleton active paragraph={{ rows: 10 }} />
+    </div>
+  );
+
   return (
     <div>
-      {loading ? (
-        <Spin tip="Loading...">
-          <Alert
-            message="Alert message title"
-            description="Further details about the context of this alert."
-            type="info"
-          />
-        </Spin>
+      {loading && !bookings.length ? (
+        renderSkeleton()
       ) : (
         <div className="">
-          <div className="flex justify-between">
+          <div className="flex justify-between mb-4">
             <Button
               type="primary"
               onClick={() => {
@@ -927,36 +629,47 @@ const BookingInfo = () => {
                 setVisible(true);
                 setIsEditing(false);
               }}
-              className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
+              className="bg-[#8ABF55] hover:bg-[#7DA54E] text-white"
+            >
               Add New Booking
             </Button>
-            {/* Hotel Selection Dropdown */}
 
-            <Select
-              name="hotelName2"
-              placeholder="Select a Hotel"
-              value={formik.values.hotelName2}
-              style={{ width: 300 }}
-              onChange={handleHotelChange}>
-              {hotelInfo.map((hotel) => (
-                <Select.Option key={hotel.hotelID} value={hotel.hotelID}>
-                  {hotel.hotelName}
-                </Select.Option>
-              ))}
-            </Select>
+            <div className="flex gap-4">
+              <DatePicker
+                placeholder="Filter by check-in date"
+                onChange={handleDateFilterChange}
+                allowClear
+                style={{ width: 200 }}
+              />
 
-            {/* Global Search Input */}
-            <Input
-              placeholder="Search bookings..."
-              value={searchText}
-              onChange={handleSearch}
-              style={{ width: 300, marginBottom: 20 }}
-            />
+              <Select
+                placeholder="Select a Hotel"
+                style={{ width: 200 }}
+                onChange={handleHotelChange}
+              >
+                {hotelInfo.map((hotel) => (
+                  <Select.Option key={hotel.hotelID} value={hotel.hotelID}>
+                    {hotel.hotelName}
+                  </Select.Option>
+                ))}
+              </Select>
+
+              <Input
+                placeholder="Search bookings..."
+                value={searchText}
+                onChange={handleSearch}
+                style={{ width: 200 }}
+              />
+            </div>
           </div>
 
-          <div className="relative overflow-x-auto shadow-md">
-            <div style={{ overflowX: "auto" }}>
-              <table className="w-full text-xs text-left rtl:text-right  dark:text-gray-400">
+          <div className="relative overflow-x-auto shadow-md mt-4">
+            {loading ? (
+              renderSkeleton()
+            ) : (
+              <>
+                <div style={{ overflowX: "auto" }}>
+                  <table className="w-full text-xs text-left rtl:text-right  dark:text-gray-400">
                 {/* Table Header */}
                 <thead className="text-xs  uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                   <tr>
@@ -1186,21 +899,21 @@ const BookingInfo = () => {
                   ))}
                 </tbody>
               </table>
-            </div>
+                </div>
 
-            {/* Pagination (commented out) */}
-
-            <div className="flex justify-center p-2">
-              <Pagination
-                current={pagination.current}
-                pageSize={pagination.pageSize}
-                total={filteredBookings?.length}
-                onChange={(page, pageSize) =>
-                  setPagination({ current: page, pageSize })
-                } // Update both current page and pageSize
-                className="mt-4"
-              />
-            </div>
+                <div className="flex justify-center p-2">
+                  <Pagination
+                    current={pagination.current}
+                    pageSize={pagination.pageSize}
+                    total={filteredBookings?.length}
+                    onChange={(page, pageSize) =>
+                      setPagination({ current: page, pageSize })
+                    }
+                    className="mt-4"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <Modal

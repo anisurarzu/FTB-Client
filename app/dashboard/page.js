@@ -1,6 +1,6 @@
 "use client";
 
-import { Layout, Menu, Button, Spin, Drawer, Avatar } from "antd";
+import { Layout, Menu, Button, Spin, Drawer, Avatar, Skeleton, theme } from "antd";
 import {
   DashboardOutlined,
   UsergroupAddOutlined,
@@ -27,6 +27,7 @@ import RoomAvailabilityPage from "@/component/RoomSearchPage";
 import AllBookingInfo from "@/component/AllBookingInfo";
 
 const { Header, Sider, Content } = Layout;
+const { useToken } = theme;
 
 const rolePermissions = {
   superadmin: [
@@ -36,7 +37,6 @@ const rolePermissions = {
       icon: <DashboardOutlined />,
       component: <DashboardHome />,
     },
-
     {
       key: "7",
       label: "Calendar",
@@ -61,18 +61,6 @@ const rolePermissions = {
       icon: <InfoCircleOutlined />,
       component: <AllBookingInfo />,
     },
-    // {
-    //   key: "3",
-    //   label: "Flat/Room Type",
-    //   icon: <ApartmentOutlined />,
-    //   component: <HotelCategory />,
-    // },
-    // {
-    //   key: "4",
-    //   label: "Flat/Room No",
-    //   icon: <UnorderedListOutlined />,
-    //   component: <HotelRoom />,
-    // },
     {
       key: "5",
       label: "Hotel Info",
@@ -85,7 +73,6 @@ const rolePermissions = {
       icon: <UsergroupAddOutlined />,
       component: <AgentInformation />,
     },
-
     { key: "8", label: "Settings", icon: <SettingOutlined />, component: null },
   ],
   agentadmin: [
@@ -113,12 +100,6 @@ const rolePermissions = {
       icon: <InfoCircleOutlined />,
       component: <BookingInfo />,
     },
-    // {
-    //   key: "10",
-    //   label: "All Booking Info",
-    //   icon: <InfoCircleOutlined />,
-    //   component: <AllBookingInfo />,
-    // },
   ],
   hoteladmin: [
     {
@@ -145,12 +126,6 @@ const rolePermissions = {
       icon: <InfoCircleOutlined />,
       component: <BookingInfo />,
     },
-    // {
-    //   key: "10",
-    //   label: "All Booking Info",
-    //   icon: <InfoCircleOutlined />,
-    //   component: <AllBookingInfo />,
-    // },
   ],
   admin: [
     {
@@ -196,10 +171,10 @@ const rolePermissions = {
       component: <AgentInformation />,
     },
   ],
-  // Other roles omitted for brevity...
 };
 
 const Dashboard = ({ sliders }) => {
+  const { token } = useToken();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState("1");
@@ -233,6 +208,14 @@ const Dashboard = ({ sliders }) => {
   const onClose = () => setVisible(false);
 
   const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="p-6">
+          <Skeleton active paragraph={{ rows: 8 }} />
+        </div>
+      );
+    }
+
     const userRole = userInfo?.role?.value;
     const allowedPages = rolePermissions[userRole] || [];
     const selectedPage = allowedPages.find((page) => page.key === selectedMenu);
@@ -251,10 +234,21 @@ const Dashboard = ({ sliders }) => {
         mode="inline"
         selectedKeys={[selectedMenu]}
         onClick={(e) => setSelectedMenu(e.key)}
-        className="bg-white">
+        style={{ background: token.colorBgContainer }}
+        className="border-r-0"
+      >
         {allowedPages.map((page) => (
-          <Menu.Item key={page.key} icon={page.icon} className="bg-white">
-            <span className="text-black font-medium">{page.label}</span>
+          <Menu.Item 
+            key={page.key} 
+            icon={page.icon}
+            style={{
+              margin: '4px 8px',
+              borderRadius: '6px',
+              padding: '8px 12px',
+              fontSize: '14px'
+            }}
+          >
+            {page.label}
           </Menu.Item>
         ))}
       </Menu>
@@ -262,82 +256,114 @@ const Dashboard = ({ sliders }) => {
   };
 
   return (
-    <Layout className="min-h-screen">
-      {/* Sidebar for Desktop */}
+    <Layout className="min-h-screen bg-gray-50">
+      {/* Slim Sidebar - 200px width */}
       <Sider
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
-        className="site-layout-background hidden lg:block">
-        <div className="logo-container py-2 flex items-center justify-center">
+        width={200}
+        breakpoint="lg"
+        collapsedWidth={80}
+        style={{
+          background: token.colorBgContainer,
+          boxShadow: '2px 0 8px rgba(29, 35, 41, 0.05)',
+          borderRight: `1px solid ${token.colorBorderSecondary}`,
+        }}
+        className="hidden lg:block"
+      >
+        <div className="flex items-center justify-center py-4 h-16">
           <Image
             src="/images/logo.png"
             alt="Logo"
-            width={collapsed ? 50 : 120}
-            height={collapsed ? 25 : 40}
+            width={collapsed ? 40 : 120}
+            height={collapsed ? 20 : 30}
+            className="transition-all duration-200"
           />
         </div>
-
-        {/* Render the menu items based on user role */}
         {renderMenuItems()}
       </Sider>
 
-      {/* Drawer for Mobile */}
-      <Drawer
-        title="Menu"
-        placement="left"
-        onClose={onClose}
-        open={visible}
-        width="50vw" // Covers 3/4 of the viewport width
-        bodyStyle={{ padding: 0 }}>
-        {renderMenuItems()}
-      </Drawer>
-
-      <Layout className="site-layout">
+      <Layout>
         <Header
           style={{
-            background: "linear-gradient(45deg, #8A99EB, #9DE1FB, #AFC7F3)",
+            background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+            padding: '0 24px',
+            height: '64px',
+            lineHeight: '64px',
           }}
-          className="flex justify-between items-center pr-8 py-4 shadow-md">
-          <Button
-            icon={<MenuOutlined />}
-            className="lg:hidden"
-            onClick={showDrawer}
-          />
-          <h1 className="text-xl lg:text-2xl font-bold text-white px-2">
-            Fast Track Booking
-          </h1>
-          <div className="flex items-center space-x-4">
+          className="flex justify-between items-center shadow-sm"
+        >
+          <div className="flex items-center">
+            <Button
+              type="text"
+              icon={<MenuOutlined style={{ color: 'white', fontSize: '16px' }} />}
+              onClick={showDrawer}
+              className="lg:hidden mr-2"
+            />
+            <h1 className="text-xl font-semibold text-white m-0">
+              Fast Track Booking
+            </h1>
+          </div>
+          
+          <div className="flex items-center gap-4">
             {userInfo && (
-              <div className="relative flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <Avatar
                   src={userInfo.image}
                   alt={userInfo.username}
-                  size={40}
-                  className="hidden lg:block"
+                  size="default"
+                  style={{ backgroundColor: '#8B5CF6' }}
                 />
-                <span className="text-white">{userInfo.username}</span>
+                <span className="text-white hidden md:inline">
+                  {userInfo.username}
+                </span>
               </div>
             )}
             <Button
-              icon={<LogoutOutlined />}
-              type="primary"
-              className="bg-[#8EABEF] text-white border-none hover:bg-[#7DA54E]"
+              type="text"
+              icon={<LogoutOutlined style={{ color: 'white' }} />}
               onClick={handleLogout}
-            />
+              className="flex items-center"
+            >
+              <span className="text-white hidden md:inline">Logout</span>
+            </Button>
           </div>
         </Header>
 
-        <Content className="m-4 lg:m-6 p-4 lg:p-6 bg-white rounded-lg shadow-lg">
-          {loading ? (
-            <div className="flex justify-center items-center h-full">
-              <Spin size="large" />
-            </div>
-          ) : (
-            renderContent()
-          )}
+        <Content
+          style={{
+            margin: '24px 16px',
+            padding: 24,
+            minHeight: 280,
+            background: token.colorBgContainer,
+            borderRadius: token.borderRadiusLG,
+            boxShadow: token.boxShadow,
+          }}
+        >
+          {renderContent()}
         </Content>
       </Layout>
+
+      {/* Mobile Drawer - Also 200px width */}
+      <Drawer
+        open={visible}
+        onClose={onClose}
+        placement="left"
+        width={200}
+        bodyStyle={{ padding: 0 }}
+        headerStyle={{ padding: '16px' }}
+        title={
+          <Image
+            src="/images/logo.png"
+            alt="Logo"
+            width={120}
+            height={30}
+          />
+        }
+      >
+        {renderMenuItems()}
+      </Drawer>
     </Layout>
   );
 };
