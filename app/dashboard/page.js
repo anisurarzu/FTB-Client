@@ -25,6 +25,8 @@ import BookingInfo from "@/component/BookingInfo";
 import Calender from "@/component/Calender";
 import RoomAvailabilityPage from "@/component/RoomSearchPage";
 import AllBookingInfo from "@/component/AllBookingInfo";
+import ExpenseInfo from "@/component/Expense/ExpenseInfo";
+import DailyStatement from "@/component/DailyStatement";
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
@@ -37,6 +39,7 @@ const rolePermissions = {
       icon: <DashboardOutlined />,
       component: <DashboardHome />,
     },
+
     {
       key: "7",
       label: "Calendar",
@@ -56,11 +59,41 @@ const rolePermissions = {
       component: <BookingInfo />,
     },
     {
+      key: "12",
+      label: "Daily Statement",
+      icon: <InfoCircleOutlined />,
+      component: <DailyStatement />,
+    },
+    // {
+    //   key: "11",
+    //   label: "Web Bookings",
+    //   icon: <InfoCircleOutlined />,
+    //   component: <WebBooking />,
+    // },
+    {
       key: "10",
       label: "Report Dashboard",
       icon: <InfoCircleOutlined />,
       component: <AllBookingInfo />,
     },
+    {
+      key: "100",
+      label: "Expense",
+      icon: <InfoCircleOutlined />,
+      component: <ExpenseInfo />,
+    },
+    // {
+    //   key: "3",
+    //   label: "Flat/Room Type",
+    //   icon: <ApartmentOutlined />,
+    //   component: <HotelCategory />,
+    // },
+    // {
+    //   key: "4",
+    //   label: "Flat/Room No",
+    //   icon: <UnorderedListOutlined />,
+    //   component: <HotelRoom />,
+    // },
     {
       key: "5",
       label: "Hotel Info",
@@ -73,6 +106,7 @@ const rolePermissions = {
       icon: <UsergroupAddOutlined />,
       component: <AgentInformation />,
     },
+
     { key: "8", label: "Settings", icon: <SettingOutlined />, component: null },
   ],
   agentadmin: [
@@ -100,6 +134,12 @@ const rolePermissions = {
       icon: <InfoCircleOutlined />,
       component: <BookingInfo />,
     },
+    // {
+    //   key: "10",
+    //   label: "All Booking Info",
+    //   icon: <InfoCircleOutlined />,
+    //   component: <AllBookingInfo />,
+    // },
   ],
   hoteladmin: [
     {
@@ -126,6 +166,12 @@ const rolePermissions = {
       icon: <InfoCircleOutlined />,
       component: <BookingInfo />,
     },
+    // {
+    //   key: "10",
+    //   label: "All Booking Info",
+    //   icon: <InfoCircleOutlined />,
+    //   component: <AllBookingInfo />,
+    // },
   ],
   admin: [
     {
@@ -171,6 +217,7 @@ const rolePermissions = {
       component: <AgentInformation />,
     },
   ],
+  // Other roles omitted for brevity...
 };
 
 const Dashboard = ({ sliders }) => {
