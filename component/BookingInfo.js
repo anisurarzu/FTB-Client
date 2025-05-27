@@ -140,12 +140,29 @@ const BookingInfo = () => {
 
   const updateRoomBookingStatus = async (values) => {
     setLoading(true);
-  
-    // Calculate total paid from payments array
-    const totalPaid = values.payments.reduce(
-      (sum, p) => sum + (parseFloat(p.amount) || 0, 0
-    ));
-  
+
+    // Utility function to generate all dates between two dates
+    const getBookedDates = (checkInDate, checkOutDate) => {
+      const startDate = dayjs(checkInDate);
+      const endDate = dayjs(checkOutDate);
+      const bookedDates = [];
+
+      for (let d = startDate; d.isBefore(endDate); d = d.add(1, "day")) {
+        bookedDates.push(d.format("YYYY-MM-DD"));
+      }
+      return bookedDates;
+    };
+
+    // Properly parse payment amounts to numbers and calculate total paid
+    const totalPaid = values.payments.reduce((sum, p) => {
+      // Convert amount to number (handle empty/undefined cases)
+      const amount = parseFloat(p.amount) || 0;
+      return sum + amount;
+    }, 0);
+
+    // Calculate due payment (ensure it's never negative)
+    const duePayment = Math.max(0, values.totalBill - totalPaid);
+
     const bookingUpdatePayload = {
       hotelID: values?.hotelID,
       categoryName: values?.roomCategoryName,
@@ -164,39 +181,39 @@ const BookingInfo = () => {
             paymentDetails: {
               totalBill: values.totalBill,
               advancePayment: totalPaid,
-              duePayment: values.totalBill - totalPaid,
-              paymentMethod: values.payments[0]?.method || "CASH",
-              transactionId: values.payments[0]?.transactionId || "",
+              duePayment: duePayment,
+              paymentMethod: values.paymentMethod,
+              transactionId: values.transactionId,
             },
           },
         ],
       },
     };
-  
+
     try {
-      if (isEditing) {
-        const deleteResponse = await coreAxios.delete("/bookings/delete", {
-          data: {
-            hotelID: prevData?.hotelID,
-            categoryName: prevData?.roomCategoryName,
-            roomName: prevData?.roomNumberName,
-            datesToDelete: getAllDatesBetween(
-              prevData?.checkInDate,
-              prevData?.checkOutDate
-            ),
-          },
-        });
-        if (deleteResponse.status === 200) {
-          await processBookingUpdate(bookingUpdatePayload, values);
+          if (isEditing) {
+            const deleteResponse = await coreAxios.delete("/bookings/delete", {
+              data: {
+                hotelID: prevData?.hotelID,
+                categoryName: prevData?.roomCategoryName,
+                roomName: prevData?.roomNumberName,
+                datesToDelete: getAllDatesBetween(
+                  prevData?.checkInDate,
+                  prevData?.checkOutDate
+                ),
+              },
+            });
+            if (deleteResponse.status === 200) {
+              await processBookingUpdate(bookingUpdatePayload, values);
+            }
+          } else {
+            await processBookingUpdate(bookingUpdatePayload, values);
+          }
+        } catch (error) {
+          message.error("An error occurred while updating the booking.");
+        } finally {
+          setLoading(false);
         }
-      } else {
-        await processBookingUpdate(bookingUpdatePayload, values);
-      }
-    } catch (error) {
-      message.error("An error occurred while updating the booking.");
-    } finally {
-      setLoading(false);
-    } 
   };
 
   // const updateRoomBookingStatus = async (values) => {
@@ -364,15 +381,28 @@ const BookingInfo = () => {
       ],
       transactionId: "",
       note: "",
-      bookedBy: userInfo?.username || "",
-      bookedByID: userInfo?.loginID || "",
+      bookedBy: userInfo ? userInfo?.username : "",
+      bookedByID: userInfo ? userInfo?.loginID : "",
       updatedByID: "Not Updated",
       reference: "",
       adults: 0,
       children: 0,
     },
+
     onSubmit: async (values, { resetForm }) => {
       try {
+        // Calculate total payment amount
+        const totalPaid = values.payments.reduce(
+          (sum, p) => sum + (parseFloat(p.amount) || 0),
+          0
+        );
+
+        // Validate that total paid doesn't exceed total bill
+        if (totalPaid > values.totalBill) {
+          message.error("Total payment amount cannot exceed total bill!");
+          return;
+        }
+
         setLoading(true);
         await updateRoomBookingStatus(values);
         resetForm();
