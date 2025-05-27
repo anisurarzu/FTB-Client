@@ -191,29 +191,29 @@ const BookingInfo = () => {
     };
 
     try {
-          if (isEditing) {
-            const deleteResponse = await coreAxios.delete("/bookings/delete", {
-              data: {
-                hotelID: prevData?.hotelID,
-                categoryName: prevData?.roomCategoryName,
-                roomName: prevData?.roomNumberName,
-                datesToDelete: getAllDatesBetween(
-                  prevData?.checkInDate,
-                  prevData?.checkOutDate
-                ),
-              },
-            });
-            if (deleteResponse.status === 200) {
-              await processBookingUpdate(bookingUpdatePayload, values);
-            }
-          } else {
-            await processBookingUpdate(bookingUpdatePayload, values);
-          }
-        } catch (error) {
-          message.error("An error occurred while updating the booking.");
-        } finally {
-          setLoading(false);
+      if (isEditing) {
+        const deleteResponse = await coreAxios.delete("/bookings/delete", {
+          data: {
+            hotelID: prevData?.hotelID,
+            categoryName: prevData?.roomCategoryName,
+            roomName: prevData?.roomNumberName,
+            datesToDelete: getAllDatesBetween(
+              prevData?.checkInDate,
+              prevData?.checkOutDate
+            ),
+          },
+        });
+        if (deleteResponse.status === 200) {
+          await processBookingUpdate(bookingUpdatePayload, values);
         }
+      } else {
+        await processBookingUpdate(bookingUpdatePayload, values);
+      }
+    } catch (error) {
+      message.error("An error occurred while updating the booking.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // const updateRoomBookingStatus = async (values) => {
@@ -474,17 +474,19 @@ const BookingInfo = () => {
 
   const handleEdit = (record) => {
     setEditingKey(record?._id);
-  setPrevData(record);
-  fetchHotelCategories(record?.hotelID);
-  fetchRoomNumbers(record?.roomCategoryID);
+    setPrevData(record);
+    fetchHotelCategories(record?.hotelID);
+    fetchRoomNumbers(record?.roomCategoryID);
 
-  const checkInDate = dayjs(record.checkInDate);
-  const checkOutDate = dayjs(record.checkOutDate);
-  
-  // Calculate total paid from payments array
-  const totalPaid = record.payments?.reduce(
-    (sum, p) => sum + (parseFloat(p.amount) || 0), 0
-  ) || 0;
+    const checkInDate = dayjs(record.checkInDate);
+    const checkOutDate = dayjs(record.checkOutDate);
+
+    // Calculate total paid from payments array
+    const totalPaid =
+      record.payments?.reduce(
+        (sum, p) => sum + (parseFloat(p.amount) || 0),
+        0
+      ) || 0;
     formik.setValues({
       ...formik.values,
       bookedBy: record?.username,
@@ -736,44 +738,107 @@ const BookingInfo = () => {
       ) : (
         <div className="">
           <div className="flex justify-between mb-4">
-            <Button
-              type="primary"
-              onClick={() => {
-                formik.resetForm();
-                setVisible(true);
-                setIsEditing(false);
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                width: "100%",
+                gap: "16px",
+                padding: "0 16px",
               }}
-              className="bg-[#8ABF55] hover:bg-[#7DA54E] text-white"
             >
-              Add New Booking
-            </Button>
-
-            <div className="flex gap-4">
-              <DatePicker
-                placeholder="Filter by check-in date"
-                onChange={handleDateFilterChange}
-                allowClear
-                style={{ width: 200 }}
-              />
-
-              <Select
-                placeholder="Select a Hotel"
-                style={{ width: 200 }}
-                onChange={handleHotelChange}
+              {/* Row container */}
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
+                  gap: "16px",
+                  width: "100%",
+                  maxWidth: "1200px",
+                }}
               >
-                {hotelInfo.map((hotel) => (
-                  <Select.Option key={hotel.hotelID} value={hotel.hotelID}>
-                    {hotel.hotelName}
-                  </Select.Option>
-                ))}
-              </Select>
+                {/* Add New Booking Button */}
+                <div
+                  style={{
+                    flex: "1 1 100%",
+                    textAlign: "center",
+                    minWidth: "200px",
+                    maxWidth: "100%",
+                  }}
+                >
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      formik.resetForm();
+                      setVisible(true);
+                      setIsEditing(false);
+                    }}
+                    style={{
+                      backgroundColor: "#8ABF55",
+                      color: "white",
+                      width: "100%",
+                      maxWidth: "300px",
+                    }}
+                  >
+                    Add New Booking
+                  </Button>
+                </div>
 
-              <Input
-                placeholder="Search bookings..."
-                value={searchText}
-                onChange={handleSearch}
-                style={{ width: 200 }}
-              />
+                {/* Date Picker */}
+                <div
+                  style={{
+                    flex: "1 1 auto",
+                    minWidth: "200px",
+                    maxWidth: "300px",
+                  }}
+                >
+                  <DatePicker
+                    placeholder="Filter by check-in date"
+                    onChange={handleDateFilterChange}
+                    allowClear
+                    style={{ width: "100%" }}
+                  />
+                </div>
+
+                {/* Hotel Select */}
+                <div
+                  style={{
+                    flex: "1 1 auto",
+                    minWidth: "200px",
+                    maxWidth: "300px",
+                  }}
+                >
+                  <Select
+                    placeholder="Select a Hotel"
+                    onChange={handleHotelChange}
+                    style={{ width: "100%" }}
+                  >
+                    {hotelInfo.map((hotel) => (
+                      <Select.Option key={hotel.hotelID} value={hotel.hotelID}>
+                        {hotel.hotelName}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </div>
+
+                {/* Search Input */}
+                <div
+                  style={{
+                    flex: "1 1 auto",
+                    minWidth: "200px",
+                    maxWidth: "300px",
+                  }}
+                >
+                  <Input
+                    placeholder="Search bookings..."
+                    value={searchText}
+                    onChange={handleSearch}
+                    style={{ width: "100%" }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1330,11 +1395,12 @@ const BookingInfo = () => {
                                   formik.setFieldValue("payments", payments);
                                 }}
                               >
-                                <Select.n value="BKASH">
-                                  BKASH
-                                </Select.n>
+                                <Select.n value="BKASH">BKASH</Select.n>
                                 <Select.Option value="NAGAD">
                                   NAGAD
+                                </Select.Option>
+                                <Select.Option value="BKASH">
+                                  BKASH
                                 </Select.Option>
                                 <Select.Option value="BANK">BANK</Select.Option>
                                 <Select.Option value="CASH">CASH</Select.Option>
