@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -19,6 +17,8 @@ import {
   Alert,
   Switch,
   Skeleton,
+  Row,
+  Col,
 } from "antd";
 import { useFormik } from "formik";
 import axios from "axios";
@@ -28,7 +28,7 @@ import moment from "moment";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { v4 as uuidv4 } from "uuid";
 import coreAxios from "@/utils/axiosInstance";
-import { CopyOutlined } from "@ant-design/icons";
+import { CopyOutlined, PlusOutlined } from "@ant-design/icons";
 import Link from "next/link";
 
 dayjs.extend(isBetween);
@@ -76,7 +76,9 @@ const BookingInfo = () => {
       if (Array.isArray(response.data)) {
         let hotelData = response.data;
         if (userRole === "hoteladmin" && userHotelID) {
-          hotelData = hotelData.filter((hotel) => hotel.hotelID === userHotelID);
+          hotelData = hotelData.filter(
+            (hotel) => hotel.hotelID === userHotelID
+          );
         }
         setHotelInfo(hotelData);
       } else {
@@ -138,17 +140,12 @@ const BookingInfo = () => {
 
   const updateRoomBookingStatus = async (values) => {
     setLoading(true);
-
-    const getBookedDates = (checkInDate, checkOutDate) => {
-      const startDate = dayjs(checkInDate);
-      const endDate = dayjs(checkOutDate);
-      const bookedDates = [];
-      for (let d = startDate; d.isBefore(endDate); d = d.add(1, "day")) {
-        bookedDates.push(d.format("YYYY-MM-DD"));
-      }
-      return bookedDates;
-    };
-
+  
+    // Calculate total paid from payments array
+    const totalPaid = values.payments.reduce(
+      (sum, p) => sum + (parseFloat(p.amount) || 0, 0
+    ));
+  
     const bookingUpdatePayload = {
       hotelID: values?.hotelID,
       categoryName: values?.roomCategoryName,
@@ -166,16 +163,16 @@ const BookingInfo = () => {
             children: values?.children,
             paymentDetails: {
               totalBill: values.totalBill,
-              advancePayment: values.advancePayment,
-              duePayment: values.duePayment,
-              paymentMethod: values.paymentMethod,
-              transactionId: values.transactionId,
+              advancePayment: totalPaid,
+              duePayment: values.totalBill - totalPaid,
+              paymentMethod: values.payments[0]?.method || "CASH",
+              transactionId: values.payments[0]?.transactionId || "",
             },
           },
         ],
       },
     };
-
+  
     try {
       if (isEditing) {
         const deleteResponse = await coreAxios.delete("/bookings/delete", {
@@ -199,8 +196,74 @@ const BookingInfo = () => {
       message.error("An error occurred while updating the booking.");
     } finally {
       setLoading(false);
-    }
+    } 
   };
+
+  // const updateRoomBookingStatus = async (values) => {
+  //   setLoading(true);
+
+  //   const getBookedDates = (checkInDate, checkOutDate) => {
+  //     const startDate = dayjs(checkInDate);
+  //     const endDate = dayjs(checkOutDate);
+  //     const bookedDates = [];
+  //     for (let d = startDate; d.isBefore(endDate); d = d.add(1, "day")) {
+  //       bookedDates.push(d.format("YYYY-MM-DD"));
+  //     }
+  //     return bookedDates;
+  //   };
+
+  //   const bookingUpdatePayload = {
+  //     hotelID: values?.hotelID,
+  //     categoryName: values?.roomCategoryName,
+  //     roomName: values?.roomNumberName,
+  //     booking: {
+  //       name: values.roomNumberName,
+  //       bookedDates: getBookedDates(values.checkInDate, values.checkOutDate),
+  //       bookings: [
+  //         {
+  //           guestName: values.fullName,
+  //           checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
+  //           checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
+  //           bookedBy: values.bookedBy,
+  //           adults: values?.adults,
+  //           children: values?.children,
+  //           paymentDetails: {
+  //             totalBill: values.totalBill,
+  //             advancePayment: values.advancePayment,
+  //             duePayment: values.duePayment,
+  //             paymentMethod: values.paymentMethod,
+  //             transactionId: values.transactionId,
+  //           },
+  //         },
+  //       ],
+  //     },
+  //   };
+
+  //   try {
+  //     if (isEditing) {
+  //       const deleteResponse = await coreAxios.delete("/bookings/delete", {
+  //         data: {
+  //           hotelID: prevData?.hotelID,
+  //           categoryName: prevData?.roomCategoryName,
+  //           roomName: prevData?.roomNumberName,
+  //           datesToDelete: getAllDatesBetween(
+  //             prevData?.checkInDate,
+  //             prevData?.checkOutDate
+  //           ),
+  //         },
+  //       });
+  //       if (deleteResponse.status === 200) {
+  //         await processBookingUpdate(bookingUpdatePayload, values);
+  //       }
+  //     } else {
+  //       await processBookingUpdate(bookingUpdatePayload, values);
+  //     }
+  //   } catch (error) {
+  //     message.error("An error occurred while updating the booking.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleBlur = async (e) => {
     const { value } = e.target;
     if (value) {
@@ -291,7 +354,14 @@ const BookingInfo = () => {
       totalBill: 0,
       advancePayment: 0,
       duePayment: 0,
-      paymentMethod: "",
+      payments: [
+        {
+          method: "CASH", // Default method
+          amount: "0",
+          transactionId: "",
+          date: new Date().toISOString(),
+        },
+      ],
       transactionId: "",
       note: "",
       bookedBy: userInfo?.username || "",
@@ -374,12 +444,17 @@ const BookingInfo = () => {
 
   const handleEdit = (record) => {
     setEditingKey(record?._id);
-    setPrevData(record);
-    fetchHotelCategories(record?.hotelID);
-    fetchRoomNumbers(record?.roomCategoryID);
+  setPrevData(record);
+  fetchHotelCategories(record?.hotelID);
+  fetchRoomNumbers(record?.roomCategoryID);
 
-    const checkInDate = dayjs(record.checkInDate);
-    const checkOutDate = dayjs(record.checkOutDate);
+  const checkInDate = dayjs(record.checkInDate);
+  const checkOutDate = dayjs(record.checkOutDate);
+  
+  // Calculate total paid from payments array
+  const totalPaid = record.payments?.reduce(
+    (sum, p) => sum + (parseFloat(p.amount) || 0), 0
+  ) || 0;
     formik.setValues({
       ...formik.values,
       bookedBy: record?.username,
@@ -408,8 +483,14 @@ const BookingInfo = () => {
       totalBill: record.totalBill,
       advancePayment: record.advancePayment,
       duePayment: record.duePayment,
-      paymentMethod: record.paymentMethod,
-      transactionId: record.transactionId,
+      payments: record.payments || [
+        {
+          method: record.paymentMethod || "CASH",
+          amount: totalPaid.toString(),
+          transactionId: record.transactionId || "",
+          date: new Date().toISOString(),
+        },
+      ],
       note: record.note,
     });
     setVisible(true);
@@ -552,7 +633,7 @@ const BookingInfo = () => {
 
   const filterBookings = (searchValue, dateValue) => {
     let filteredData = bookings;
-    
+
     // Apply text search filter
     if (searchValue) {
       filteredData = filteredData.filter(
@@ -566,19 +647,20 @@ const BookingInfo = () => {
           r.phone.toLowerCase().includes(searchValue)
       );
     }
-    
+
     // Apply date filter
     if (dateValue) {
       filteredData = filteredData.filter((booking) =>
         dayjs(booking.checkInDate).isSame(dateValue, "day")
       );
     }
-    
+
     setFilteredBookings(filteredData);
     setPagination({ ...pagination, current: 1 });
   };
   const handleAdvancePaymentChange = (e) => {
-    const advancePayment = e.target.value;s
+    const advancePayment = e.target.value;
+    s;
     const totalBill = formik.values.totalBill;
 
     // Calculate due payment
@@ -598,7 +680,9 @@ const BookingInfo = () => {
       hotelName2: selectedHotel?.hotelName || "",
     });
 
-    const filteredData = bookings.filter((booking) => booking.hotelID === hotelID);
+    const filteredData = bookings.filter(
+      (booking) => booking.hotelID === hotelID
+    );
     setFilteredBookings(filteredData);
     setPagination({ ...pagination, current: 1 });
     setLoading(false);
@@ -670,235 +754,245 @@ const BookingInfo = () => {
               <>
                 <div style={{ overflowX: "auto" }}>
                   <table className="w-full text-xs text-left rtl:text-right  dark:text-gray-400">
-                {/* Table Header */}
-                <thead className="text-xs  uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                  <tr>
-                    <th className="border border-tableBorder text-center p-2">
-                      Booking No.
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Invoice No.
-                    </th>
+                    {/* Table Header */}
+                    <thead className="text-xs  uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                      <tr>
+                        <th className="border border-tableBorder text-center p-2">
+                          Booking No.
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Invoice No.
+                        </th>
 
-                    <th className="border border-tableBorder text-center p-2">
-                      Guest Name
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Phone
-                    </th>
-                    {/* <th className="border border-tableBorder text-center p-2">
+                        <th className="border border-tableBorder text-center p-2">
+                          Guest Name
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Phone
+                        </th>
+                        {/* <th className="border border-tableBorder text-center p-2">
                       Hotel
                     </th> */}
-                    <th className="border border-tableBorder text-center p-2">
-                      Flat Type
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Flat No/Unit
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Booking Date
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Check In
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Check Out
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Nights
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Advance
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Total
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Status
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Confirm/Cancel By
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Updated By
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
+                        <th className="border border-tableBorder text-center p-2">
+                          Flat Type
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Flat No/Unit
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Booking Date
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Check In
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Check Out
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Nights
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Advance
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Total
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Status
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Confirm/Cancel By
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Updated By
+                        </th>
+                        <th className="border border-tableBorder text-center p-2">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
 
-                {/* Table Body */}
-                <tbody>
-                  {paginatedBookings?.map((booking, idx) => (
-                    <tr
-                      key={booking._id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800"
-                      style={{
-                        backgroundColor:
-                          booking.statusID === 255
-                            ? "rgba(255, 99, 99, 0.5)"
-                            : "",
-                      }}>
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking?.serialNo}
-                      </td>
-                      {/* Booking No with Link and Copy Feature */}
-
-                      <td className="border border-tableBorder text-center p-2">
-                        <span
+                    {/* Table Body */}
+                    <tbody>
+                      {paginatedBookings?.map((booking, idx) => (
+                        <tr
+                          key={booking._id}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-800"
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}>
-                          <Link
-                            target="_blank"
-                            href={`/dashboard/${booking.bookingNo}`}
-                            passHref>
-                            <p
+                            backgroundColor:
+                              booking.statusID === 255
+                                ? "rgba(255, 99, 99, 0.5)"
+                                : "",
+                          }}
+                        >
+                          <td className="border border-tableBorder text-center p-2">
+                            {booking?.serialNo}
+                          </td>
+                          {/* Booking No with Link and Copy Feature */}
+
+                          <td className="border border-tableBorder text-center p-2">
+                            <span
                               style={{
-                                color: "#1890ff",
-                                cursor: "pointer",
-                                marginRight: 8,
-                              }}>
-                              {booking.bookingNo}
-                            </p>
-                          </Link>
-                          <Tooltip title="Click to copy">
-                            <CopyToClipboard
-                              text={booking.bookingNo}
-                              onCopy={() => message.success("Copied!")}>
-                              <CopyOutlined
-                                style={{ cursor: "pointer", color: "#1890ff" }}
-                              />
-                            </CopyToClipboard>
-                          </Tooltip>
-                        </span>
-                      </td>
-                      {/* Booked By */}
-                      {/* Guest Name */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking.fullName}
-                      </td>
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking.phone}
-                      </td>
-                      {/* Hotel Name */}
-                      {/* <td className="border border-tableBorder text-center p-2">
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Link
+                                target="_blank"
+                                href={`/dashboard/${booking.bookingNo}`}
+                                passHref
+                              >
+                                <p
+                                  style={{
+                                    color: "#1890ff",
+                                    cursor: "pointer",
+                                    marginRight: 8,
+                                  }}
+                                >
+                                  {booking.bookingNo}
+                                </p>
+                              </Link>
+                              <Tooltip title="Click to copy">
+                                <CopyToClipboard
+                                  text={booking.bookingNo}
+                                  onCopy={() => message.success("Copied!")}
+                                >
+                                  <CopyOutlined
+                                    style={{
+                                      cursor: "pointer",
+                                      color: "#1890ff",
+                                    }}
+                                  />
+                                </CopyToClipboard>
+                              </Tooltip>
+                            </span>
+                          </td>
+                          {/* Booked By */}
+                          {/* Guest Name */}
+                          <td className="border border-tableBorder text-center p-2">
+                            {booking.fullName}
+                          </td>
+                          <td className="border border-tableBorder text-center p-2">
+                            {booking.phone}
+                          </td>
+                          {/* Hotel Name */}
+                          {/* <td className="border border-tableBorder text-center p-2">
                         {booking.hotelName}
                       </td> */}
-                      {/* Flat Type */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking.roomCategoryName}
-                      </td>
-                      {/* Flat No/Unit */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking.roomNumberName}
-                      </td>
-                      {/* Check In */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {moment(booking.createTime).format("D MMM YYYY")}
-                      </td>
-                      {/* Check In */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {moment(booking.checkInDate).format("D MMM YYYY")}
-                      </td>
-                      {/* Check Out */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {moment(booking.checkOutDate).format("D MMM YYYY")}
-                      </td>
-                      {/* Nights */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking.nights}
-                      </td>
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking.advancePayment}
-                      </td>
-                      {/* Total Bill */}
-                      <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
-                        {booking.totalBill}
-                      </td>
-                      {/* Booking Status */}
-                      <td
-                        className="border border-tableBorder text-center p-2 font-bold"
-                        style={{
-                          color: booking.statusID === 255 ? "red" : "green", // Inline style for text color
-                        }}>
-                        {booking.statusID === 255 ? (
-                          <p>Canceled</p>
-                        ) : (
-                          "Confirmed"
-                        )}
-                      </td>
-                      <td className="border border-tableBorder text-center p-2  text-green-900">
-                        <p className="font-semibold">
-                          {booking?.statusID === 255
-                            ? booking?.canceledBy
-                            : booking?.bookedByID}
-                        </p>
-                        {booking?.reason && (
-                          <p className="text-[7px]">[{booking?.reason}]</p>
-                        )}
-                      </td>
+                          {/* Flat Type */}
+                          <td className="border border-tableBorder text-center p-2">
+                            {booking.roomCategoryName}
+                          </td>
+                          {/* Flat No/Unit */}
+                          <td className="border border-tableBorder text-center p-2">
+                            {booking.roomNumberName}
+                          </td>
+                          {/* Check In */}
+                          <td className="border border-tableBorder text-center p-2">
+                            {moment(booking.createTime).format("D MMM YYYY")}
+                          </td>
+                          {/* Check In */}
+                          <td className="border border-tableBorder text-center p-2">
+                            {moment(booking.checkInDate).format("D MMM YYYY")}
+                          </td>
+                          {/* Check Out */}
+                          <td className="border border-tableBorder text-center p-2">
+                            {moment(booking.checkOutDate).format("D MMM YYYY")}
+                          </td>
+                          {/* Nights */}
+                          <td className="border border-tableBorder text-center p-2">
+                            {booking.nights}
+                          </td>
+                          <td className="border border-tableBorder text-center p-2">
+                            {booking.advancePayment}
+                          </td>
+                          {/* Total Bill */}
+                          <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
+                            {booking.totalBill}
+                          </td>
+                          {/* Booking Status */}
+                          <td
+                            className="border border-tableBorder text-center p-2 font-bold"
+                            style={{
+                              color: booking.statusID === 255 ? "red" : "green", // Inline style for text color
+                            }}
+                          >
+                            {booking.statusID === 255 ? (
+                              <p>Canceled</p>
+                            ) : (
+                              "Confirmed"
+                            )}
+                          </td>
+                          <td className="border border-tableBorder text-center p-2  text-green-900">
+                            <p className="font-semibold">
+                              {booking?.statusID === 255
+                                ? booking?.canceledBy
+                                : booking?.bookedByID}
+                            </p>
+                            {booking?.reason && (
+                              <p className="text-[7px]">[{booking?.reason}]</p>
+                            )}
+                          </td>
 
-                      <td className="border  border-tableBorder text-center   text-blue-900">
-                        {booking?.updatedByID}{" "}
-                        {booking?.updatedByID &&
-                          dayjs(booking?.updatedAt).format(
-                            "D MMM, YYYY (h:mm a)"
-                          )}
-                      </td>
+                          <td className="border  border-tableBorder text-center   text-blue-900">
+                            {booking?.updatedByID}{" "}
+                            {booking?.updatedByID &&
+                              dayjs(booking?.updatedAt).format(
+                                "D MMM, YYYY (h:mm a)"
+                              )}
+                          </td>
 
-                      {/* Actions */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking?.statusID === 1 && (
-                          <div className="flex">
-                            <Button onClick={() => handleEdit(booking)}>
-                              Edit
-                            </Button>
-                            <Popconfirm
-                              title="Are you sure to delete this booking?"
-                              onConfirm={() => handleDelete(booking)}>
-                              <Button type="link" danger>
-                                Cancel
-                              </Button>
-                            </Popconfirm>
-                          </div>
-                        )}
+                          {/* Actions */}
+                          <td className="border border-tableBorder text-center p-2">
+                            {booking?.statusID === 1 && (
+                              <div className="flex">
+                                <Button onClick={() => handleEdit(booking)}>
+                                  Edit
+                                </Button>
+                                <Popconfirm
+                                  title="Are you sure to delete this booking?"
+                                  onConfirm={() => handleDelete(booking)}
+                                >
+                                  <Button type="link" danger>
+                                    Cancel
+                                  </Button>
+                                </Popconfirm>
+                              </div>
+                            )}
 
-                        {/* Cancellation Modal */}
-                        <Modal
-                          title="Cancel Booking"
-                          visible={isModalVisible}
-                          onOk={handleOk}
-                          onCancel={handleCancel}
-                          confirmLoading={loading}
-                          okText="Confirm Cancellation"
-                          cancelText="Cancel"
-                          className="custom-modal"
-                          // Apply backdrop filter to blur the background
-                          destroyOnClose={true} // Optional: Clean up modal on close
-                        >
-                          <div>
-                            <label htmlFor="reason" className="font-medium">
-                              Cancellation Reason:
-                            </label>
-                            <Input
-                              type="text"
-                              id="reason"
-                              value={cancellationReason}
-                              onChange={handleCancelReasonChange}
-                              placeholder="Enter cancellation reason"
-                              autoFocus
-                            />
-                          </div>
-                        </Modal>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                            {/* Cancellation Modal */}
+                            <Modal
+                              title="Cancel Booking"
+                              visible={isModalVisible}
+                              onOk={handleOk}
+                              onCancel={handleCancel}
+                              confirmLoading={loading}
+                              okText="Confirm Cancellation"
+                              cancelText="Cancel"
+                              className="custom-modal"
+                              // Apply backdrop filter to blur the background
+                              destroyOnClose={true} // Optional: Clean up modal on close
+                            >
+                              <div>
+                                <label htmlFor="reason" className="font-medium">
+                                  Cancellation Reason:
+                                </label>
+                                <Input
+                                  type="text"
+                                  id="reason"
+                                  value={cancellationReason}
+                                  onChange={handleCancelReasonChange}
+                                  placeholder="Enter cancellation reason"
+                                  autoFocus
+                                />
+                              </div>
+                            </Modal>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
 
                 <div className="flex justify-center p-2">
@@ -921,7 +1015,8 @@ const BookingInfo = () => {
             open={visible}
             onCancel={() => setVisible(false)}
             footer={null}
-            width={800}>
+            width={800}
+          >
             <Form onFinish={formik.handleSubmit} layout="vertical">
               <div style={{ display: "flex", gap: "16px" }}>
                 <div style={{ flex: 1 }}>
@@ -1021,11 +1116,13 @@ const BookingInfo = () => {
                     <Select
                       name="hotelName"
                       value={formik.values.hotelName}
-                      onChange={handleHotelInfo}>
+                      onChange={handleHotelInfo}
+                    >
                       {hotelInfo.map((hotel) => (
                         <Select.Option
                           key={hotel.hotelID}
-                          value={hotel.hotelID}>
+                          value={hotel.hotelID}
+                        >
                           {hotel.hotelName}
                         </Select.Option>
                       ))}
@@ -1037,7 +1134,8 @@ const BookingInfo = () => {
                     <Select
                       name="roomCategoryID"
                       value={formik.values.roomCategoryName}
-                      onChange={handleRoomCategoryChange}>
+                      onChange={handleRoomCategoryChange}
+                    >
                       {roomCategories.map((category) => (
                         <Select.Option key={category._id} value={category._id}>
                           {category.name}
@@ -1063,7 +1161,8 @@ const BookingInfo = () => {
                           "roomNumberName",
                           selectedRoom ? selectedRoom.name : ""
                         );
-                      }}>
+                      }}
+                    >
                       {roomNumbers.map((room) => (
                         <Select.Option key={room._id} value={room._id}>
                           {room.name}
@@ -1187,29 +1286,116 @@ const BookingInfo = () => {
 
               <div style={{ display: "flex", gap: "16px" }}>
                 <div style={{ flex: 1 }}>
-                  <Form.Item label="Payment Method" className="mb-2">
-                    <Select
-                      required={true}
-                      name="paymentMethod"
-                      value={formik.values.paymentMethod}
-                      onChange={(value) =>
-                        formik.setFieldValue("paymentMethod", value)
-                      }>
-                      <Select.Option value="BKASH">BKASH</Select.Option>
-                      <Select.Option value="NAGAD">NAGAD</Select.Option>
-                      <Select.Option value="BANK">BANK</Select.Option>
-                      <Select.Option value="CASH">CASH</Select.Option>
-                    </Select>
-                  </Form.Item>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Transaction ID" className="mb-2">
-                    <Input
-                      required={true}
-                      name="transactionId"
-                      value={formik.values.transactionId}
-                      onChange={formik.handleChange}
-                    />
+                  <Form.Item label="Payment Methods" className="mb-2">
+                    {formik.values.payments.map((payment, index) => (
+                      <div key={index} style={{ marginBottom: 16 }}>
+                        <Row gutter={16}>
+                          <Col span={8}>
+                            <Form.Item label="Method" required={index === 0}>
+                              <Select
+                                value={payment.method}
+                                onChange={(value) => {
+                                  const payments = [...formik.values.payments];
+                                  payments[index].method = value;
+                                  formik.setFieldValue("payments", payments);
+                                }}
+                              >
+                                <Select.n value="BKASH">
+                                  BKASH
+                                </Select.n>
+                                <Select.Option value="NAGAD">
+                                  NAGAD
+                                </Select.Option>
+                                <Select.Option value="BANK">BANK</Select.Option>
+                                <Select.Option value="CASH">CASH</Select.Option>
+                              </Select>
+                            </Form.Item>
+                          </Col>
+                          <Col span={8}>
+                            <Form.Item label="Amount" required={index === 0}>
+                              <Input
+                                type="number"
+                                value={payment.amount}
+                                onChange={(e) => {
+                                  const payments = [...formik.values.payments];
+                                  payments[index].amount =
+                                    parseFloat(e.target.value) || 0;
+                                  formik.setFieldValue("payments", payments);
+
+                                  // Recalculate totals
+                                  const totalPaid = payments.reduce(
+                                    (sum, p) =>
+                                      sum + (parseFloat(p.amount) || 0, 0)
+                                  );
+                                  formik.setFieldValue(
+                                    "advancePayment",
+                                    totalPaid
+                                  );
+                                  formik.setFieldValue(
+                                    "duePayment",
+                                    Math.max(
+                                      0,
+                                      formik.values.totalBill - totalPaid
+                                    )
+                                  );
+                                }}
+                              />
+                            </Form.Item>
+                          </Col>
+                          <Col span={8}>
+                            <Form.Item
+                              label="Transaction ID"
+                              required={index === 0}
+                            >
+                              <Input
+                                value={payment.transactionId}
+                                onChange={(e) => {
+                                  const payments = [...formik.values.payments];
+                                  payments[index].transactionId =
+                                    e.target.value;
+                                  formik.setFieldValue("payments", payments);
+                                }}
+                              />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      </div>
+                    ))}
+
+                    {formik.values.payments.length < 3 && (
+                      <Button
+                        type="dashed"
+                        onClick={() => {
+                          formik.setFieldValue("payments", [
+                            ...formik.values.payments,
+                            { method: "", amount: "", transactionId: "" },
+                          ]);
+                        }}
+                        block
+                        icon={<PlusOutlined />}
+                      >
+                        Add Payment Method
+                      </Button>
+                    )}
+
+                    <div style={{ marginTop: 16 }}>
+                      <strong>Total Paid: </strong>
+                      {formik.values.payments.reduce(
+                        (sum, p) => sum + (parseFloat(p.amount) || 0),
+                        0
+                      )}
+                      {formik.values.payments.reduce(
+                        (sum, p) => sum + (parseFloat(p.amount) || 0),
+                        0
+                      ) > formik.values.totalBill && (
+                        <Alert
+                          message="Total payment amount exceeds total bill!"
+                          type="error"
+                          showIcon
+                          style={{ marginTop: 8 }}
+                        />
+                      )}
+                    </div>
                   </Form.Item>
                 </div>
               </div>
@@ -1309,7 +1495,8 @@ const BookingInfo = () => {
                 type="primary"
                 htmlType="submit"
                 loading={loading}
-                className="bg-[#8ABF55] hover:bg-[#7DA54E]">
+                className="bg-[#8ABF55] hover:bg-[#7DA54E]"
+              >
                 {isEditing ? "Update Booking" : "Create Booking"}
               </Button>
             </Form>
