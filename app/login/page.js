@@ -8,11 +8,12 @@ import coreAxios from "@/utils/axiosInstance";
 import { useEffect, useState } from "react";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import Image from "next/image";
 
 const Login = () => {
   const router = useRouter();
   const [buttonLoading, setButtonLoading] = useState(false);
-  const [loginError, setLoginError] = useState(""); // State to hold error messages
+  const [loginError, setLoginError] = useState("");
   const [location, setLocation] = useState({
     latitude: "",
     longitude: "",
@@ -28,7 +29,6 @@ const Login = () => {
   });
 
   useEffect(() => {
-    // ✅ Geolocation Handling for Desktop & Mobile
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -38,8 +38,7 @@ const Login = () => {
             longitude: position.coords.longitude.toString(),
           }));
         },
-        (error) => {
-          console.warn("Geolocation permission denied. Using default values.");
+        () => {
           setLocation((prev) => ({
             ...prev,
             latitude: "0.0",
@@ -49,7 +48,6 @@ const Login = () => {
       );
     }
 
-    // ✅ Get Public IP
     const fetchPublicIP = async () => {
       try {
         const response = await fetch("https://api64.ipify.org?format=json");
@@ -61,7 +59,6 @@ const Login = () => {
     };
     fetchPublicIP();
 
-    // ✅ Get Private IP (Using WebRTC)
     const getPrivateIP = async () => {
       try {
         const peerConnection = new RTCPeerConnection({ iceServers: [] });
@@ -90,7 +87,7 @@ const Login = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     setSubmitting(true);
     setButtonLoading(true);
-    setLoginError(""); // Reset error message before submitting
+    setLoginError("");
 
     const loginData = {
       loginID: values?.loginID,
@@ -104,7 +101,6 @@ const Login = () => {
 
     try {
       const response = await coreAxios.post(`auth/login`, loginData);
-
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("userInfo", JSON.stringify(response.data.user));
@@ -113,13 +109,10 @@ const Login = () => {
         throw new Error("Login failed");
       }
     } catch (error) {
-      console.error("Login failed:", error);
-      if (error.response && error.response.data && error.response.data.error) {
-        setLoginError(error.response.data.error); // Show error message from backend
+      if (error.response?.data?.error) {
+        setLoginError(error.response.data.error);
       } else {
-        setLoginError(
-          "An error occurred during login. Please try again later."
-        );
+        setLoginError("An error occurred during login. Please try again.");
       }
     } finally {
       setSubmitting(false);
@@ -128,105 +121,91 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
-      {/* Left Section with Gradient and Branding */}
-      <div className="relative flex w-full md:w-1/2 bg-gradient-to-br from-green-400 to-blue-500 items-center justify-center p-6 md:p-0">
-        <div className="absolute inset-0 bg-black opacity-30 z-0"></div>
-        <div className="z-10 text-center text-white px-4 md:px-10 space-y-3 md:space-y-6">
-          <h1 className="text-4xl md:text-5xl font-bold">
-            Welcome to Fast Track
-          </h1>
-          <h3 className="text-xl md:text-2xl font-semibold">Booking System</h3>
-          <p className="text-base md:text-lg font-light">
-            Efficient, Reliable, and Fast Booking Management System for your
-            convenience.
-          </p>
-        </div>
-        <div className="absolute bottom-5 left-5 text-white z-10 hidden md:block">
-          <p className="font-semibold">Developed by:</p>
-          <p>Anisur Rahman & Zihadi</p>
-          <p>Contact: 01840452081</p>
-        </div>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#8ABF55] to-[#d2e9bd] p-4">
+      {/* <div className="absolute top-4 w-full text-center">
+        <h2 className="text-xl md:text-2xl font-semibold text-white shadow">
+          📢 Want to join this system? Please login first.
+        </h2>
+      </div> */}
 
-      {/* Right Section - Login Form with Gradient Border */}
-      <div className="flex flex-col justify-center items-center w-full md:w-1/2 py-12 px-8 md:px-16">
-        <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg relative">
-          <div className="absolute inset-0 border-2 border-transparent rounded-lg bg-clip-border bg-gradient-to-br from-green-400 to-blue-500 p-1 z-[-1]"></div>
-          <div className="bg-white rounded-lg p-8">
-            <h2 className="text-3xl font-semibold text-center text-gray-800 mb-8">
-              Login
-            </h2>
-
-            {/* Display error message if there's a login error */}
-            {loginError && (
-              <Alert
-                message={loginError}
-                type="error"
-                showIcon
-                className="mb-6"
-              />
-            )}
-
-            <Formik
-              initialValues={{ loginID: "", password: "" }}
-              validationSchema={validationSchema}
-              onSubmit={handleSubmit}>
-              {({ isSubmitting }) => (
-                <Form className="space-y-6">
-                  <div>
-                    <label
-                      htmlFor="loginID"
-                      className="block text-gray-700 font-medium mb-2">
-                      User ID
-                    </label>
-                    <Field
-                      name="loginID"
-                      type="text"
-                      as={Input}
-                      prefix={<UserOutlined />}
-                      placeholder="Enter your User ID"
-                      className="p-4 rounded-lg border-gray-300 focus:ring-2 focus:ring-green-400 focus:border-transparent w-full"
-                      size="large"
-                    />
-                    <ErrorMessage
-                      name="loginID"
-                      component="div"
-                      className="text-red-500 text-sm mt-1"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="password"
-                      className="block text-gray-700 font-medium mb-2">
-                      Password
-                    </label>
-                    <Field
-                      name="password"
-                      type="password"
-                      as={Input.Password}
-                      prefix={<LockOutlined />}
-                      placeholder="Enter your password"
-                      className="p-4 rounded-lg border-gray-300 focus:ring-2 focus:ring-green-400 focus:border-transparent w-full"
-                      size="large"
-                    />
-                    <ErrorMessage
-                      name="password"
-                      component="div"
-                      className="text-red-500 text-sm mt-1"
-                    />
-                  </div>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    loading={buttonLoading}
-                    className="w-full py-4 bg-green-500 hover:bg-green-600 border-none text-white text-lg rounded-lg">
-                    Login
-                  </Button>
-                </Form>
-              )}
-            </Formik>
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className="p-10">
+          <div className="flex flex-col items-center space-y-4 mb-6">
+            <Image
+              src="/images/new-logo.png"
+              alt="Logo"
+              width={120}
+              height={120}
+              className="rounded-full"
+            />
+            <h1 className="text-4xl font-bold text-[#305a1d]">
+              Fast Track Booking
+            </h1>
+            <p className="text-gray-500 text-sm text-center">
+              Welcome back! Please login to your account.
+            </p>
           </div>
+
+          {loginError && (
+            <Alert
+              message={loginError}
+              type="error"
+              showIcon
+              className="mb-6"
+            />
+          )}
+
+          <Formik
+            initialValues={{ loginID: "", password: "" }}
+            validationSchema={validationSchema}
+            onSubmit={handleSubmit}>
+            {({ isSubmitting }) => (
+              <Form className="space-y-5">
+                <div>
+                  <Field
+                    name="loginID"
+                    as={Input}
+                    prefix={<UserOutlined />}
+                    placeholder="User ID"
+                    size="large"
+                  />
+                  <ErrorMessage
+                    name="loginID"
+                    component="div"
+                    className="text-red-500 text-sm mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Field
+                    name="password"
+                    as={Input.Password}
+                    prefix={<LockOutlined />}
+                    placeholder="Password"
+                    size="large"
+                  />
+                  <ErrorMessage
+                    name="password"
+                    component="div"
+                    className="text-red-500 text-sm mt-1"
+                  />
+                </div>
+
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  size="large"
+                  loading={buttonLoading}
+                  className="w-full bg-[#8ABF55] hover:bg-[#74a044] border-none text-white font-semibold rounded-md">
+                  Login
+                </Button>
+              </Form>
+            )}
+          </Formik>
+        </div>
+
+        <div className="bg-[#f1f5f0] text-center py-4 text-xs text-gray-500">
+          Developed by Anisur Rahman & Zihadi | Contact: 01840452081
         </div>
       </div>
     </div>

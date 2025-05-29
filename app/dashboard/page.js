@@ -321,7 +321,7 @@ const Dashboard = ({ sliders }) => {
       >
         <div className="flex items-center justify-center py-4 h-16">
           <Image
-            src="/images/logo.png"
+            src="/images/new-logo.png"
             alt="Logo"
             width={collapsed ? 40 : 120}
             height={collapsed ? 20 : 30}
