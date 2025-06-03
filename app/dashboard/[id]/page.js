@@ -121,7 +121,8 @@ const Invoice = ({ params }) => {
           : data?.[0]?.hotelID === 4
           ? "Shopno Bilash Holiday Suites"
           : "Samudra Bari 2024"
-      }`}>
+      }`}
+    >
       {loading ? (
         <Spin tip="Loading...">
           <Alert
@@ -138,14 +139,16 @@ const Invoice = ({ params }) => {
                 type="primary"
                 onClick={downloadPDF}
                 className="p-mr-2"
-                icon={<DownloadOutlined />}>
+                icon={<DownloadOutlined />}
+              >
                 Download PDF
               </Button>
               <Button
                 type="primary"
                 onClick={print}
                 className="p-mb-3"
-                icon={<PrinterOutlined />}>
+                icon={<PrinterOutlined />}
+              >
                 Print
               </Button>
             </div>
@@ -175,10 +178,10 @@ const Invoice = ({ params }) => {
                     />
                   ) : data?.[0]?.hotelID === 3 ? (
                     <Image
-                      src="/images/seaParaadise.png"
+                      src="/images/Shamudro-Bari-1.png"
                       alt="Logo"
-                      width={180}
-                      height={80}
+                      width={150}
+                      height={60}
                     />
                   ) : data?.[0]?.hotelID === 4 ? (
                     <Image
@@ -213,7 +216,8 @@ const Invoice = ({ params }) => {
                         : data?.[0]?.hotelID === 6
                         ? "text-[#6C9944]"
                         : "text-red-700"
-                    } font-semibold text-xl`}>
+                    } font-semibold text-xl`}
+                  >
                     {data?.[0]?.hotelName} INVOICE
                   </h4>
                 </div>
@@ -288,7 +292,8 @@ const Invoice = ({ params }) => {
                       : data?.[0]?.hotelID === 6
                       ? "text-[#6C9944]"
                       : "text-red-700"
-                  } `}>
+                  } `}
+                >
                   Invoice Number: {data?.[0]?.bookingNo || "N/A"}
                 </h3>
                 <p
@@ -300,7 +305,8 @@ const Invoice = ({ params }) => {
                       : data?.[0]?.hotelID === 6
                       ? "text-[#6C9944]"
                       : "text-red-700"
-                  }  font-bold`}>
+                  }  font-bold`}
+                >
                   Booking Date:
                   {moment(data?.[0]?.createTime).format("D MMM YYYY") ||
                     "02 October 2024"}
@@ -337,7 +343,8 @@ const Invoice = ({ params }) => {
                           : data?.[0]?.hotelID === 6
                           ? "bg-[#6C9944]"
                           : "bg-red-700"
-                      } text-white`}>
+                      } text-white`}
+                    >
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Room
                       </th>
@@ -413,7 +420,8 @@ const Invoice = ({ params }) => {
                 <p className="font-bold text-md">Additional Details</p>
                 <table
                   className="table-auto w-full border-collapse border border-gray-400 mt-4 text-left text-xs"
-                  style={{ fontSize: "10px" }}>
+                  style={{ fontSize: "10px" }}
+                >
                   <thead>
                     {data?.some((booking) => booking.isKitchen) && ( // Check if isKitchen is true for any row
                       <tr className="bg-blue-700 text-white">
