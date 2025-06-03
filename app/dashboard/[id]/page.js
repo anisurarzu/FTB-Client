@@ -163,46 +163,40 @@ const Invoice = ({ params }) => {
               <div className="grid grid-cols-3 gap-4">
                 <div className="logo-container flex items-center justify-center">
                   {data?.[0]?.hotelID === 1 ? (
-                    <Image
+                    <img
                       src="/images/marmaid-logo.png"
                       alt="Logo"
-                      width={150}
-                      height={60}
+                      style={{ width: "150px", height: "80px" }}
                     />
                   ) : data?.[0]?.hotelID === 2 ? (
-                    <Image
+                    <img
                       src="/images/goldenhil.png"
                       alt="Logo"
-                      width={150}
-                      height={60}
+                      style={{ width: "150px", height: "80px" }}
                     />
                   ) : data?.[0]?.hotelID === 3 ? (
-                    <Image
+                    <img
                       src="/images/Shamudro-Bari-1.png"
                       alt="Logo"
-                      width={150}
-                      height={60}
+                      style={{ width: "150px", height: "80px" }}
                     />
                   ) : data?.[0]?.hotelID === 4 ? (
-                    <Image
+                    <img
                       src="/images/Sopno.png"
                       alt="Logo"
-                      width={150}
-                      height={60}
+                      style={{ width: "150px", height: "80px" }}
                     />
                   ) : data?.[0]?.hotelID === 6 ? (
                     <img
                       src="https://i.ibb.co.com/jZDnyS4V/beach-gardn.png"
                       alt="Logo"
-                      width={150}
-                      height={60}
+                      style={{ width: "150px", height: "80px" }}
                     />
                   ) : (
-                    <Image
+                    <img
                       src="/images/Shamudro-Bari-1.png"
                       alt="Logo"
-                      width={150}
-                      height={60}
+                      style={{ width: "150px", height: "140px" }}
                     />
                   )}
                 </div>
