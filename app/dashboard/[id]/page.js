@@ -488,7 +488,7 @@ const Invoice = ({ params }) => {
                 <p className="py-1">
                   Booked by: {data?.[0]?.bookedByID || "N/A"}
                 </p>
-                <p className="py-1">
+                <p className="py-1 font-bold">
                   {data?.[0]?.hotelID === 1
                     ? "Check in - 1.00 PM & Check out - 11:00 AM"
                     : data?.[0]?.hotelID === 2
