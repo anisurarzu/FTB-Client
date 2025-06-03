@@ -187,22 +187,22 @@ const Invoice = ({ params }) => {
                     <Image
                       src="/images/Sopno.png"
                       alt="Logo"
-                      width={180}
-                      height={80}
+                      width={150}
+                      height={60}
                     />
                   ) : data?.[0]?.hotelID === 6 ? (
                     <img
                       src="https://i.ibb.co.com/jZDnyS4V/beach-gardn.png"
                       alt="Logo"
-                      width={180}
-                      height={80}
+                      width={150}
+                      height={60}
                     />
                   ) : (
                     <Image
                       src="/images/Shamudro-Bari-1.png"
                       alt="Logo"
-                      width={180}
-                      height={80}
+                      width={150}
+                      height={60}
                     />
                   )}
                 </div>
