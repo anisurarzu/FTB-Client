@@ -120,6 +120,8 @@ const Invoice = ({ params }) => {
           ? "Sea Paradise"
           : data?.[0]?.hotelID === 4
           ? "Shopno Bilash Holiday Suites"
+          : data?.[0]?.hotelID === 7
+          ? "The Grand Sandy"
           : "Samudra Bari 2024"
       }`}
     >
@@ -189,6 +191,12 @@ const Invoice = ({ params }) => {
                   ) : data?.[0]?.hotelID === 6 ? (
                     <img
                       src="https://i.ibb.co.com/jZDnyS4V/beach-gardn.png"
+                      alt="Logo"
+                      style={{ width: "150px", height: "80px" }}
+                    />
+                  ) : data?.[0]?.hotelID === 20 ? (
+                    <img
+                      src="https://i.ibb.co/svznKpfF/Whats-App-Image-2025-07-01-at-22-11-50-dda6f6f0.jpg"
                       alt="Logo"
                       style={{ width: "150px", height: "80px" }}
                     />
@@ -262,6 +270,14 @@ const Invoice = ({ params }) => {
                     </p>
                     <p>Front Desk no: 01898841016</p>
                     <p>Reservation no: 01898841015</p>
+                  </div>
+                ) : data?.[0]?.hotelID === 20 ? (
+                  <div className="mt-8 text-black text-left">
+                    <p>
+                      {`Address: N.H.A Building No- 10, Hotel The Grand Sandy,Kolatoli, Cox’s Bazar`}
+                    </p>
+                    <p>Front Desk no: </p>
+                    <p>Reservation no: 01898841017</p>
                   </div>
                 ) : (
                   <div className="text-center">
