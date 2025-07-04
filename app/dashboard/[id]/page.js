@@ -194,11 +194,11 @@ const Invoice = ({ params }) => {
                       alt="Logo"
                       style={{ width: "150px", height: "80px" }}
                     />
-                  ) : data?.[0]?.hotelID === 20 ? (
+                  ) : data?.[0]?.hotelID === 7 ? (
                     <img
                       src="https://i.ibb.co/svznKpfF/Whats-App-Image-2025-07-01-at-22-11-50-dda6f6f0.jpg"
                       alt="Logo"
-                      style={{ width: "150px", height: "80px" }}
+                      style={{ width: "150px", height: "120px" }}
                     />
                   ) : (
                     <img
@@ -271,13 +271,13 @@ const Invoice = ({ params }) => {
                     <p>Front Desk no: 01898841016</p>
                     <p>Reservation no: 01898841015</p>
                   </div>
-                ) : data?.[0]?.hotelID === 20 ? (
+                ) : data?.[0]?.hotelID === 7 ? (
                   <div className="mt-8 text-black text-left">
                     <p>
                       {`Address: N.H.A Building No- 10, Hotel The Grand Sandy,Kolatoli, Cox’s Bazar`}
                     </p>
-                    <p>Front Desk no: </p>
-                    <p>Reservation no: 01898841017</p>
+                    <p>Front Desk no: 01898841017</p>
+                    <p>Reservation no: 01811822421</p>
                   </div>
                 ) : (
                   <div className="text-center">

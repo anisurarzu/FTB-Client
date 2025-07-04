@@ -1,20 +1,12 @@
 import { useState, useEffect } from "react";
+import { Card, Col, Row, Typography, Select, message, Skeleton } from "antd";
 import {
-  Card,
-  Col,
-  Row,
-  Typography,
-  Select,
-  message,
-  Skeleton,
-} from "antd";
-import { 
   UserOutlined,
   TeamOutlined,
   CalendarOutlined,
   DollarOutlined,
   ArrowUpOutlined,
-  ArrowDownOutlined
+  ArrowDownOutlined,
 } from "@ant-design/icons";
 import coreAxios from "@/utils/axiosInstance";
 import dayjs from "dayjs";
@@ -218,15 +210,15 @@ const DashboardHome = () => {
   const getIconForStat = (label) => {
     switch (label) {
       case "Today's FTB Bookings":
-        return <UserOutlined style={{ fontSize: '20px' }} />;
+        return <UserOutlined style={{ fontSize: "20px" }} />;
       case "Today's All Bookings":
-        return <TeamOutlined style={{ fontSize: '20px' }} />;
+        return <TeamOutlined style={{ fontSize: "20px" }} />;
       case "30 Days FTB Bookings":
-        return <CalendarOutlined style={{ fontSize: '20px' }} />;
+        return <CalendarOutlined style={{ fontSize: "20px" }} />;
       case "30 Days All Bookings":
-        return <DollarOutlined style={{ fontSize: '20px' }} />;
+        return <DollarOutlined style={{ fontSize: "20px" }} />;
       default:
-        return <DollarOutlined style={{ fontSize: '20px' }} />;
+        return <DollarOutlined style={{ fontSize: "20px" }} />;
     }
   };
 
@@ -247,8 +239,11 @@ const DashboardHome = () => {
 
   const getCardBackground = (color) => {
     return {
-      background: `linear-gradient(135deg, ${color} 0%, ${lightenColor(color, 20)} 100%)`,
-      color: 'white',
+      background: `linear-gradient(135deg, ${color} 0%, ${lightenColor(
+        color,
+        20
+      )} 100%)`,
+      color: "white",
     };
   };
 
@@ -257,8 +252,8 @@ const DashboardHome = () => {
     const num = parseInt(color.replace("#", ""), 16);
     const amt = Math.round(2.55 * percent);
     const R = (num >> 16) + amt;
-    const G = (num >> 8 & 0x00FF) + amt;
-    const B = (num & 0x0000FF) + amt;
+    const G = ((num >> 8) & 0x00ff) + amt;
+    const B = (num & 0x0000ff) + amt;
     return `#${(
       0x1000000 +
       (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
@@ -342,7 +337,8 @@ const DashboardHome = () => {
     <div className="p-4 bg-gray-50 min-h-screen">
       <Formik
         initialValues={{ hotelID: userHotelID || 0 }}
-        onSubmit={(values) => {}}>
+        onSubmit={(values) => {}}
+      >
         {({ setFieldValue, values }) => (
           <Form>
             <div className="mb-6 bg-white p-4 rounded-lg shadow-sm">
@@ -356,7 +352,8 @@ const DashboardHome = () => {
                     onChange={(value) => {
                       setFieldValue("hotelID", value);
                       fetchBookingsByHotelID(value);
-                    }}>
+                    }}
+                  >
                     {hotelInfo.map((hotel) => (
                       <Option key={hotel.hotelID} value={hotel.hotelID}>
                         {hotel.hotelName}
@@ -370,7 +367,7 @@ const DashboardHome = () => {
         )}
       </Formik>
 
-     {/*  <Title level={2} className="mb-6 text-gray-800">
+      {/*  <Title level={2} className="mb-6 text-gray-800">
         Dashboard Overview
       </Title> */}
 
@@ -381,7 +378,8 @@ const DashboardHome = () => {
               <Card
                 hoverable
                 bordered={false}
-                className="rounded-xl overflow-hidden border-0 h-full">
+                className="rounded-xl overflow-hidden border-0 h-full"
+              >
                 <Skeleton active paragraph={{ rows: 3 }} />
               </Card>
             </Col>
@@ -424,7 +422,8 @@ const DashboardHome = () => {
                     bordered={false}
                     className="rounded-xl overflow-hidden border-0 h-full shadow-sm"
                     style={getCardBackground(color)}
-                    bodyStyle={{ padding: "20px" }}>
+                    bodyStyle={{ padding: "20px" }}
+                  >
                     <div className="flex items-start justify-between h-full">
                       <div>
                         <Text
@@ -432,8 +431,9 @@ const DashboardHome = () => {
                           style={{
                             fontFamily: "Inter, sans-serif",
                             fontWeight: 500,
-                            color: 'rgba(255,255,255,0.8)',
-                          }}>
+                            color: "rgba(255,255,255,0.8)",
+                          }}
+                        >
                           {item.label}
                         </Text>
                         <Title
@@ -443,8 +443,9 @@ const DashboardHome = () => {
                             fontFamily: "Poppins, sans-serif",
                             fontWeight: 600,
                             fontSize: "1.75rem",
-                            color: 'white',
-                          }}>
+                            color: "white",
+                          }}
+                        >
                           {typeof item.value === "number"
                             ? `৳${item.value.toLocaleString()}`
                             : item.value}
@@ -452,10 +453,11 @@ const DashboardHome = () => {
                         <div className="flex items-center mt-2">
                           <Text
                             style={{
-                              color: 'rgba(255,255,255,0.9)',
+                              color: "rgba(255,255,255,0.9)",
                               fontFamily: "Inter, sans-serif",
                               fontSize: "0.875rem",
-                            }}>
+                            }}
+                          >
                             {item.count} bookings
                           </Text>
                         </div>
@@ -463,12 +465,13 @@ const DashboardHome = () => {
                       <div
                         className="p-3 rounded-lg flex items-center justify-center"
                         style={{
-                          backgroundColor: 'rgba(255,255,255,0.2)',
-                          color: 'white',
+                          backgroundColor: "rgba(255,255,255,0.2)",
+                          color: "white",
                           border: `1px solid rgba(255,255,255,0.3)`,
                           width: "48px",
                           height: "48px",
-                        }}>
+                        }}
+                      >
                         {getIconForStat(item.label)}
                       </div>
                     </div>
@@ -478,7 +481,7 @@ const DashboardHome = () => {
             })}
           </Row>
 
-          <div className="mt-8 bg-white  rounded-lg shadow-sm">
+          <div className="mt-8 bg-white rounded-lg shadow-sm">
             <UserBookingInfo
               userTableData={userTableData}
               title={"User-wise Booking Overview"}
