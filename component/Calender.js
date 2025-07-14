@@ -16,10 +16,17 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import coreAxios from "@/utils/axiosInstance";
+import NoPermissionBanner from "./Permission/NoPermissionBanner";
 
 const { Option } = Select;
 
-const CustomCalendar = () => {
+const CustomCalendar = ({ hotelID }) => {
+  const userInfo2 = JSON.parse(localStorage.getItem("userInfo"));
+  const userHotelID = hotelID;
+  const permission = userInfo2?.permission?.permissions;
+  const calenderPermissions =
+    permission?.find((perm) => perm.pageName === "Calender") || {};
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [roomInfoModalVisible, setRoomInfoModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -199,7 +206,8 @@ const CustomCalendar = () => {
           display: "flex",
           justifyContent: "space-between",
           marginBottom: "10px",
-        }}>
+        }}
+      >
         {week.map((date, index) => {
           const formattedDate = date.format("YYYY-MM-DD");
           const availability = getRoomAvailability(formattedDate);
@@ -237,7 +245,8 @@ const CustomCalendar = () => {
                   fontWeight: "bold",
                   fontSize: "14px",
                   color: isSelected ? "#ffffff" : "#333", // White text on selected date, dark on others
-                }}>
+                }}
+              >
                 {date.format("D MMM YYYY (dddd)")}
               </div>
               <ul style={{ listStyle: "none", padding: 0, marginTop: "8px" }}>
@@ -252,7 +261,8 @@ const CustomCalendar = () => {
                             fontSize: "12px", // Slightly smaller text for room categories
                             margin: "4px 0", // Space between room types
                             color: "#555", // Softer text color for categories
-                          }}>
+                          }}
+                        >
                           <span>{category.name}: </span>
                           <Badge
                             count={category.availableroomNumbers}
@@ -278,187 +288,213 @@ const CustomCalendar = () => {
   };
 
   return (
-    <>
-      <h3 className="text-green-400 font-bold text-center text-2xl ">
-        FTB Booking Calendar
-      </h3>
+    <div>
+      {calenderPermissions.viewAccess ? (
+        <>
+          <>
+            <h3 className="text-green-400 font-bold text-center text-2xl ">
+              FTB Booking Calendar
+            </h3>
 
-      <div className="text-left">
-        <Select
-          value={selectedHotel}
-          onChange={handleHotelChange}
-          style={{ width: 300 }}
-          placeholder="Select a Hotel">
-          {hotelData.map((hotel) => (
-            <Option key={hotel.hotelName} value={hotel.hotelName}>
-              {hotel.hotelName}
-            </Option>
-          ))}
-        </Select>
-      </div>
-
-      <div className="text-center my-4">
-        <Button
-          onClick={toggleViewMode}
-          style={{ marginBottom: "10px", marginRight: 8 }}>
-          {showFullMonth ? "Show Current Date" : "Show Full Month"}
-        </Button>
-        <Button
-          onClick={goToPrevMonth}
-          style={{ marginRight: 8, marginBottom: "10px" }}>
-          Previous Month
-        </Button>
-        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
-          {currentMonth.format("MMMM YYYY")}
-        </span>
-        <Button onClick={goToNextMonth} style={{ marginLeft: 8 }}>
-          Next Month
-        </Button>
-      </div>
-
-      {loading ? (
-        <Spin
-          className="mt-4"
-          tip="Loading, please wait... / লোড হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...">
-          <Alert
-            message="Processing your request / আপনার অনুরোধ প্রক্রিয়াকরণ করা হচ্ছে"
-            description="This may take a moment, thank you for your patience. / এতে কিছু সময় লাগতে পারে, ধন্যবাদ আপনার ধৈর্যের জন্য।"
-            type="info"
-          />
-        </Spin>
-      ) : (
-        <div>
-          {/* Custom Calendar Render */}
-          <div className="calendar-grid">{renderCalendarDays()}</div>
-
-          <Modal
-            title={`Room Availability for ${selectedDate}`}
-            visible={isModalVisible}
-            onCancel={() => setIsModalVisible(false)}
-            width={1200}
-            footer={[
-              <Button key="close" onClick={() => setIsModalVisible(false)}>
-                Close
-              </Button>,
-            ]}>
-            <div className="w-full">
-              {roomAvailability.map((hotel, hotelIdx) => (
-                <div key={hotelIdx} className="mb-8">
-                  <div className="text-lg font-bold mb-4">
+            <div className="text-left">
+              <Select
+                value={selectedHotel}
+                onChange={handleHotelChange}
+                style={{ width: 300 }}
+                placeholder="Select a Hotel"
+              >
+                {hotelData.map((hotel) => (
+                  <Option key={hotel.hotelName} value={hotel.hotelName}>
                     {hotel.hotelName}
-                  </div>
-
-                  {/* Use Ant Design Grid System */}
-                  <Row gutter={[16, 16]}>
-                    {hotel.roomCategories.map((category, idx) => (
-                      <Col
-                        key={idx}
-                        xs={24} // Full width on extra small screens
-                        sm={12} // 2 columns on small screens
-                        md={8} // 3 columns on medium screens
-                        lg={6} // 4 columns on large screens
-                      >
-                        <div className="bg-white p-4 rounded-md shadow-md">
-                          <Tag color="blue">{category.name}</Tag>:{" "}
-                          {category.availableroomNumbers} Available /{" "}
-                          {category.bookedroomNumbers} Booked
-                          <div className="mt-2 space-y-2">
-                            {category.roomNumbers.map((room) => (
-                              <div key={room.name}>
-                                {room.bookedDates.includes(selectedDate) ? (
-                                  <Button
-                                    type="link"
-                                    onClick={() => handleRoomClick(room)}>
-                                    <Tag color="yellow">
-                                      Room {room.name} is Booked
-                                    </Tag>
-                                  </Button>
-                                ) : (
-                                  <Tag color="green">
-                                    Room {room.name} is Available
-                                  </Tag>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </Col>
-                    ))}
-                  </Row>
-                </div>
-              ))}
+                  </Option>
+                ))}
+              </Select>
             </div>
-          </Modal>
 
-          <Modal
-            title={`Room Details`}
-            visible={roomInfoModalVisible}
-            onCancel={() => setRoomInfoModalVisible(false)}
-            width="100%"
-            footer={[
+            <div className="text-center my-4">
               <Button
-                key="close"
-                onClick={() => setRoomInfoModalVisible(false)}>
-                Close
-              </Button>,
-            ]}>
-            {selectedRoomInfo && (
-              <>
-                <Descriptions title={`Room Number: ${selectedRoomInfo.name}`}>
-                  <Descriptions.Item label="Booked Dates">
-                    {selectedRoomInfo.bookedDates.join(", ") || "Available"}
-                  </Descriptions.Item>
-                </Descriptions>
-                {selectedRoomInfo.bookings.length > 0 ? (
-                  <Table
-                    dataSource={selectedRoomInfo.bookings}
-                    rowKey={(record) => record.guestName}
-                    columns={[
-                      { title: "Guest Name", dataIndex: "guestName" },
-                      {
-                        title: "Check In",
-                        dataIndex: "checkIn",
-                        render: (checkIn) =>
-                          dayjs(checkIn).format("D MMM YYYY"),
-                      },
-                      {
-                        title: "Check Out",
-                        dataIndex: "checkOut",
-                        render: (checkOut) =>
-                          dayjs(checkOut).format("D MMM YYYY"),
-                      },
-                      { title: "Booked By", dataIndex: "bookedBy" },
-                      {
-                        title: "Total Bill",
-                        dataIndex: ["paymentDetails", "totalBill"],
-                      },
-                      {
-                        title: "Advance Payment",
-                        dataIndex: ["paymentDetails", "advancePayment"],
-                      },
-                      {
-                        title: "Due Payment",
-                        dataIndex: ["paymentDetails", "duePayment"],
-                      },
-                      {
-                        title: "Payment Method",
-                        dataIndex: ["paymentDetails", "paymentMethod"],
-                      },
-                      {
-                        title: "Transaction ID",
-                        dataIndex: ["paymentDetails", "transactionId"],
-                      },
-                    ]}
-                  />
-                ) : (
-                  <p>No bookings found for this room.</p>
-                )}
-              </>
+                onClick={toggleViewMode}
+                style={{ marginBottom: "10px", marginRight: 8 }}
+              >
+                {showFullMonth ? "Show Current Date" : "Show Full Month"}
+              </Button>
+              <Button
+                onClick={goToPrevMonth}
+                style={{ marginRight: 8, marginBottom: "10px" }}
+              >
+                Previous Month
+              </Button>
+              <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+                {currentMonth.format("MMMM YYYY")}
+              </span>
+              <Button onClick={goToNextMonth} style={{ marginLeft: 8 }}>
+                Next Month
+              </Button>
+            </div>
+
+            {loading ? (
+              <Spin
+                className="mt-4"
+                tip="Loading, please wait... / লোড হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন..."
+              >
+                <Alert
+                  message="Processing your request / আপনার অনুরোধ প্রক্রিয়াকরণ করা হচ্ছে"
+                  description="This may take a moment, thank you for your patience. / এতে কিছু সময় লাগতে পারে, ধন্যবাদ আপনার ধৈর্যের জন্য।"
+                  type="info"
+                />
+              </Spin>
+            ) : (
+              <div>
+                {/* Custom Calendar Render */}
+                <div className="calendar-grid">{renderCalendarDays()}</div>
+
+                <Modal
+                  title={`Room Availability for ${selectedDate}`}
+                  visible={isModalVisible}
+                  onCancel={() => setIsModalVisible(false)}
+                  width={1200}
+                  footer={[
+                    <Button
+                      key="close"
+                      onClick={() => setIsModalVisible(false)}
+                    >
+                      Close
+                    </Button>,
+                  ]}
+                >
+                  <div className="w-full">
+                    {roomAvailability.map((hotel, hotelIdx) => (
+                      <div key={hotelIdx} className="mb-8">
+                        <div className="text-lg font-bold mb-4">
+                          {hotel.hotelName}
+                        </div>
+
+                        {/* Use Ant Design Grid System */}
+                        <Row gutter={[16, 16]}>
+                          {hotel.roomCategories.map((category, idx) => (
+                            <Col
+                              key={idx}
+                              xs={24} // Full width on extra small screens
+                              sm={12} // 2 columns on small screens
+                              md={8} // 3 columns on medium screens
+                              lg={6} // 4 columns on large screens
+                            >
+                              <div className="bg-white p-4 rounded-md shadow-md">
+                                <Tag color="blue">{category.name}</Tag>:{" "}
+                                {category.availableroomNumbers} Available /{" "}
+                                {category.bookedroomNumbers} Booked
+                                <div className="mt-2 space-y-2">
+                                  {category.roomNumbers.map((room) => (
+                                    <div key={room.name}>
+                                      {room.bookedDates.includes(
+                                        selectedDate
+                                      ) ? (
+                                        <Button
+                                          type="link"
+                                          onClick={() => handleRoomClick(room)}
+                                        >
+                                          <Tag color="yellow">
+                                            Room {room.name} is Booked
+                                          </Tag>
+                                        </Button>
+                                      ) : (
+                                        <Tag color="green">
+                                          Room {room.name} is Available
+                                        </Tag>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </Col>
+                          ))}
+                        </Row>
+                      </div>
+                    ))}
+                  </div>
+                </Modal>
+
+                <Modal
+                  title={`Room Details`}
+                  visible={roomInfoModalVisible}
+                  onCancel={() => setRoomInfoModalVisible(false)}
+                  width="100%"
+                  footer={[
+                    <Button
+                      key="close"
+                      onClick={() => setRoomInfoModalVisible(false)}
+                    >
+                      Close
+                    </Button>,
+                  ]}
+                >
+                  {selectedRoomInfo && (
+                    <>
+                      <Descriptions
+                        title={`Room Number: ${selectedRoomInfo.name}`}
+                      >
+                        <Descriptions.Item label="Booked Dates">
+                          {selectedRoomInfo.bookedDates.join(", ") ||
+                            "Available"}
+                        </Descriptions.Item>
+                      </Descriptions>
+                      {selectedRoomInfo.bookings.length > 0 ? (
+                        <Table
+                          dataSource={selectedRoomInfo.bookings}
+                          rowKey={(record) => record.guestName}
+                          columns={[
+                            { title: "Guest Name", dataIndex: "guestName" },
+                            {
+                              title: "Check In",
+                              dataIndex: "checkIn",
+                              render: (checkIn) =>
+                                dayjs(checkIn).format("D MMM YYYY"),
+                            },
+                            {
+                              title: "Check Out",
+                              dataIndex: "checkOut",
+                              render: (checkOut) =>
+                                dayjs(checkOut).format("D MMM YYYY"),
+                            },
+                            { title: "Booked By", dataIndex: "bookedBy" },
+                            {
+                              title: "Total Bill",
+                              dataIndex: ["paymentDetails", "totalBill"],
+                            },
+                            {
+                              title: "Advance Payment",
+                              dataIndex: ["paymentDetails", "advancePayment"],
+                            },
+                            {
+                              title: "Due Payment",
+                              dataIndex: ["paymentDetails", "duePayment"],
+                            },
+                            {
+                              title: "Payment Method",
+                              dataIndex: ["paymentDetails", "paymentMethod"],
+                            },
+                            {
+                              title: "Transaction ID",
+                              dataIndex: ["paymentDetails", "transactionId"],
+                            },
+                          ]}
+                        />
+                      ) : (
+                        <p>No bookings found for this room.</p>
+                      )}
+                    </>
+                  )}
+                </Modal>
+              </div>
             )}
-          </Modal>
-        </div>
+          </>
+        </>
+      ) : (
+        <>
+          <NoPermissionBanner />
+        </>
       )}
-    </>
+    </div>
   );
 };
 

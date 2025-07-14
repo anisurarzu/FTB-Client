@@ -13,11 +13,12 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import { Formik, Form, Field } from "formik";
 import UserBookingInfo from "./UserBookingInfo";
+import NoPermissionBanner from "./Permission/NoPermissionBanner";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const DashboardHome = () => {
+const DashboardHome = ({ hotelID }) => {
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -27,66 +28,64 @@ const DashboardHome = () => {
   const [filteredBookings, setFilteredBookings] = useState([]);
   const defaultHotelID = "";
   const [userData, setUserData] = useState([]);
+  const [selectedHotelID, setSelectedHotelID] = useState(hotelID);
 
   // Retrieve user information from local storage
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-
-  // Extract the hotelID if it exists in userInfo
-  const userHotelID = userInfo?.hotelID;
+  const userHotelID = hotelID;
+  const permission = userInfo?.permission?.permissions;
+  const dashboardPermissions =
+    permission?.find((perm) => perm.pageName === "Dashboard") || {};
 
   useEffect(() => {
     fetchHotelInfo();
     fetchUsers();
-    fetchBookingsByHotelID(userHotelID);
-  }, []);
+    fetchBookingsByHotelID(selectedHotelID);
+  }, [selectedHotelID]);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      console.log("Fetching users...");
       const response = await coreAxios.get("/auth/users");
+
       if (response.status === 200) {
+        console.log("Users fetched successfully:", response.data);
         setUsers(response.data);
         const allUsers = response.data;
 
-        if (userInfo?.role?.value === "agentadmin") {
-          const filtered = allUsers.users?.filter(
-            (user) =>
-              user.role.value !== "superadmin" && user.role.value !== "admin"
-          );
-          setFilteredUsers(filtered);
-        } else if (userInfo?.role?.value === "superadmin") {
-          const filtered = allUsers.users?.filter(
-            (user) =>
-              user.role.value !== "superadmin" && user.role.value !== "admin"
-          );
-          setFilteredUsers(filtered);
-        } else {
-          const filtered = allUsers.users?.filter((user) => {
-            if (
-              user.role.value === "superadmin" ||
-              user.role.value === "admin"
-            ) {
-              return false;
-            }
+        console.log(
+          "Selected Hotel ID:",
+          selectedHotelID,
+          typeof selectedHotelID
+        );
+        console.log("All users before filtering:", allUsers.users);
 
-            if (
-              userInfo.role.value === "hoteladmin" &&
-              user.loginID === userInfo.loginID
-            ) {
-              return true;
-            }
+        // Filter users based on selected hotelID
+        const filtered = allUsers.users?.filter((user) => {
+          console.log("--- Checking user:", user.loginID);
+          console.log("User hotelIDs:", user.hotelID, typeof user.hotelID?.[0]);
 
-            return user.role.value !== "hoteladmin";
-          });
-          setFilteredUsers(filtered);
-        }
+          const hasHotel =
+            Array.isArray(user.hotelID) &&
+            user.hotelID.includes(Number(selectedHotelID));
+
+          console.log("Does user have selected hotel?", hasHotel);
+          return hasHotel;
+        });
+
+        console.log("Filtered users:", filtered);
+        setFilteredUsers(filtered || []);
       }
     } catch (error) {
+      console.error("Error fetching users:", error);
       message.error("Failed to fetch users. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  console.log("Filtered Users:", filteredUsers);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -147,6 +146,8 @@ const DashboardHome = () => {
       message.error("Failed to fetch hotel information.");
     }
   };
+
+  console.log("hotelInfo:", hotelInfo);
 
   const today = dayjs().format("D MMM YYYY");
 
@@ -334,161 +335,170 @@ const DashboardHome = () => {
   });
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
-      <Formik
-        initialValues={{ hotelID: userHotelID || 0 }}
-        onSubmit={(values) => {}}
-      >
-        {({ setFieldValue, values }) => (
-          <Form>
-            <div className="mb-6 bg-white p-4 rounded-lg shadow-sm">
-              <Field name="hotelID">
-                {({ field }) => (
-                  <Select
-                    {...field}
-                    placeholder="Select a Hotel"
-                    value={values.hotelID}
-                    style={{ width: 300 }}
-                    onChange={(value) => {
-                      setFieldValue("hotelID", value);
-                      fetchBookingsByHotelID(value);
-                    }}
-                  >
-                    {hotelInfo.map((hotel) => (
-                      <Option key={hotel.hotelID} value={hotel.hotelID}>
-                        {hotel.hotelName}
-                      </Option>
-                    ))}
-                  </Select>
-                )}
-              </Field>
-            </div>
-          </Form>
-        )}
-      </Formik>
-
-      {/*  <Title level={2} className="mb-6 text-gray-800">
-        Dashboard Overview
-      </Title> */}
-
-      {loading2 ? (
-        <Row gutter={[24, 24]}>
-          {[1, 2, 3, 4].map((item) => (
-            <Col xs={24} sm={12} md={8} lg={6} key={item}>
-              <Card
-                hoverable
-                bordered={false}
-                className="rounded-xl overflow-hidden border-0 h-full"
-              >
-                <Skeleton active paragraph={{ rows: 3 }} />
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      ) : (
-        <div>
-          <Row gutter={[24, 24]}>
-            {[
-              {
-                label: "Today's FTB Bookings",
-                value: totalBillForTodayByFTB,
-                count: getBookingCount(filteredTodayBookingsFTB),
-                icon: <UserOutlined />,
-              },
-              {
-                label: "Today's All Bookings",
-                value: totalBillForTodayByEveryOne,
-                count: getBookingCount(filteredTodayBookingsByEveryOne),
-                icon: <TeamOutlined />,
-              },
-              {
-                label: "30 Days FTB Bookings",
-                value: totalBillForLast30DaysByFTB,
-                count: getBookingCount(filteredLast30DaysBookingsByFTB),
-                icon: <CalendarOutlined />,
-              },
-              {
-                label: "30 Days All Bookings",
-                value: totalBillForLast30DaysByEveryOne,
-                count: getBookingCount(filteredLast30DaysBookingsByEveryOne),
-                icon: <DollarOutlined />,
-              },
-            ].map((item, idx) => {
-              const color = getColorForStat(item.label);
-              return (
-                <Col xs={24} sm={12} md={8} lg={6} key={idx}>
-                  <Card
-                    hoverable
-                    bordered={false}
-                    className="rounded-xl overflow-hidden border-0 h-full shadow-sm"
-                    style={getCardBackground(color)}
-                    bodyStyle={{ padding: "20px" }}
-                  >
-                    <div className="flex items-start justify-between h-full">
-                      <div>
-                        <Text
-                          className="text-sm uppercase tracking-wider"
-                          style={{
-                            fontFamily: "Inter, sans-serif",
-                            fontWeight: 500,
-                            color: "rgba(255,255,255,0.8)",
+    <div>
+      {dashboardPermissions.viewAccess ? (
+        <>
+          <div className="p-4 bg-gray-50 min-h-screen">
+            <Formik
+              initialValues={{ hotelID: selectedHotelID || 0 }}
+              onSubmit={(values) => {}}
+            >
+              {({ setFieldValue, values }) => (
+                <Form>
+                  <div className="mb-6 bg-white p-4 rounded-lg shadow-sm">
+                    <Field name="hotelID">
+                      {({ field }) => (
+                        <Select
+                          {...field}
+                          placeholder="Select a Hotel"
+                          value={values.hotelID}
+                          style={{ width: 300 }}
+                          onChange={(value) => {
+                            setSelectedHotelID(value);
+                            setFieldValue("hotelID", value);
+                            fetchBookingsByHotelID(value);
                           }}
                         >
-                          {item.label}
-                        </Text>
-                        <Title
-                          level={2}
-                          className="mt-1 mb-0"
-                          style={{
-                            fontFamily: "Poppins, sans-serif",
-                            fontWeight: 600,
-                            fontSize: "1.75rem",
-                            color: "white",
-                          }}
-                        >
-                          {typeof item.value === "number"
-                            ? `৳${item.value.toLocaleString()}`
-                            : item.value}
-                        </Title>
-                        <div className="flex items-center mt-2">
-                          <Text
-                            style={{
-                              color: "rgba(255,255,255,0.9)",
-                              fontFamily: "Inter, sans-serif",
-                              fontSize: "0.875rem",
-                            }}
-                          >
-                            {item.count} bookings
-                          </Text>
-                        </div>
-                      </div>
-                      <div
-                        className="p-3 rounded-lg flex items-center justify-center"
-                        style={{
-                          backgroundColor: "rgba(255,255,255,0.2)",
-                          color: "white",
-                          border: `1px solid rgba(255,255,255,0.3)`,
-                          width: "48px",
-                          height: "48px",
-                        }}
-                      >
-                        {getIconForStat(item.label)}
-                      </div>
-                    </div>
-                  </Card>
-                </Col>
-              );
-            })}
-          </Row>
+                          {hotelInfo.map((hotel) => (
+                            <Option key={hotel.hotelID} value={hotel.hotelID}>
+                              {hotel.hotelName}
+                            </Option>
+                          ))}
+                        </Select>
+                      )}
+                    </Field>
+                  </div>
+                </Form>
+              )}
+            </Formik>
 
-          <div className="mt-8 bg-white rounded-lg shadow-sm">
-            <UserBookingInfo
-              userTableData={userTableData}
-              title={"User-wise Booking Overview"}
-              loading={loading}
-            />
+            {loading2 ? (
+              <Row gutter={[24, 24]}>
+                {[1, 2, 3, 4].map((item) => (
+                  <Col xs={24} sm={12} md={8} lg={6} key={item}>
+                    <Card
+                      hoverable
+                      bordered={false}
+                      className="rounded-xl overflow-hidden border-0 h-full"
+                    >
+                      <Skeleton active paragraph={{ rows: 3 }} />
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            ) : (
+              <div>
+                <Row gutter={[24, 24]}>
+                  {[
+                    {
+                      label: "Today's FTB Bookings",
+                      value: totalBillForTodayByFTB,
+                      count: getBookingCount(filteredTodayBookingsFTB),
+                      icon: <UserOutlined />,
+                    },
+                    {
+                      label: "Today's All Bookings",
+                      value: totalBillForTodayByEveryOne,
+                      count: getBookingCount(filteredTodayBookingsByEveryOne),
+                      icon: <TeamOutlined />,
+                    },
+                    {
+                      label: "30 Days FTB Bookings",
+                      value: totalBillForLast30DaysByFTB,
+                      count: getBookingCount(filteredLast30DaysBookingsByFTB),
+                      icon: <CalendarOutlined />,
+                    },
+                    {
+                      label: "30 Days All Bookings",
+                      value: totalBillForLast30DaysByEveryOne,
+                      count: getBookingCount(
+                        filteredLast30DaysBookingsByEveryOne
+                      ),
+                      icon: <DollarOutlined />,
+                    },
+                  ].map((item, idx) => {
+                    const color = getColorForStat(item.label);
+                    return (
+                      <Col xs={24} sm={12} md={8} lg={6} key={idx}>
+                        <Card
+                          hoverable
+                          bordered={false}
+                          className="rounded-xl overflow-hidden border-0 h-full shadow-sm"
+                          style={getCardBackground(color)}
+                          bodyStyle={{ padding: "20px" }}
+                        >
+                          <div className="flex items-start justify-between h-full">
+                            <div>
+                              <Text
+                                className="text-sm uppercase tracking-wider"
+                                style={{
+                                  fontFamily: "Inter, sans-serif",
+                                  fontWeight: 500,
+                                  color: "rgba(255,255,255,0.8)",
+                                }}
+                              >
+                                {item.label}
+                              </Text>
+                              <Title
+                                level={2}
+                                className="mt-1 mb-0"
+                                style={{
+                                  fontFamily: "Poppins, sans-serif",
+                                  fontWeight: 600,
+                                  fontSize: "1.75rem",
+                                  color: "white",
+                                }}
+                              >
+                                {typeof item.value === "number"
+                                  ? `৳${item.value.toLocaleString()}`
+                                  : item.value}
+                              </Title>
+                              <div className="flex items-center mt-2">
+                                <Text
+                                  style={{
+                                    color: "rgba(255,255,255,0.9)",
+                                    fontFamily: "Inter, sans-serif",
+                                    fontSize: "0.875rem",
+                                  }}
+                                >
+                                  {item.count} bookings
+                                </Text>
+                              </div>
+                            </div>
+                            <div
+                              className="p-3 rounded-lg flex items-center justify-center"
+                              style={{
+                                backgroundColor: "rgba(255,255,255,0.2)",
+                                color: "white",
+                                border: `1px solid rgba(255,255,255,0.3)`,
+                                width: "48px",
+                                height: "48px",
+                              }}
+                            >
+                              {getIconForStat(item.label)}
+                            </div>
+                          </div>
+                        </Card>
+                      </Col>
+                    );
+                  })}
+                </Row>
+
+                <div className="mt-8 bg-white rounded-lg shadow-sm">
+                  <UserBookingInfo
+                    userTableData={userTableData}
+                    title={"User-wise Booking Overview"}
+                    loading={loading}
+                  />
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        </>
+      ) : (
+        <>
+          <NoPermissionBanner />
+        </>
       )}
     </div>
   );

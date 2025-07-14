@@ -1,6 +1,15 @@
 "use client";
 
-import { Layout, Menu, Button, Spin, Drawer, Avatar, Skeleton, theme } from "antd";
+import {
+  Layout,
+  Menu,
+  Button,
+  Spin,
+  Drawer,
+  Avatar,
+  Skeleton,
+  theme,
+} from "antd";
 import {
   DashboardOutlined,
   UsergroupAddOutlined,
@@ -14,7 +23,7 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import DashboardHome from "@/component/DashboardHome";
 import AgentInformation from "@/component/AgentInformation";
@@ -27,6 +36,7 @@ import RoomAvailabilityPage from "@/component/RoomSearchPage";
 import AllBookingInfo from "@/component/AllBookingInfo";
 import ExpenseInfo from "@/component/Expense/ExpenseInfo";
 import DailyStatement from "@/component/DailyStatement";
+import PermissionManagement from "@/component/Permission/PermissionManagement";
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
@@ -37,44 +47,42 @@ const rolePermissions = {
       key: "1",
       label: "Dashboard",
       icon: <DashboardOutlined />,
-      component: <DashboardHome />,
+      component: (props) => <DashboardHome {...props} />,
     },
-
     {
       key: "7",
       label: "Calendar",
       icon: <CalendarOutlined />,
-      component: <Calender />,
+
+      component: (props) => <Calender {...props} />,
     },
     {
       key: "9",
       label: "Room Availability",
       icon: <DashboardOutlined />,
-      component: <RoomAvailabilityPage />,
+
+      component: (props) => <RoomAvailabilityPage {...props} />,
     },
     {
       key: "6",
       label: "Booking Info",
       icon: <InfoCircleOutlined />,
-      component: <BookingInfo />,
+
+      component: (props) => <BookingInfo {...props} />,
     },
     {
       key: "12",
       label: "Daily Statement",
       icon: <InfoCircleOutlined />,
-      component: <DailyStatement />,
+
+      component: (props) => <DailyStatement {...props} />,
     },
-    // {
-    //   key: "11",
-    //   label: "Web Bookings",
-    //   icon: <InfoCircleOutlined />,
-    //   component: <WebBooking />,
-    // },
     {
       key: "10",
       label: "Report Dashboard",
       icon: <InfoCircleOutlined />,
-      component: <AllBookingInfo />,
+
+      component: (props) => <AllBookingInfo {...props} />,
     },
     {
       key: "100",
@@ -82,18 +90,6 @@ const rolePermissions = {
       icon: <InfoCircleOutlined />,
       component: <ExpenseInfo />,
     },
-    // {
-    //   key: "3",
-    //   label: "Flat/Room Type",
-    //   icon: <ApartmentOutlined />,
-    //   component: <HotelCategory />,
-    // },
-    // {
-    //   key: "4",
-    //   label: "Flat/Room No",
-    //   icon: <UnorderedListOutlined />,
-    //   component: <HotelRoom />,
-    // },
     {
       key: "5",
       label: "Hotel Info",
@@ -106,103 +102,105 @@ const rolePermissions = {
       icon: <UsergroupAddOutlined />,
       component: <AgentInformation />,
     },
-
-    { key: "8", label: "Settings", icon: <SettingOutlined />, component: null },
+    {
+      key: "8",
+      label: "Settings",
+      icon: <SettingOutlined />,
+      component: <PermissionManagement />,
+    },
+    // { key: "8", label: "Settings", icon: <SettingOutlined />, component: null },
   ],
   agentadmin: [
     {
       key: "1",
       label: "Dashboard",
       icon: <DashboardOutlined />,
-      component: <DashboardHome />,
+      component: (props) => <DashboardHome {...props} />,
     },
     {
       key: "7",
       label: "Calendar",
       icon: <CalendarOutlined />,
-      component: <Calender />,
+
+      component: (props) => <Calender {...props} />,
     },
     {
       key: "9",
       label: "Room Availability",
       icon: <DashboardOutlined />,
-      component: <RoomAvailabilityPage />,
+
+      component: (props) => <RoomAvailabilityPage {...props} />,
     },
     {
       key: "6",
       label: "Booking Info",
       icon: <InfoCircleOutlined />,
-      component: <BookingInfo />,
+
+      component: (props) => <BookingInfo {...props} />,
     },
-    // {
-    //   key: "10",
-    //   label: "All Booking Info",
-    //   icon: <InfoCircleOutlined />,
-    //   component: <AllBookingInfo />,
-    // },
   ],
   hoteladmin: [
     {
       key: "1",
       label: "Dashboard",
       icon: <DashboardOutlined />,
-      component: <DashboardHome />,
+      component: (props) => <DashboardHome {...props} />,
     },
     {
       key: "7",
       label: "Calendar",
       icon: <CalendarOutlined />,
-      component: <Calender />,
+
+      component: (props) => <Calender {...props} />,
     },
     {
       key: "9",
       label: "Room Availability",
       icon: <DashboardOutlined />,
-      component: <RoomAvailabilityPage />,
+
+      component: (props) => <RoomAvailabilityPage {...props} />,
     },
     {
       key: "6",
       label: "Booking Info",
       icon: <InfoCircleOutlined />,
-      component: <BookingInfo />,
+
+      component: (props) => <BookingInfo {...props} />,
     },
-    // {
-    //   key: "10",
-    //   label: "All Booking Info",
-    //   icon: <InfoCircleOutlined />,
-    //   component: <AllBookingInfo />,
-    // },
   ],
   admin: [
     {
       key: "1",
       label: "Dashboard",
       icon: <DashboardOutlined />,
-      component: <DashboardHome />,
+      component: (props) => <DashboardHome {...props} />,
     },
     {
       key: "9",
       label: "Room Availability",
       icon: <DashboardOutlined />,
-      component: <RoomAvailabilityPage />,
+      component: (props) => <RoomAvailabilityPage {...props} />,
     },
     {
       key: "7",
       label: "Calendar",
       icon: <CalendarOutlined />,
-      component: <Calender />,
+
+      component: (props) => <Calender {...props} />,
     },
     {
       key: "6",
       label: "Booking Info",
       icon: <SettingOutlined />,
-      component: <BookingInfo />,
+
+      component: (props) => <BookingInfo {...props} />,
     },
     {
       key: "10",
       label: "Report Dashboard",
       icon: <InfoCircleOutlined />,
-      component: <AllBookingInfo />,
+
+      component: (props) => <AllBookingInfo {...props} />,
     },
     {
       key: "5",
@@ -217,17 +215,20 @@ const rolePermissions = {
       component: <AgentInformation />,
     },
   ],
-  // Other roles omitted for brevity...
 };
 
 const Dashboard = ({ sliders }) => {
   const { token } = useToken();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [collapsed, setCollapsed] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState("1");
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+
+  // Get hotelID from URL
+  const hotelID = searchParams.get("hotelID");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -266,7 +267,16 @@ const Dashboard = ({ sliders }) => {
     const userRole = userInfo?.role?.value;
     const allowedPages = rolePermissions[userRole] || [];
     const selectedPage = allowedPages.find((page) => page.key === selectedMenu);
-    return selectedPage ? selectedPage.component : <div>Access Denied</div>;
+
+    if (selectedPage) {
+      // Pass hotelID to components that need it
+      if (typeof selectedPage.component === "function") {
+        return selectedPage.component({ hotelID });
+      }
+      return selectedPage.component;
+    }
+
+    return <div>Access Denied</div>;
   };
 
   const renderMenuItems = () => {
@@ -285,14 +295,14 @@ const Dashboard = ({ sliders }) => {
         className="border-r-0"
       >
         {allowedPages.map((page) => (
-          <Menu.Item 
-            key={page.key} 
+          <Menu.Item
+            key={page.key}
             icon={page.icon}
             style={{
-              margin: '4px 8px',
-              borderRadius: '6px',
-              padding: '8px 12px',
-              fontSize: '14px'
+              margin: "4px 8px",
+              borderRadius: "6px",
+              padding: "8px 12px",
+              fontSize: "14px",
             }}
           >
             {page.label}
@@ -314,7 +324,7 @@ const Dashboard = ({ sliders }) => {
         collapsedWidth={80}
         style={{
           background: token.colorBgContainer,
-          boxShadow: '2px 0 8px rgba(29, 35, 41, 0.05)',
+          boxShadow: "2px 0 8px rgba(29, 35, 41, 0.05)",
           borderRight: `1px solid ${token.colorBorderSecondary}`,
         }}
         className="hidden lg:block"
@@ -334,17 +344,19 @@ const Dashboard = ({ sliders }) => {
       <Layout>
         <Header
           style={{
-            background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-            padding: '0 24px',
-            height: '64px',
-            lineHeight: '64px',
+            background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)",
+            padding: "0 24px",
+            height: "64px",
+            lineHeight: "64px",
           }}
           className="flex justify-between items-center shadow-sm"
         >
           <div className="flex items-center">
             <Button
               type="text"
-              icon={<MenuOutlined style={{ color: 'white', fontSize: '16px' }} />}
+              icon={
+                <MenuOutlined style={{ color: "white", fontSize: "16px" }} />
+              }
               onClick={showDrawer}
               className="lg:hidden mr-2"
             />
@@ -352,7 +364,7 @@ const Dashboard = ({ sliders }) => {
               Fast Track Booking
             </h1>
           </div>
-          
+
           <div className="flex items-center gap-4">
             {userInfo && (
               <div className="flex items-center gap-2">
@@ -360,7 +372,7 @@ const Dashboard = ({ sliders }) => {
                   src={userInfo.image}
                   alt={userInfo.username}
                   size="default"
-                  style={{ backgroundColor: '#8B5CF6' }}
+                  style={{ backgroundColor: "#8B5CF6" }}
                 />
                 <span className="text-white hidden md:inline">
                   {userInfo.username}
@@ -369,7 +381,7 @@ const Dashboard = ({ sliders }) => {
             )}
             <Button
               type="text"
-              icon={<LogoutOutlined style={{ color: 'white' }} />}
+              icon={<LogoutOutlined style={{ color: "white" }} />}
               onClick={handleLogout}
               className="flex items-center"
             >
@@ -380,7 +392,7 @@ const Dashboard = ({ sliders }) => {
 
         <Content
           style={{
-            margin: '24px 16px',
+            margin: "24px 16px",
             padding: 24,
             minHeight: 280,
             background: token.colorBgContainer,
@@ -399,14 +411,9 @@ const Dashboard = ({ sliders }) => {
         placement="left"
         width={200}
         bodyStyle={{ padding: 0 }}
-        headerStyle={{ padding: '16px' }}
+        headerStyle={{ padding: "16px" }}
         title={
-          <Image
-            src="/images/logo.png"
-            alt="Logo"
-            width={120}
-            height={30}
-          />
+          <Image src="/images/logo.png" alt="Logo" width={120} height={30} />
         }
       >
         {renderMenuItems()}

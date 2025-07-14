@@ -11,7 +11,7 @@ import coreAxios from "@/utils/axiosInstance";
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
-const AllBookingInfo = () => {
+const AllBookingInfo = ({ hotelID }) => {
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [hotels, setHotels] = useState([]);
@@ -33,7 +33,7 @@ const AllBookingInfo = () => {
 
       const userInfo = JSON.parse(localStorage.getItem("userInfo"));
       const userRole = userInfo?.role?.value;
-      const userHotelID = userInfo?.hotelID;
+      const userHotelID = hotelID;
 
       const res = await coreAxios.get(`hotel`);
       setLoading(false);
@@ -292,7 +292,8 @@ const AllBookingInfo = () => {
           textAlign: "center",
           fontSize: "24px",
           marginBottom: "20px",
-        }}>
+        }}
+      >
         Booking Information
       </h3>
 
@@ -311,7 +312,8 @@ const AllBookingInfo = () => {
             setSelectedHotelName(
               selectedHotelObj ? selectedHotelObj.hotelName : ""
             );
-          }}>
+          }}
+        >
           {hotels.map((hotel) => (
             <Option key={hotel.hotelID} value={hotel.hotelID}>
               {hotel.hotelName}
@@ -323,7 +325,8 @@ const AllBookingInfo = () => {
           placeholder="Select User"
           style={{ width: "25%" }}
           value={selectedUser}
-          onChange={(value) => setSelectedUser(value)}>
+          onChange={(value) => setSelectedUser(value)}
+        >
           {users.map((user) => (
             <Option key={user.id} value={user.loginID}>
               {user.loginID}
@@ -344,14 +347,16 @@ const AllBookingInfo = () => {
         <Button
           icon={<DownloadOutlined />}
           onClick={exportToExcel}
-          disabled={!filteredBookings.length}>
+          disabled={!filteredBookings.length}
+        >
           Export to Excel
         </Button>
 
         <Button
           icon={<DownloadOutlined />}
           onClick={exportToPDF}
-          disabled={!filteredBookings.length}>
+          disabled={!filteredBookings.length}
+        >
           Export to PDF
         </Button>
       </div>
@@ -408,47 +413,58 @@ const AllBookingInfo = () => {
               filteredBookings.map((booking) => (
                 <tr key={booking._id}>
                   <td
-                    style={{ border: "1px solid black", textAlign: "center" }}>
+                    style={{ border: "1px solid black", textAlign: "center" }}
+                  >
                     {booking.bookingNo}
                   </td>
                   <td
-                    style={{ border: "1px solid black", textAlign: "center" }}>
+                    style={{ border: "1px solid black", textAlign: "center" }}
+                  >
                     {booking.fullName}
                   </td>
                   <td
-                    style={{ border: "1px solid black", textAlign: "center" }}>
+                    style={{ border: "1px solid black", textAlign: "center" }}
+                  >
                     {dayjs(booking.checkInDate).format("DD MMM YYYY")}
                   </td>
                   <td
-                    style={{ border: "1px solid black", textAlign: "center" }}>
+                    style={{ border: "1px solid black", textAlign: "center" }}
+                  >
                     {dayjs(booking.checkOutDate).format("DD MMM YYYY")}
                   </td>
                   <td
-                    style={{ border: "1px solid black", textAlign: "center" }}>
+                    style={{ border: "1px solid black", textAlign: "center" }}
+                  >
                     {booking.roomCategoryName} ({booking.roomNumberName})
                   </td>
                   <td
-                    style={{ border: "1px solid black", textAlign: "center" }}>
+                    style={{ border: "1px solid black", textAlign: "center" }}
+                  >
                     {booking.nights}
                   </td>
                   <td
-                    style={{ border: "1px solid black", textAlign: "center" }}>
+                    style={{ border: "1px solid black", textAlign: "center" }}
+                  >
                     {booking.paymentMethod}
                   </td>
                   <td
-                    style={{ border: "1px solid black", textAlign: "center" }}>
+                    style={{ border: "1px solid black", textAlign: "center" }}
+                  >
                     {booking.transactionId}
                   </td>
                   <td
-                    style={{ border: "1px solid black", textAlign: "center" }}>
+                    style={{ border: "1px solid black", textAlign: "center" }}
+                  >
                     {booking.totalBill}
                   </td>
                   <td
-                    style={{ border: "1px solid black", textAlign: "center" }}>
+                    style={{ border: "1px solid black", textAlign: "center" }}
+                  >
                     {booking.advancePayment}
                   </td>
                   <td
-                    style={{ border: "1px solid black", textAlign: "center" }}>
+                    style={{ border: "1px solid black", textAlign: "center" }}
+                  >
                     {booking.duePayment}
                   </td>
                 </tr>
@@ -460,7 +476,8 @@ const AllBookingInfo = () => {
                   style={{
                     textAlign: "center",
                     border: "1px solid black",
-                  }}>
+                  }}
+                >
                   No bookings available.
                 </td>
               </tr>
@@ -475,7 +492,8 @@ const AllBookingInfo = () => {
                     textAlign: "right",
                     fontWeight: "bold",
                     border: "1px solid black",
-                  }}>
+                  }}
+                >
                   Total:
                 </td>
                 <td
@@ -483,7 +501,8 @@ const AllBookingInfo = () => {
                     border: "1px solid black",
                     textAlign: "center",
                     fontWeight: "bold",
-                  }}>
+                  }}
+                >
                   {filteredBookings.reduce(
                     (sum, booking) => sum + booking.totalBill,
                     0
@@ -494,7 +513,8 @@ const AllBookingInfo = () => {
                     border: "1px solid black",
                     textAlign: "center",
                     fontWeight: "bold",
-                  }}>
+                  }}
+                >
                   {filteredBookings.reduce(
                     (sum, booking) => sum + booking.advancePayment,
                     0
@@ -505,7 +525,8 @@ const AllBookingInfo = () => {
                     border: "1px solid black",
                     textAlign: "center",
                     fontWeight: "bold",
-                  }}>
+                  }}
+                >
                   {filteredBookings.reduce(
                     (sum, booking) => sum + booking.duePayment,
                     0

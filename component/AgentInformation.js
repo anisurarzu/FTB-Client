@@ -43,6 +43,8 @@ const AgentInformation = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingKey, setEditingKey] = useState(null);
   const [users, setUsers] = useState([]);
+  const [hotels, setHotels] = useState([]);
+  const [permissions, setPermissions] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [loading, setLoading] = useState(false);
 
@@ -61,8 +63,32 @@ const AgentInformation = () => {
     }
   };
 
+  const fetchHotels = async () => {
+    try {
+      const response = await coreAxios.get("/hotel");
+      if (response.status === 200) {
+        setHotels(response.data);
+      }
+    } catch (error) {
+      message.error("Failed to fetch hotels. Please try again.");
+    }
+  };
+
+  const fetchPermissions = async () => {
+    try {
+      const response = await coreAxios.get("/permission");
+      if (response.status === 200) {
+        setPermissions(response.data);
+      }
+    } catch (error) {
+      message.error("Failed to fetch permissions. Please try again.");
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchHotels();
+    fetchPermissions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -77,25 +103,42 @@ const AgentInformation = () => {
       role: "",
       gender: "",
       loginID: "",
+      hotelID: [],
+      permissionID: null,
     },
     onSubmit: async (values, { resetForm }) => {
       setLoading(true);
       try {
+        const hotelIDs = values.hotelID.map((id) => {
+          return typeof id === "object" ? id : { hotelID: id };
+        });
+
+        const selectedPermission = permissions.find(
+          (perm) => perm._id === values.permissionID
+        );
+
         if (isEditing) {
           const newUser = {
-            key: uuidv4(),
-            image: values?.image,
             username: values.username,
             email: values.email,
             phoneNumber: values.phoneNumber,
-
             password: values?.password,
             plainPassword: values?.password,
             currentAddress: values.currentAddress,
             gender: values.gender,
             loginID: values.loginID,
             role: roleInfo.find((role) => role.value === values.role),
+            hotelID: hotelIDs,
+            permission: selectedPermission,
           };
+
+          if (values?.image && typeof values.image !== "string") {
+            const imageUrl = await handleImageUpload(values?.image);
+            newUser.image = imageUrl;
+          } else if (values?.image) {
+            newUser.image = values.image;
+          }
+
           const response = await coreAxios.put(
             `auth/users/${editingKey}`,
             newUser
@@ -113,13 +156,14 @@ const AgentInformation = () => {
               username: values.username,
               email: values.email,
               phoneNumber: values.phoneNumber,
-
               password: values?.password,
               plainPassword: values?.password,
               currentAddress: values.currentAddress,
               gender: values.gender,
               loginID: values.loginID,
               role: roleInfo.find((role) => role.value === values.role),
+              hotelID: hotelIDs,
+              permission: selectedPermission,
             };
             const response = await coreAxios.post("/auth/register", newUser);
 
@@ -141,6 +185,8 @@ const AgentInformation = () => {
               gender: values.gender,
               loginID: values.loginID,
               role: roleInfo.find((role) => role.value === values.role),
+              hotelID: hotelIDs,
+              permission: selectedPermission,
             };
             const response = await coreAxios.post("/auth/register", newUser);
 
@@ -164,19 +210,35 @@ const AgentInformation = () => {
     },
   });
 
-  const handleImageUpload = async (imageFile) => {
-    const formData = new FormData();
-    formData.append("image", imageFile);
-
+  const handleImageUpload = async (file) => {
     try {
-      const response = await axios.post(
-        `https://api.imgbb.com/1/upload?key=0d928e97225b72fcd198fa40d99a15d5`,
-        formData
-      );
-      return response.data.data.url;
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await axios.post("/api/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data.url;
     } catch (error) {
-      // message.error("Image upload failed. Please try again.");
-      // return null;
+      message.error("Failed to upload image. Please try again.");
+      return null;
+    }
+  };
+
+  const handleDelete = async (record) => {
+    try {
+      setLoading(true);
+      const response = await coreAxios.delete(`/auth/users/${record.id}`);
+      if (response.status === 200) {
+        message.success("User deleted successfully!");
+        fetchUsers();
+      }
+    } catch (error) {
+      message.error("Failed to delete user. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -192,29 +254,15 @@ const AgentInformation = () => {
       role: record.role.value,
       gender: record.gender,
       loginID: record.loginID,
+      hotelID:
+        record.hotelID?.map((item) =>
+          typeof item === "object" ? item.hotelID : item
+        ) || [],
+      permissionID: record.permission?._id || null,
       status: "",
     });
     setVisible(true);
     setIsEditing(true);
-  };
-
-  const handleDelete = async (key) => {
-    try {
-      const data = {
-        ...key,
-        status: "deleted",
-      };
-      setLoading(true);
-      const response = await coreAxios.delete(`auth/users/hard/${key?.id}`);
-      if (response?.status === 200) {
-        setLoading(false);
-        message.success("User deleted successfully!");
-        fetchUsers();
-      }
-    } catch (error) {
-      setLoading(false);
-      message.error(error);
-    }
   };
 
   const columns = [
@@ -223,7 +271,6 @@ const AgentInformation = () => {
       dataIndex: "image",
       key: "image",
       render: (image, record) => {
-        // Check for gender and provide a fallback image based on gender
         const defaultMaleImage =
           "https://static.vecteezy.com/system/resources/thumbnails/003/773/576/small/business-man-icon-free-vector.jpg";
         const defaultFemaleImage =
@@ -236,56 +283,70 @@ const AgentInformation = () => {
               (record.gender === "male" ? defaultMaleImage : defaultFemaleImage)
             }
             alt="Profile"
-            width={40} // Reduced width for smaller design
-            height={40} // Reduced height for smaller design
-            style={{ borderRadius: "50%" }} // Make image rounded
+            width={40}
+            height={40}
+            style={{ borderRadius: "50%" }}
           />
         );
       },
     },
-
     {
       title: "Username",
       dataIndex: "username",
       key: "username",
-      width: "15%", // Adjust width for compact design
+      width: "15%",
     },
     {
       title: "User ID",
       dataIndex: "loginID",
       key: "loginID",
-      width: "20%", // Adjust width for compact design
+      width: "20%",
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
-      width: "20%", // Adjust width for compact design
+      width: "20%",
     },
     {
       title: "Phone",
       dataIndex: "phoneNumber",
       key: "phoneNumber",
-      width: "15%", // Adjust width for compact design
+      width: "15%",
     },
-
     {
       title: "Address",
       dataIndex: "currentAddress",
       key: "currentAddress",
-      width: "20%", // Adjust width for compact design
+      width: "20%",
     },
     {
       title: "Gender",
       dataIndex: "gender",
       key: "gender",
-      width: "10%", // Adjust width for compact design
+      width: "10%",
     },
     {
       title: "Role",
       dataIndex: ["role", "label"],
       key: "role",
-      width: "10%", // Adjust width for compact design
+      width: "10%",
+    },
+    {
+      title: "Permission",
+      dataIndex: ["permission", "permissionName"],
+      key: "permission",
+      width: "15%",
+    },
+    {
+      title: "Hotels",
+      key: "hotelID",
+      render: (_, record) => (
+        <span>
+          {record.hotelID?.map((item) => item.hotelName || item).join(", ")}
+        </span>
+      ),
+      width: "15%",
     },
     {
       title: "Actions",
@@ -296,13 +357,15 @@ const AgentInformation = () => {
             <Menu.Item
               key="edit"
               icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}>
+              onClick={() => handleEdit(record)}
+            >
               Edit
             </Menu.Item>
             <Menu.Item key="delete" icon={<DeleteOutlined />}>
               <Popconfirm
                 title="Are you sure you want to delete this category?"
-                onConfirm={() => handleDelete(record)}>
+                onConfirm={() => handleDelete(record)}
+              >
                 Delete
               </Popconfirm>
             </Menu.Item>
@@ -319,9 +382,6 @@ const AgentInformation = () => {
       },
     },
   ];
-  const handleTableChange = (pagination) => {
-    setPagination(pagination);
-  };
 
   return (
     <div className="">
@@ -332,7 +392,8 @@ const AgentInformation = () => {
           formik.resetForm();
           setVisible(true);
         }}
-        className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
+        className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white"
+      >
         Add New User
       </Button>
       <Spin spinning={loading}>
@@ -341,7 +402,6 @@ const AgentInformation = () => {
           dataSource={users?.users}
           pagination={false}
           rowKey="key"
-          onChange={handleTableChange}
           scroll={{ x: true }}
         />
         <Pagination
@@ -354,12 +414,13 @@ const AgentInformation = () => {
         />
       </Spin>
 
-      {/* User Modal */}
       <Modal
         title={isEditing ? "Edit User" : "Add New User"}
         visible={visible}
         onCancel={() => setVisible(false)}
-        footer={null}>
+        footer={null}
+        width={800}
+      >
         <form onSubmit={formik.handleSubmit}>
           <div className="mb-4">
             <label htmlFor="username" className="block mb-1">
@@ -450,7 +511,8 @@ const AgentInformation = () => {
               name="gender"
               required
               onChange={(e) => formik.setFieldValue("gender", e.target.value)}
-              value={formik.values.gender}>
+              value={formik.values.gender}
+            >
               <Radio value="male">Male</Radio>
               <Radio value="female">Female</Radio>
               <Radio value="other">Other</Radio>
@@ -461,16 +523,60 @@ const AgentInformation = () => {
               Role
             </label>
             <Select
-              className="w-full" // Full width
+              className="w-full"
               id="role"
               placeholder="Select Role"
-              showSearch // Enable search functionality
-              optionFilterProp="children" // Filter based on option label
+              showSearch
+              optionFilterProp="children"
               value={formik.values.role}
-              onChange={(value) => formik.setFieldValue("role", value)}>
+              onChange={(value) => formik.setFieldValue("role", value)}
+            >
               {roleInfo.map((role) => (
                 <Select.Option key={role.id} value={role.value}>
                   {role.label}
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="permissionID" className="block mb-1">
+              Permission
+            </label>
+            <Select
+              className="w-full"
+              id="permissionID"
+              placeholder="Select Permission"
+              showSearch
+              optionFilterProp="children"
+              value={formik.values.permissionID}
+              onChange={(value) => formik.setFieldValue("permissionID", value)}
+            >
+              {permissions.map((permission) => (
+                <Select.Option key={permission._id} value={permission._id}>
+                  {permission.permissionName}
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="hotelID" className="block mb-1">
+              Hotels
+            </label>
+            <Select
+              mode="multiple"
+              className="w-full"
+              id="hotelID"
+              placeholder="Select Hotels"
+              showSearch
+              optionFilterProp="children"
+              value={formik.values.hotelID}
+              onChange={(value) => formik.setFieldValue("hotelID", value)}
+            >
+              {hotels.map((hotel) => (
+                <Select.Option key={hotel?.hotelID} value={hotel?.hotelID}>
+                  {hotel?.hotelName}
                 </Select.Option>
               ))}
             </Select>
@@ -488,7 +594,8 @@ const AgentInformation = () => {
                 beforeUpload={() => false}
                 onChange={({ fileList }) =>
                   formik.setFieldValue("image", fileList[0]?.originFileObj)
-                }>
+                }
+              >
                 <Button icon={<UploadOutlined />}>Upload</Button>
               </Upload>
             </div>
@@ -497,7 +604,8 @@ const AgentInformation = () => {
             type="primary"
             loading={loading}
             htmlType="submit"
-            className="w-full bg-[#8ABF55] hover:bg-[#7DA54E] mt-2">
+            className="w-full bg-[#8ABF55] hover:bg-[#7DA54E] mt-2"
+          >
             {isEditing ? "Update User" : "Add User"}
           </Button>
         </form>

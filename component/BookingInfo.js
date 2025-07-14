@@ -30,10 +30,16 @@ import { v4 as uuidv4 } from "uuid";
 import coreAxios from "@/utils/axiosInstance";
 import { CopyOutlined } from "@ant-design/icons";
 import Link from "next/link"; // For routing
+import NoPermissionBanner from "./Permission/NoPermissionBanner";
 
-const BookingInfo = () => {
+const BookingInfo = ({ hotelID }) => {
+  const userInfo2 = JSON.parse(localStorage.getItem("userInfo"));
+  const userHotelID = hotelID;
+  const permission = userInfo2?.permission?.permissions;
+  const bookingPermissions =
+    permission?.find((perm) => perm.pageName === "Booking") || {};
+
   const [visible, setVisible] = useState(false);
-
   const [selectedHotel2, setSelectedHotel2] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editingKey, setEditingKey] = useState(null);
@@ -73,7 +79,7 @@ const BookingInfo = () => {
       // Retrieve user information from local storage
       const userInfo = JSON.parse(localStorage.getItem("userInfo"));
       const userRole = userInfo?.role?.value;
-      const userHotelID = userInfo?.hotelID;
+      const userHotelID = hotelID;
 
       // Fetch the hotel data
       const response = await coreAxios.get("hotel");
@@ -480,7 +486,7 @@ const BookingInfo = () => {
       // Retrieve user information from local storage
       const userInfo = JSON.parse(localStorage.getItem("userInfo"));
       const userRole = userInfo?.role?.value;
-      const userHotelID = userInfo?.hotelID;
+      const userHotelID = hotelID;
 
       // Fetch the bookings data
       const response = await coreAxios.get("bookings");
@@ -491,7 +497,7 @@ const BookingInfo = () => {
         // Filter bookings if the role is "hoteladmin"
         if (userRole === "hoteladmin" && userHotelID) {
           bookingsData = bookingsData.filter(
-            (booking) => booking.hotelID === userHotelID
+            (booking) => booking.hotelID === Number(userHotelID)
           );
         }
 
@@ -909,699 +915,755 @@ const BookingInfo = () => {
 
   return (
     <div>
-      {loading ? (
-        <Spin tip="Loading...">
-          <Alert
-            message="Alert message title"
-            description="Further details about the context of this alert."
-            type="info"
-          />
-        </Spin>
-      ) : (
-        <div className="">
-          <div className="flex justify-between">
-            <Button
-              type="primary"
-              onClick={() => {
-                formik.resetForm();
-                setVisible(true);
-                setIsEditing(false);
-              }}
-              className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white">
-              Add New Booking
-            </Button>
-            {/* Hotel Selection Dropdown */}
+      {bookingPermissions.viewAccess ? (
+        <>
+          <div>
+            {loading ? (
+              <Spin tip="Loading...">
+                <Alert
+                  message="Alert message title"
+                  description="Further details about the context of this alert."
+                  type="info"
+                />
+              </Spin>
+            ) : (
+              <div className="">
+                <div className="flex justify-between">
+                  {bookingPermissions?.insertAccess && (
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        formik.resetForm();
+                        setVisible(true);
+                        setIsEditing(false);
+                      }}
+                      className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white"
+                    >
+                      Add New Booking
+                    </Button>
+                  )}
+                  {/* Hotel Selection Dropdown */}
 
-            <Select
-              name="hotelName2"
-              placeholder="Select a Hotel"
-              value={formik.values.hotelName2}
-              style={{ width: 300 }}
-              onChange={handleHotelChange}>
-              {hotelInfo.map((hotel) => (
-                <Select.Option key={hotel.hotelID} value={hotel.hotelID}>
-                  {hotel.hotelName}
-                </Select.Option>
-              ))}
-            </Select>
+                  <Select
+                    name="hotelName2"
+                    placeholder="Select a Hotel"
+                    value={formik.values.hotelName2}
+                    style={{ width: 300 }}
+                    onChange={handleHotelChange}
+                  >
+                    {hotelInfo.map((hotel) => (
+                      <Select.Option key={hotel.hotelID} value={hotel.hotelID}>
+                        {hotel.hotelName}
+                      </Select.Option>
+                    ))}
+                  </Select>
 
-            {/* Global Search Input */}
-            <Input
-              placeholder="Search bookings..."
-              value={searchText}
-              onChange={handleSearch}
-              style={{ width: 300, marginBottom: 20 }}
-            />
-          </div>
+                  {/* Global Search Input */}
+                  <Input
+                    placeholder="Search bookings..."
+                    value={searchText}
+                    onChange={handleSearch}
+                    style={{ width: 300, marginBottom: 20 }}
+                  />
+                </div>
 
-          <div className="relative overflow-x-auto shadow-md">
-            <div style={{ overflowX: "auto" }}>
-              <table className="w-full text-xs text-left rtl:text-right  dark:text-gray-400">
-                {/* Table Header */}
-                <thead className="text-xs  uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                  <tr>
-                    <th className="border border-tableBorder text-center p-2">
-                      Booking No.
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Invoice No.
-                    </th>
+                <div className="relative overflow-x-auto shadow-md">
+                  <div style={{ overflowX: "auto" }}>
+                    <table className="w-full text-xs text-left rtl:text-right  dark:text-gray-400">
+                      {/* Table Header */}
+                      <thead className="text-xs  uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                          <th className="border border-tableBorder text-center p-2">
+                            Booking No.
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Invoice No.
+                          </th>
 
-                    <th className="border border-tableBorder text-center p-2">
-                      Guest Name
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Phone
-                    </th>
-                    {/* <th className="border border-tableBorder text-center p-2">
+                          <th className="border border-tableBorder text-center p-2">
+                            Guest Name
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Phone
+                          </th>
+                          {/* <th className="border border-tableBorder text-center p-2">
                       Hotel
                     </th> */}
-                    <th className="border border-tableBorder text-center p-2">
-                      Flat Type
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Flat No/Unit
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Booking Date
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Check In
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Check Out
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Nights
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Advance
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Total
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Status
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Confirm/Cancel By
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Updated By
-                    </th>
-                    <th className="border border-tableBorder text-center p-2">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
+                          <th className="border border-tableBorder text-center p-2">
+                            Flat Type
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Flat No/Unit
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Booking Date
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Check In
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Check Out
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Nights
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Advance
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Total
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Status
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Confirm/Cancel By
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Updated By
+                          </th>
+                          <th className="border border-tableBorder text-center p-2">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
 
-                {/* Table Body */}
-                <tbody>
-                  {paginatedBookings?.map((booking, idx) => (
-                    <tr
-                      key={booking._id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800"
-                      style={{
-                        backgroundColor:
-                          booking.statusID === 255
-                            ? "rgba(255, 99, 99, 0.5)"
-                            : "",
-                      }}>
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking?.serialNo}
-                      </td>
-                      {/* Booking No with Link and Copy Feature */}
+                      {/* Table Body */}
+                      <tbody>
+                        {paginatedBookings?.map((booking, idx) => (
+                          <tr
+                            key={booking._id}
+                            className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                            style={{
+                              backgroundColor:
+                                booking.statusID === 255
+                                  ? "rgba(255, 99, 99, 0.5)"
+                                  : "",
+                            }}
+                          >
+                            <td className="border border-tableBorder text-center p-2">
+                              {booking?.serialNo}
+                            </td>
+                            {/* Booking No with Link and Copy Feature */}
 
-                      <td className="border border-tableBorder text-center p-2">
-                        <span
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}>
-                          <Link
-                            target="_blank"
-                            href={`/dashboard/${booking.bookingNo}`}
-                            passHref>
-                            <p
-                              style={{
-                                color: "#1890ff",
-                                cursor: "pointer",
-                                marginRight: 8,
-                              }}>
-                              {booking.bookingNo}
-                            </p>
-                          </Link>
-                          <Tooltip title="Click to copy">
-                            <CopyToClipboard
-                              text={booking.bookingNo}
-                              onCopy={() => message.success("Copied!")}>
-                              <CopyOutlined
-                                style={{ cursor: "pointer", color: "#1890ff" }}
-                              />
-                            </CopyToClipboard>
-                          </Tooltip>
-                        </span>
-                      </td>
-                      {/* Booked By */}
-                      {/* Guest Name */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking.fullName}
-                      </td>
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking.phone}
-                      </td>
-                      {/* Hotel Name */}
-                      {/* <td className="border border-tableBorder text-center p-2">
+                            <td className="border border-tableBorder text-center p-2">
+                              <span
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <Link
+                                  target="_blank"
+                                  href={`/dashboard/${booking.bookingNo}`}
+                                  passHref
+                                >
+                                  <p
+                                    style={{
+                                      color: "#1890ff",
+                                      cursor: "pointer",
+                                      marginRight: 8,
+                                    }}
+                                  >
+                                    {booking.bookingNo}
+                                  </p>
+                                </Link>
+                                <Tooltip title="Click to copy">
+                                  <CopyToClipboard
+                                    text={booking.bookingNo}
+                                    onCopy={() => message.success("Copied!")}
+                                  >
+                                    <CopyOutlined
+                                      style={{
+                                        cursor: "pointer",
+                                        color: "#1890ff",
+                                      }}
+                                    />
+                                  </CopyToClipboard>
+                                </Tooltip>
+                              </span>
+                            </td>
+                            {/* Booked By */}
+                            {/* Guest Name */}
+                            <td className="border border-tableBorder text-center p-2">
+                              {booking.fullName}
+                            </td>
+                            <td className="border border-tableBorder text-center p-2">
+                              {booking.phone}
+                            </td>
+                            {/* Hotel Name */}
+                            {/* <td className="border border-tableBorder text-center p-2">
                         {booking.hotelName}
                       </td> */}
-                      {/* Flat Type */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking.roomCategoryName}
-                      </td>
-                      {/* Flat No/Unit */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking.roomNumberName}
-                      </td>
-                      {/* Check In */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {moment(booking.createTime).format("D MMM YYYY")}
-                      </td>
-                      {/* Check In */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {moment(booking.checkInDate).format("D MMM YYYY")}
-                      </td>
-                      {/* Check Out */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {moment(booking.checkOutDate).format("D MMM YYYY")}
-                      </td>
-                      {/* Nights */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking.nights}
-                      </td>
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking.advancePayment}
-                      </td>
-                      {/* Total Bill */}
-                      <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
-                        {booking.totalBill}
-                      </td>
-                      {/* Booking Status */}
-                      <td
-                        className="border border-tableBorder text-center p-2 font-bold"
-                        style={{
-                          color: booking.statusID === 255 ? "red" : "green", // Inline style for text color
-                        }}>
-                        {booking.statusID === 255 ? (
-                          <p>Canceled</p>
-                        ) : (
-                          "Confirmed"
-                        )}
-                      </td>
-                      <td className="border border-tableBorder text-center p-2  text-green-900">
-                        <p className="font-semibold">
-                          {booking?.statusID === 255
-                            ? booking?.canceledBy
-                            : booking?.bookedByID}
-                        </p>
-                        {booking?.reason && (
-                          <p className="text-[7px]">[{booking?.reason}]</p>
-                        )}
-                      </td>
+                            {/* Flat Type */}
+                            <td className="border border-tableBorder text-center p-2">
+                              {booking.roomCategoryName}
+                            </td>
+                            {/* Flat No/Unit */}
+                            <td className="border border-tableBorder text-center p-2">
+                              {booking.roomNumberName}
+                            </td>
+                            {/* Check In */}
+                            <td className="border border-tableBorder text-center p-2">
+                              {moment(booking.createTime).format("D MMM YYYY")}
+                            </td>
+                            {/* Check In */}
+                            <td className="border border-tableBorder text-center p-2">
+                              {moment(booking.checkInDate).format("D MMM YYYY")}
+                            </td>
+                            {/* Check Out */}
+                            <td className="border border-tableBorder text-center p-2">
+                              {moment(booking.checkOutDate).format(
+                                "D MMM YYYY"
+                              )}
+                            </td>
+                            {/* Nights */}
+                            <td className="border border-tableBorder text-center p-2">
+                              {booking.nights}
+                            </td>
+                            <td className="border border-tableBorder text-center p-2">
+                              {booking.advancePayment}
+                            </td>
+                            {/* Total Bill */}
+                            <td className="border border-tableBorder text-center p-2 font-bold text-green-900">
+                              {booking.totalBill}
+                            </td>
+                            {/* Booking Status */}
+                            <td
+                              className="border border-tableBorder text-center p-2 font-bold"
+                              style={{
+                                color:
+                                  booking.statusID === 255 ? "red" : "green", // Inline style for text color
+                              }}
+                            >
+                              {booking.statusID === 255 ? (
+                                <p>Canceled</p>
+                              ) : (
+                                "Confirmed"
+                              )}
+                            </td>
+                            <td className="border border-tableBorder text-center p-2  text-green-900">
+                              <p className="font-semibold">
+                                {booking?.statusID === 255
+                                  ? booking?.canceledBy
+                                  : booking?.bookedByID}
+                              </p>
+                              {booking?.reason && (
+                                <p className="text-[7px]">
+                                  [{booking?.reason}]
+                                </p>
+                              )}
+                            </td>
 
-                      <td className="border  border-tableBorder text-center   text-blue-900">
-                        {booking?.updatedByID}{" "}
-                        {booking?.updatedByID &&
-                          dayjs(booking?.updatedAt).format(
-                            "D MMM, YYYY (h:mm a)"
-                          )}
-                      </td>
+                            <td className="border  border-tableBorder text-center   text-blue-900">
+                              {booking?.updatedByID}{" "}
+                              {booking?.updatedByID &&
+                                dayjs(booking?.updatedAt).format(
+                                  "D MMM, YYYY (h:mm a)"
+                                )}
+                            </td>
 
-                      {/* Actions */}
-                      <td className="border border-tableBorder text-center p-2">
-                        {booking?.statusID === 1 && (
-                          <div className="flex">
-                            <Button onClick={() => handleEdit(booking)}>
-                              Edit
-                            </Button>
-                            <Popconfirm
-                              title="Are you sure to delete this booking?"
-                              onConfirm={() => handleDelete(booking)}>
-                              <Button type="link" danger>
-                                Cancel
-                              </Button>
-                            </Popconfirm>
-                          </div>
-                        )}
+                            {/* Actions */}
+                            <td className="border border-tableBorder text-center p-2">
+                              {booking?.statusID === 1 && (
+                                <div className="flex">
+                                  {bookingPermissions?.editAccess && (
+                                    <Button onClick={() => handleEdit(booking)}>
+                                      Edit
+                                    </Button>
+                                  )}
+                                  {bookingPermissions?.deleteAccess && (
+                                    <Popconfirm
+                                      title="Are you sure to delete this booking?"
+                                      onConfirm={() => handleDelete(booking)}
+                                    >
+                                      <Button type="link" danger>
+                                        Cancel
+                                      </Button>
+                                    </Popconfirm>
+                                  )}
+                                </div>
+                              )}
 
-                        {/* Cancellation Modal */}
-                        <Modal
-                          title="Cancel Booking"
-                          visible={isModalVisible}
-                          onOk={handleOk}
-                          onCancel={handleCancel}
-                          confirmLoading={loading}
-                          okText="Confirm Cancellation"
-                          cancelText="Cancel"
-                          className="custom-modal"
-                          // Apply backdrop filter to blur the background
-                          destroyOnClose={true} // Optional: Clean up modal on close
-                        >
-                          <div>
-                            <label htmlFor="reason" className="font-medium">
-                              Cancellation Reason:
-                            </label>
+                              {/* Cancellation Modal */}
+                              <Modal
+                                title="Cancel Booking"
+                                visible={isModalVisible}
+                                onOk={handleOk}
+                                onCancel={handleCancel}
+                                confirmLoading={loading}
+                                okText="Confirm Cancellation"
+                                cancelText="Cancel"
+                                className="custom-modal"
+                                // Apply backdrop filter to blur the background
+                                destroyOnClose={true} // Optional: Clean up modal on close
+                              >
+                                <div>
+                                  <label
+                                    htmlFor="reason"
+                                    className="font-medium"
+                                  >
+                                    Cancellation Reason:
+                                  </label>
+                                  <Input
+                                    type="text"
+                                    id="reason"
+                                    value={cancellationReason}
+                                    onChange={handleCancelReasonChange}
+                                    placeholder="Enter cancellation reason"
+                                    autoFocus
+                                  />
+                                </div>
+                              </Modal>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination (commented out) */}
+
+                  <div className="flex justify-center p-2">
+                    <Pagination
+                      current={pagination.current}
+                      pageSize={pagination.pageSize}
+                      total={filteredBookings?.length}
+                      onChange={(page, pageSize) =>
+                        setPagination({ current: page, pageSize })
+                      } // Update both current page and pageSize
+                      className="mt-4"
+                    />
+                  </div>
+                </div>
+
+                <Modal
+                  title={isEditing ? "Edit Booking" : "Create Booking"}
+                  open={visible}
+                  onCancel={() => setVisible(false)}
+                  footer={null}
+                  width={800}
+                >
+                  <Form onFinish={formik.handleSubmit} layout="vertical">
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Prev Booking No." className="mb-2">
+                          <Input
+                            name="reference"
+                            value={formik.values.reference}
+                            onChange={formik.handleChange}
+                            onBlur={handleBlur} // Call API when the user leaves the input
+                          />
+                        </Form.Item>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Full Name" className="mb-2">
+                          <Input
+                            name="fullName"
+                            value={formik.values.fullName}
+                            onChange={formik.handleChange}
+                            required={true}
+                          />
+                        </Form.Item>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="NID/Passport" className="mb-2">
+                          <Input
+                            name="nidPassport"
+                            value={formik.values.nidPassport}
+                            onChange={formik.handleChange}
+                            required={false}
+                          />
+                        </Form.Item>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Address" className="mb-2">
+                          <Input
+                            name="address"
+                            value={formik.values.address}
+                            onChange={formik.handleChange}
+                            required={false}
+                          />
+                        </Form.Item>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Phone Number" className="mb-2">
+                          <Input
+                            name="phone"
+                            value={formik.values.phone}
+                            onChange={formik.handleChange}
+                            required={true}
+                          />
+                        </Form.Item>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="E-mail" className="mb-2">
+                          <Input
+                            name="email"
+                            value={formik.values.email}
+                            onChange={formik.handleChange}
+                            required={false}
+                          />
+                        </Form.Item>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Check In Date" className="mb-2">
+                          <DatePicker
+                            name="checkInDate"
+                            value={formik.values.checkInDate}
+                            required={true}
+                            onChange={handleCheckInChange}
+                          />
+                        </Form.Item>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Check Out Date" className="mb-2">
+                          <DatePicker
+                            name="checkOutDate"
+                            required={true}
+                            value={formik.values.checkOutDate}
+                            onChange={handleCheckOutChange}
+                          />
+                        </Form.Item>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Hotel Name" className="mb-2">
+                          <Select
+                            name="hotelName"
+                            value={formik.values.hotelName}
+                            onChange={handleHotelInfo}
+                          >
+                            {hotelInfo.map((hotel) => (
+                              <Select.Option
+                                key={hotel.hotelID}
+                                value={hotel.hotelID}
+                              >
+                                {hotel.hotelName}
+                              </Select.Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Room Categories" className="mb-2">
+                          <Select
+                            name="roomCategoryID"
+                            value={formik.values.roomCategoryName}
+                            onChange={handleRoomCategoryChange}
+                          >
+                            {roomCategories.map((category) => (
+                              <Select.Option
+                                key={category._id}
+                                value={category._id}
+                              >
+                                {category.name}
+                              </Select.Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Room Number" className="mb-2">
+                          <Select
+                            name="roomNumberID"
+                            value={formik.values.roomNumberName}
+                            onChange={(value) => {
+                              const selectedRoom = roomNumbers.find(
+                                (room) => room._id === value
+                              );
+                              formik.setFieldValue("roomNumberID", value);
+                              formik.setFieldValue(
+                                "roomNumberName",
+                                selectedRoom ? selectedRoom.name : ""
+                              );
+                            }}
+                          >
+                            {roomNumbers.map((room) => (
+                              <Select.Option key={room._id} value={room._id}>
+                                {room.name}
+                              </Select.Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Room Price" className="mb-2">
+                          <Input
+                            name="roomPrice"
+                            value={formik.values.roomPrice}
+                            onChange={(e) => {
+                              formik.handleChange(e);
+
+                              // Calculate and update totalBill
+                              const roomPrice = e.target.value;
+                              const nights = formik.values.nights;
+                              const kitchenTotalBill =
+                                formik.values.kitchenTotalBill || 0;
+                              const extraBedTotalBill =
+                                formik.values.extraBedTotalBill || 0;
+
+                              const totalBill =
+                                (nights && roomPrice ? nights * roomPrice : 0) +
+                                parseFloat(kitchenTotalBill) +
+                                parseFloat(extraBedTotalBill);
+
+                              formik.setFieldValue("totalBill", totalBill);
+                            }}
+                            required={true}
+                          />
+                        </Form.Item>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Number of Adults" className="mb-2">
+                          <Input
+                            name="adults"
+                            value={formik.values.adults}
+                            onChange={formik.handleChange}
+                            required={false}
+                          />
+                        </Form.Item>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Number of Children" className="mb-2">
+                          <Input
+                            name="children"
+                            value={formik.values.children}
+                            onChange={formik.handleChange}
+                            required={false}
+                          />
+                        </Form.Item>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Number of Nights" className="mb-2">
+                          <Input
+                            name="nights"
+                            value={formik.values.nights}
+                            onChange={(e) => {
+                              formik.handleChange(e);
+
+                              // Calculate and update totalBill
+                              const nights = e.target.value;
+                              const roomPrice = formik.values.roomPrice;
+                              const kitchenTotalBill =
+                                formik.values.kitchenTotalBill || 0;
+                              const extraBedTotalBill =
+                                formik.values.extraBedTotalBill || 0;
+
+                              const totalBill =
+                                (nights && roomPrice ? nights * roomPrice : 0) +
+                                parseFloat(kitchenTotalBill) +
+                                parseFloat(extraBedTotalBill);
+
+                              formik.setFieldValue("totalBill", totalBill);
+                            }}
+                            required={true}
+                          />
+                        </Form.Item>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Total Bill" className="mb-2">
+                          <Input
+                            name="totalBill"
+                            value={formik.values.totalBill}
+                            readOnly // Making this field read-only to prevent manual editing
+                          />
+                        </Form.Item>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Advance Payment" className="mb-2">
+                          <Input
+                            name="advancePayment"
+                            required={true}
+                            value={formik.values.advancePayment}
+                            onChange={handleAdvancePaymentChange}
+                          />
+                        </Form.Item>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Due Payment" className="mb-2">
+                          <Input
+                            name="duePayment"
+                            value={formik.values.duePayment}
+                            readOnly
+                          />
+                        </Form.Item>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Payment Method" className="mb-2">
+                          <Select
+                            required={true}
+                            name="paymentMethod"
+                            value={formik.values.paymentMethod}
+                            onChange={(value) =>
+                              formik.setFieldValue("paymentMethod", value)
+                            }
+                          >
+                            <Select.Option value="BKASH">BKASH</Select.Option>
+                            <Select.Option value="NAGAD">NAGAD</Select.Option>
+                            <Select.Option value="BANK">BANK</Select.Option>
+                            <Select.Option value="CASH">CASH</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Transaction ID" className="mb-2">
+                          <Input
+                            required={true}
+                            name="transactionId"
+                            value={formik.values.transactionId}
+                            onChange={formik.handleChange}
+                          />
+                        </Form.Item>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      {/* Other fields in this row */}
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Is Kitchen?" className="mb-2">
+                          <Switch
+                            checked={formik.values.isKitchen} // Use formik's value for isKitchen
+                            onChange={(checked) =>
+                              formik.setFieldValue("isKitchen", checked)
+                            } // Update formik value on switch toggle
+                          />
+                        </Form.Item>
+                        {formik.values.isKitchen && ( // Conditionally render totalBill field if isKitchen is true
+                          <Form.Item
+                            label="Total Bill (Kitchen)"
+                            className="mb-2"
+                          >
                             <Input
-                              type="text"
-                              id="reason"
-                              value={cancellationReason}
-                              onChange={handleCancelReasonChange}
-                              placeholder="Enter cancellation reason"
-                              autoFocus
+                              type="number"
+                              value={formik.values.kitchenTotalBill || ""}
+                              onChange={(e) => {
+                                formik.setFieldValue(
+                                  "kitchenTotalBill",
+                                  e.target.value
+                                );
+
+                                // Recalculate totalBill
+                                const kitchenTotalBill = e.target.value || 0;
+                                const nights = formik.values.nights || 0;
+                                const roomPrice = formik.values.roomPrice || 0;
+                                const extraBedTotalBill =
+                                  formik.values.extraBedTotalBill || 0;
+
+                                const totalBill =
+                                  (nights && roomPrice
+                                    ? nights * roomPrice
+                                    : 0) +
+                                  parseFloat(kitchenTotalBill) +
+                                  parseFloat(extraBedTotalBill);
+
+                                formik.setFieldValue("totalBill", totalBill);
+                              }}
                             />
-                          </div>
-                        </Modal>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          </Form.Item>
+                        )}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Extra Bed?" className="mb-2">
+                          <Switch
+                            checked={formik.values.extraBed} // Use formik's value for extraBed
+                            onChange={(checked) =>
+                              formik.setFieldValue("extraBed", checked)
+                            } // Update formik value on switch toggle
+                          />
+                        </Form.Item>
+                        {formik.values.extraBed && ( // Conditionally render totalBill field if extraBed is true
+                          <Form.Item
+                            label="Total Bill (Extra Bed)"
+                            className="mb-2"
+                          >
+                            <Input
+                              type="number"
+                              value={formik.values.extraBedTotalBill || ""}
+                              onChange={(e) => {
+                                formik.setFieldValue(
+                                  "extraBedTotalBill",
+                                  e.target.value
+                                );
 
-            {/* Pagination (commented out) */}
+                                // Recalculate totalBill
+                                const extraBedTotalBill = e.target.value || 0;
+                                const nights = formik.values.nights || 0;
+                                const roomPrice = formik.values.roomPrice || 0;
+                                const kitchenTotalBill =
+                                  formik.values.kitchenTotalBill || 0;
 
-            <div className="flex justify-center p-2">
-              <Pagination
-                current={pagination.current}
-                pageSize={pagination.pageSize}
-                total={filteredBookings?.length}
-                onChange={(page, pageSize) =>
-                  setPagination({ current: page, pageSize })
-                } // Update both current page and pageSize
-                className="mt-4"
-              />
-            </div>
+                                const totalBill =
+                                  (nights && roomPrice
+                                    ? nights * roomPrice
+                                    : 0) +
+                                  parseFloat(kitchenTotalBill) +
+                                  parseFloat(extraBedTotalBill);
+
+                                formik.setFieldValue("totalBill", totalBill);
+                              }}
+                            />
+                          </Form.Item>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "16px" }}>
+                      <div style={{ flex: 1 }}>
+                        <Form.Item label="Note" className="mb-2">
+                          <Input
+                            name="note"
+                            value={formik.values.note}
+                            onChange={formik.handleChange}
+                          />
+                        </Form.Item>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      loading={loading}
+                      className="bg-[#8ABF55] hover:bg-[#7DA54E]"
+                    >
+                      {isEditing ? "Update Booking" : "Create Booking"}
+                    </Button>
+                  </Form>
+                </Modal>
+              </div>
+            )}
           </div>
-
-          <Modal
-            title={isEditing ? "Edit Booking" : "Create Booking"}
-            open={visible}
-            onCancel={() => setVisible(false)}
-            footer={null}
-            width={800}>
-            <Form onFinish={formik.handleSubmit} layout="vertical">
-              <div style={{ display: "flex", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Prev Booking No." className="mb-2">
-                    <Input
-                      name="reference"
-                      value={formik.values.reference}
-                      onChange={formik.handleChange}
-                      onBlur={handleBlur} // Call API when the user leaves the input
-                    />
-                  </Form.Item>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Full Name" className="mb-2">
-                    <Input
-                      name="fullName"
-                      value={formik.values.fullName}
-                      onChange={formik.handleChange}
-                      required={true}
-                    />
-                  </Form.Item>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="NID/Passport" className="mb-2">
-                    <Input
-                      name="nidPassport"
-                      value={formik.values.nidPassport}
-                      onChange={formik.handleChange}
-                      required={false}
-                    />
-                  </Form.Item>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Address" className="mb-2">
-                    <Input
-                      name="address"
-                      value={formik.values.address}
-                      onChange={formik.handleChange}
-                      required={false}
-                    />
-                  </Form.Item>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Phone Number" className="mb-2">
-                    <Input
-                      name="phone"
-                      value={formik.values.phone}
-                      onChange={formik.handleChange}
-                      required={true}
-                    />
-                  </Form.Item>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="E-mail" className="mb-2">
-                    <Input
-                      name="email"
-                      value={formik.values.email}
-                      onChange={formik.handleChange}
-                      required={false}
-                    />
-                  </Form.Item>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Check In Date" className="mb-2">
-                    <DatePicker
-                      name="checkInDate"
-                      value={formik.values.checkInDate}
-                      required={true}
-                      onChange={handleCheckInChange}
-                    />
-                  </Form.Item>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Check Out Date" className="mb-2">
-                    <DatePicker
-                      name="checkOutDate"
-                      required={true}
-                      value={formik.values.checkOutDate}
-                      onChange={handleCheckOutChange}
-                    />
-                  </Form.Item>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Hotel Name" className="mb-2">
-                    <Select
-                      name="hotelName"
-                      value={formik.values.hotelName}
-                      onChange={handleHotelInfo}>
-                      {hotelInfo.map((hotel) => (
-                        <Select.Option
-                          key={hotel.hotelID}
-                          value={hotel.hotelID}>
-                          {hotel.hotelName}
-                        </Select.Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Room Categories" className="mb-2">
-                    <Select
-                      name="roomCategoryID"
-                      value={formik.values.roomCategoryName}
-                      onChange={handleRoomCategoryChange}>
-                      {roomCategories.map((category) => (
-                        <Select.Option key={category._id} value={category._id}>
-                          {category.name}
-                        </Select.Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Room Number" className="mb-2">
-                    <Select
-                      name="roomNumberID"
-                      value={formik.values.roomNumberName}
-                      onChange={(value) => {
-                        const selectedRoom = roomNumbers.find(
-                          (room) => room._id === value
-                        );
-                        formik.setFieldValue("roomNumberID", value);
-                        formik.setFieldValue(
-                          "roomNumberName",
-                          selectedRoom ? selectedRoom.name : ""
-                        );
-                      }}>
-                      {roomNumbers.map((room) => (
-                        <Select.Option key={room._id} value={room._id}>
-                          {room.name}
-                        </Select.Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Room Price" className="mb-2">
-                    <Input
-                      name="roomPrice"
-                      value={formik.values.roomPrice}
-                      onChange={(e) => {
-                        formik.handleChange(e);
-
-                        // Calculate and update totalBill
-                        const roomPrice = e.target.value;
-                        const nights = formik.values.nights;
-                        const kitchenTotalBill =
-                          formik.values.kitchenTotalBill || 0;
-                        const extraBedTotalBill =
-                          formik.values.extraBedTotalBill || 0;
-
-                        const totalBill =
-                          (nights && roomPrice ? nights * roomPrice : 0) +
-                          parseFloat(kitchenTotalBill) +
-                          parseFloat(extraBedTotalBill);
-
-                        formik.setFieldValue("totalBill", totalBill);
-                      }}
-                      required={true}
-                    />
-                  </Form.Item>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Number of Adults" className="mb-2">
-                    <Input
-                      name="adults"
-                      value={formik.values.adults}
-                      onChange={formik.handleChange}
-                      required={false}
-                    />
-                  </Form.Item>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Number of Children" className="mb-2">
-                    <Input
-                      name="children"
-                      value={formik.values.children}
-                      onChange={formik.handleChange}
-                      required={false}
-                    />
-                  </Form.Item>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Number of Nights" className="mb-2">
-                    <Input
-                      name="nights"
-                      value={formik.values.nights}
-                      onChange={(e) => {
-                        formik.handleChange(e);
-
-                        // Calculate and update totalBill
-                        const nights = e.target.value;
-                        const roomPrice = formik.values.roomPrice;
-                        const kitchenTotalBill =
-                          formik.values.kitchenTotalBill || 0;
-                        const extraBedTotalBill =
-                          formik.values.extraBedTotalBill || 0;
-
-                        const totalBill =
-                          (nights && roomPrice ? nights * roomPrice : 0) +
-                          parseFloat(kitchenTotalBill) +
-                          parseFloat(extraBedTotalBill);
-
-                        formik.setFieldValue("totalBill", totalBill);
-                      }}
-                      required={true}
-                    />
-                  </Form.Item>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Total Bill" className="mb-2">
-                    <Input
-                      name="totalBill"
-                      value={formik.values.totalBill}
-                      readOnly // Making this field read-only to prevent manual editing
-                    />
-                  </Form.Item>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Advance Payment" className="mb-2">
-                    <Input
-                      name="advancePayment"
-                      required={true}
-                      value={formik.values.advancePayment}
-                      onChange={handleAdvancePaymentChange}
-                    />
-                  </Form.Item>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Due Payment" className="mb-2">
-                    <Input
-                      name="duePayment"
-                      value={formik.values.duePayment}
-                      readOnly
-                    />
-                  </Form.Item>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Payment Method" className="mb-2">
-                    <Select
-                      required={true}
-                      name="paymentMethod"
-                      value={formik.values.paymentMethod}
-                      onChange={(value) =>
-                        formik.setFieldValue("paymentMethod", value)
-                      }>
-                      <Select.Option value="BKASH">BKASH</Select.Option>
-                      <Select.Option value="NAGAD">NAGAD</Select.Option>
-                      <Select.Option value="BANK">BANK</Select.Option>
-                      <Select.Option value="CASH">CASH</Select.Option>
-                    </Select>
-                  </Form.Item>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Transaction ID" className="mb-2">
-                    <Input
-                      required={true}
-                      name="transactionId"
-                      value={formik.values.transactionId}
-                      onChange={formik.handleChange}
-                    />
-                  </Form.Item>
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: "16px" }}>
-                {/* Other fields in this row */}
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Is Kitchen?" className="mb-2">
-                    <Switch
-                      checked={formik.values.isKitchen} // Use formik's value for isKitchen
-                      onChange={(checked) =>
-                        formik.setFieldValue("isKitchen", checked)
-                      } // Update formik value on switch toggle
-                    />
-                  </Form.Item>
-                  {formik.values.isKitchen && ( // Conditionally render totalBill field if isKitchen is true
-                    <Form.Item label="Total Bill (Kitchen)" className="mb-2">
-                      <Input
-                        type="number"
-                        value={formik.values.kitchenTotalBill || ""}
-                        onChange={(e) => {
-                          formik.setFieldValue(
-                            "kitchenTotalBill",
-                            e.target.value
-                          );
-
-                          // Recalculate totalBill
-                          const kitchenTotalBill = e.target.value || 0;
-                          const nights = formik.values.nights || 0;
-                          const roomPrice = formik.values.roomPrice || 0;
-                          const extraBedTotalBill =
-                            formik.values.extraBedTotalBill || 0;
-
-                          const totalBill =
-                            (nights && roomPrice ? nights * roomPrice : 0) +
-                            parseFloat(kitchenTotalBill) +
-                            parseFloat(extraBedTotalBill);
-
-                          formik.setFieldValue("totalBill", totalBill);
-                        }}
-                      />
-                    </Form.Item>
-                  )}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Extra Bed?" className="mb-2">
-                    <Switch
-                      checked={formik.values.extraBed} // Use formik's value for extraBed
-                      onChange={(checked) =>
-                        formik.setFieldValue("extraBed", checked)
-                      } // Update formik value on switch toggle
-                    />
-                  </Form.Item>
-                  {formik.values.extraBed && ( // Conditionally render totalBill field if extraBed is true
-                    <Form.Item label="Total Bill (Extra Bed)" className="mb-2">
-                      <Input
-                        type="number"
-                        value={formik.values.extraBedTotalBill || ""}
-                        onChange={(e) => {
-                          formik.setFieldValue(
-                            "extraBedTotalBill",
-                            e.target.value
-                          );
-
-                          // Recalculate totalBill
-                          const extraBedTotalBill = e.target.value || 0;
-                          const nights = formik.values.nights || 0;
-                          const roomPrice = formik.values.roomPrice || 0;
-                          const kitchenTotalBill =
-                            formik.values.kitchenTotalBill || 0;
-
-                          const totalBill =
-                            (nights && roomPrice ? nights * roomPrice : 0) +
-                            parseFloat(kitchenTotalBill) +
-                            parseFloat(extraBedTotalBill);
-
-                          formik.setFieldValue("totalBill", totalBill);
-                        }}
-                      />
-                    </Form.Item>
-                  )}
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <Form.Item label="Note" className="mb-2">
-                    <Input
-                      name="note"
-                      value={formik.values.note}
-                      onChange={formik.handleChange}
-                    />
-                  </Form.Item>
-                </div>
-              </div>
-
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={loading}
-                className="bg-[#8ABF55] hover:bg-[#7DA54E]">
-                {isEditing ? "Update Booking" : "Create Booking"}
-              </Button>
-            </Form>
-          </Modal>
-        </div>
+        </>
+      ) : (
+        <>
+          <NoPermissionBanner />
+        </>
       )}
     </div>
   );
