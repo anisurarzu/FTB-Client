@@ -24,7 +24,7 @@ import {
 } from "@ant-design/icons";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import DashboardHome from "@/component/DashboardHome";
 import AgentInformation from "@/component/AgentInformation";
 import HotelCategory from "@/component/HotelCategory";
@@ -53,35 +53,30 @@ const rolePermissions = {
       key: "7",
       label: "Calendar",
       icon: <CalendarOutlined />,
-
       component: (props) => <Calender {...props} />,
     },
     {
       key: "9",
       label: "Room Availability",
       icon: <DashboardOutlined />,
-
       component: (props) => <RoomAvailabilityPage {...props} />,
     },
     {
       key: "6",
       label: "Booking Info",
       icon: <InfoCircleOutlined />,
-
       component: (props) => <BookingInfo {...props} />,
     },
     {
       key: "12",
       label: "Daily Statement",
       icon: <InfoCircleOutlined />,
-
       component: (props) => <DailyStatement {...props} />,
     },
     {
       key: "10",
       label: "Report Dashboard",
       icon: <InfoCircleOutlined />,
-
       component: (props) => <AllBookingInfo {...props} />,
     },
     {
@@ -108,7 +103,6 @@ const rolePermissions = {
       icon: <SettingOutlined />,
       component: <PermissionManagement />,
     },
-    // { key: "8", label: "Settings", icon: <SettingOutlined />, component: null },
   ],
   agentadmin: [
     {
@@ -121,21 +115,18 @@ const rolePermissions = {
       key: "7",
       label: "Calendar",
       icon: <CalendarOutlined />,
-
       component: (props) => <Calender {...props} />,
     },
     {
       key: "9",
       label: "Room Availability",
       icon: <DashboardOutlined />,
-
       component: (props) => <RoomAvailabilityPage {...props} />,
     },
     {
       key: "6",
       label: "Booking Info",
       icon: <InfoCircleOutlined />,
-
       component: (props) => <BookingInfo {...props} />,
     },
   ],
@@ -150,21 +141,18 @@ const rolePermissions = {
       key: "7",
       label: "Calendar",
       icon: <CalendarOutlined />,
-
       component: (props) => <Calender {...props} />,
     },
     {
       key: "9",
       label: "Room Availability",
       icon: <DashboardOutlined />,
-
       component: (props) => <RoomAvailabilityPage {...props} />,
     },
     {
       key: "6",
       label: "Booking Info",
       icon: <InfoCircleOutlined />,
-
       component: (props) => <BookingInfo {...props} />,
     },
   ],
@@ -185,21 +173,18 @@ const rolePermissions = {
       key: "7",
       label: "Calendar",
       icon: <CalendarOutlined />,
-
       component: (props) => <Calender {...props} />,
     },
     {
       key: "6",
       label: "Booking Info",
       icon: <SettingOutlined />,
-
       component: (props) => <BookingInfo {...props} />,
     },
     {
       key: "10",
       label: "Report Dashboard",
       icon: <InfoCircleOutlined />,
-
       component: (props) => <AllBookingInfo {...props} />,
     },
     {
@@ -217,7 +202,7 @@ const rolePermissions = {
   ],
 };
 
-const Dashboard = ({ sliders }) => {
+const DashboardContent = ({ sliders }) => {
   const { token } = useToken();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -419,6 +404,14 @@ const Dashboard = ({ sliders }) => {
         {renderMenuItems()}
       </Drawer>
     </Layout>
+  );
+};
+
+const Dashboard = ({ sliders }) => {
+  return (
+    <Suspense fallback={<div>Loading dashboard...</div>}>
+      <DashboardContent sliders={sliders} />
+    </Suspense>
   );
 };
 
