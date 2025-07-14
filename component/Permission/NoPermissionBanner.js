@@ -1,8 +1,18 @@
 import { Button, Result, Space } from "antd";
 import { motion } from "framer-motion";
-import { LockOutlined, MailOutlined } from "@ant-design/icons";
+import {
+  LockOutlined,
+  MailOutlined,
+  WhatsAppOutlined,
+} from "@ant-design/icons";
 
 const NoPermissionBanner = () => {
+  const whatsappNumber = "+8801515604845"; // Replace with actual number
+  const whatsappMessage = encodeURIComponent(
+    "Hello, I need access permissions for the dashboard."
+  );
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -24,7 +34,7 @@ const NoPermissionBanner = () => {
         }}
         whileHover={{ y: -2 }}
       >
-        <Space direction="vertical" size="middle">
+        <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <motion.div
             animate={{
               scale: [1, 1.05, 1],
@@ -49,23 +59,26 @@ const NoPermissionBanner = () => {
             style={{ padding: 0 }}
           />
 
-          <motion.div whileTap={{ scale: 0.95 }}>
-            <Button
-              type="primary"
-              size="middle"
-              icon={<MailOutlined />}
-              onClick={() =>
-                (window.location.href = "mailto:admin@example.com")
-              }
-              style={{
-                borderRadius: "6px",
-                width: "100%",
-                maxWidth: "240px",
-              }}
-            >
-              Contact Admin
-            </Button>
-          </motion.div>
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <motion.div whileTap={{ scale: 0.95 }} style={{ width: "100%" }}>
+              <Button
+                type="primary"
+                icon={<WhatsAppOutlined />}
+                href={whatsappUrl}
+                target="_blank"
+                style={{
+                  borderRadius: "6px",
+                  width: "100%",
+                  maxWidth: "240px",
+                  backgroundColor: "#25D366",
+                  borderColor: "#25D366",
+                  marginBottom: "8px",
+                }}
+              >
+                WhatsApp Admin
+              </Button>
+            </motion.div>
+          </Space>
         </Space>
       </motion.div>
     </motion.div>
