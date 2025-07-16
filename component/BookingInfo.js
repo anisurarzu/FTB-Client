@@ -79,7 +79,7 @@ const BookingInfo = ({ hotelID }) => {
       // Retrieve user information from local storage
       const userInfo = JSON.parse(localStorage.getItem("userInfo"));
       const userRole = userInfo?.role?.value;
-      const userHotelID = hotelID;
+      const userHotelID = Number(hotelID);
 
       // Fetch the hotel data
       const response = await coreAxios.get("hotel");
@@ -88,7 +88,7 @@ const BookingInfo = ({ hotelID }) => {
         let hotelData = response.data;
 
         // Apply filtering for "hoteladmin" role
-        if (userRole === "hoteladmin" && userHotelID) {
+        if (userRole !== "superAdmin" && userHotelID) {
           hotelData = hotelData.filter(
             (hotel) => hotel.hotelID === userHotelID
           );

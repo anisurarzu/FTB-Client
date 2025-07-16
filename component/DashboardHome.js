@@ -125,14 +125,14 @@ const DashboardHome = ({ hotelID }) => {
     try {
       const userInfo = JSON.parse(localStorage.getItem("userInfo"));
       const userRole = userInfo?.role?.value;
-      const userHotelID = userInfo?.hotelID;
+      const userHotelID = Number(hotelID);
 
       const response = await coreAxios.get("hotel");
 
       if (Array.isArray(response.data)) {
         let filteredHotels = response.data;
 
-        if (userRole === "hoteladmin" && userHotelID) {
+        if (userRole !== "superadmin" && userHotelID) {
           filteredHotels = filteredHotels.filter(
             (hotel) => hotel.hotelID === userHotelID
           );
