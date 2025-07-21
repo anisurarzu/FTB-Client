@@ -276,8 +276,8 @@ const Invoice = ({ params }) => {
                     <p>
                       {`Address: N.H.A Building No- 10, Hotel The Grand Sandy,Kolatoli, Cox’s Bazar`}
                     </p>
-                    <p>Front Desk no: 01898841017</p>
-                    <p>Reservation no: 01811822421</p>
+                    <p>Front Desk no: 01827689324</p>
+                    <p>Reservation no: 01898841017</p>
                   </div>
                 ) : (
                   <div className="text-center">
