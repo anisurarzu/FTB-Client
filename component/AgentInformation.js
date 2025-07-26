@@ -117,92 +117,66 @@ const AgentInformation = () => {
           (perm) => perm._id === values.permissionID
         );
 
+        const selectedRole = roleInfo.find(
+          (role) => role.value === values.role
+        );
+
+        if (!selectedRole) {
+          message.error("Invalid role selected.");
+          setLoading(false);
+          return;
+        }
+
+        const baseUser = {
+          username: values.username,
+          email: values.email,
+          phoneNumber: values.phoneNumber,
+          password: values?.password,
+          plainPassword: values?.password,
+          currentAddress: values.currentAddress,
+          gender: values.gender,
+          loginID: values.loginID,
+          role: {
+            id: selectedRole.id,
+            value: selectedRole.value,
+            label: selectedRole.label,
+          },
+          hotelID: hotelIDs,
+          permission: selectedPermission,
+        };
+
+        // Handle image upload (if needed)
+        if (values?.image && typeof values.image !== "string") {
+          baseUser.image = await handleImageUpload(values.image);
+        } else {
+          baseUser.image = values?.image || "";
+        }
+
         if (isEditing) {
-          const newUser = {
-            username: values.username,
-            email: values.email,
-            phoneNumber: values.phoneNumber,
-            password: values?.password,
-            plainPassword: values?.password,
-            currentAddress: values.currentAddress,
-            gender: values.gender,
-            loginID: values.loginID,
-            role: roleInfo.find((role) => role.value === values.role),
-            hotelID: hotelIDs,
-            permission: selectedPermission,
-          };
-
-          if (values?.image && typeof values.image !== "string") {
-            const imageUrl = await handleImageUpload(values?.image);
-            newUser.image = imageUrl;
-          } else if (values?.image) {
-            newUser.image = values.image;
-          }
-
           const response = await coreAxios.put(
             `auth/users/${editingKey}`,
-            newUser
+            baseUser
           );
           if (response?.status === 200) {
             message.success("User updated successfully!");
           }
         } else {
-          if (values?.image) {
-            const imageUrl = await handleImageUpload(values?.image);
-
-            const newUser = {
-              key: uuidv4(),
-              image: imageUrl,
-              username: values.username,
-              email: values.email,
-              phoneNumber: values.phoneNumber,
-              password: values?.password,
-              plainPassword: values?.password,
-              currentAddress: values.currentAddress,
-              gender: values.gender,
-              loginID: values.loginID,
-              role: roleInfo.find((role) => role.value === values.role),
-              hotelID: hotelIDs,
-              permission: selectedPermission,
-            };
-            const response = await coreAxios.post("/auth/register", newUser);
-
-            if (response?.status === 200) {
-              message.success("User added successfully!");
-            } else {
-              message.error(response?.error);
-            }
+          baseUser.key = uuidv4(); // Only add 'key' for new user
+          const response = await coreAxios.post("/auth/register", baseUser);
+          if (response?.status === 200) {
+            message.success("User added successfully!");
           } else {
-            const newUser = {
-              key: uuidv4(),
-              image: "",
-              username: values.username,
-              email: values.email,
-              phoneNumber: values.phoneNumber,
-              password: values?.password,
-              plainPassword: values?.password,
-              currentAddress: values.currentAddress,
-              gender: values.gender,
-              loginID: values.loginID,
-              role: roleInfo.find((role) => role.value === values.role),
-              hotelID: hotelIDs,
-              permission: selectedPermission,
-            };
-            const response = await coreAxios.post("/auth/register", newUser);
-
-            if (response?.status === 200) {
-              message.success("User added successfully!");
-            } else {
-              message.error(response?.error);
-            }
+            message.error(response?.error || "Error creating user.");
           }
         }
+
         resetForm();
         setVisible(false);
         setIsEditing(false);
         setEditingKey(null);
         fetchUsers();
       } catch (error) {
+        console.error("User submission error:", error);
         message.error("Failed to add/update user. Please try again.");
       } finally {
         setLoading(false);
