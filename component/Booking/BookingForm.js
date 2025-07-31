@@ -389,6 +389,22 @@ const BookingForm = ({
     setVisible(true);
     setIsEditing(true);
   };
+  const fetchBookingDetails = async (bookingNo) => {
+    try {
+      const response = await coreAxios.get(`/bookings/bookingNo/${bookingNo}`);
+      if (response?.status === 200) {
+        console.log("-----", response?.data?.[0]?.hotelID);
+        // Fetch hotel categories based on the hotelID from booking details
+        await fetchHotelCategories(response?.data?.[0]?.hotelID);
+      }
+      return response.data;
+    } catch (error) {
+      message.error(
+        "Failed to fetch booking details. Please check the booking number."
+      );
+      return null;
+    }
+  };
 
   const handleBlur = async (e) => {
     const { value } = e.target;
