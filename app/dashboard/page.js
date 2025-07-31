@@ -37,6 +37,7 @@ import AllBookingInfo from "@/component/AllBookingInfo";
 import ExpenseInfo from "@/component/Expense/ExpenseInfo";
 import DailyStatement from "@/component/DailyStatement";
 import PermissionManagement from "@/component/Permission/PermissionManagement";
+import BookingTable from "@/component/Booking/BookingTable";
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
@@ -65,7 +66,7 @@ const rolePermissions = {
       key: "6",
       label: "Booking Info",
       icon: <InfoCircleOutlined />,
-      component: (props) => <BookingInfo {...props} />,
+      component: (props) => <BookingTable {...props} />,
     },
     {
       key: "12",
