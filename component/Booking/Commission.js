@@ -115,14 +115,9 @@ const CommissionPage = ({ hotelID }) => {
         // Calculate commissions for each booking
         const bookingsWithCommissions = sortedBookings.map(booking => {
           const ftbCommission = booking.totalBill * 0.2; // 20% of total bill
-          let cashCommission = 0;
           
-          // Calculate cash commission based on payment method
-          if (booking.paymentMethod === 'CASH') {
-            cashCommission = booking.advancePayment - ftbCommission;
-          } else {
-            cashCommission = -ftbCommission; // Negative for non-cash payments
-          }
+          // Calculate cash commission: advancePayment - ftbCommission
+          const cashCommission =ftbCommission- booking.advancePayment;
           
           return {
             ...booking,
@@ -197,10 +192,8 @@ const CommissionPage = ({ hotelID }) => {
       "Transaction ID",
       "bKash",
       "Bank",
-      
       "FTB Commission",
       "Cash Commission",
-      
     ];
 
     // Table Rows
@@ -212,11 +205,10 @@ const CommissionPage = ({ hotelID }) => {
       booking.nights,
       booking.totalBill.toFixed(2),
       booking.transactionId,
-      booking.paymentMethod === 'bKash' ? booking.advancePayment.toFixed(2) : '-',
-      booking.paymentMethod === 'Bank' ? booking.advancePayment.toFixed(2) : '-',
+      booking.paymentMethod === 'BKASH' ? booking.advancePayment.toFixed(2) : '-',
+      booking.paymentMethod === 'BANK' ? booking.advancePayment.toFixed(2) : '-',
       booking.ftbCommission.toFixed(2),
       booking.cashCommission.toFixed(2),
-     
     ]);
 
     // Auto table
@@ -228,10 +220,10 @@ const CommissionPage = ({ hotelID }) => {
       headStyles: {
         fillColor: [22, 160, 133],
         textColor: [255, 255, 255],
-        fontSize: 6,
+        fontSize: 7,
       },
       bodyStyles: {
-        fontSize: 6,
+        fontSize: 7,
         halign: "center",
       },
       alternateRowStyles: { fillColor: [240, 240, 240] },
@@ -244,15 +236,11 @@ const CommissionPage = ({ hotelID }) => {
         .reduce((acc, b) => acc + b.totalBill, 0)
         .toFixed(2),
       bkash: filteredBookings
-        .filter(b => b.paymentMethod === 'bKash')
+        .filter(b => b.paymentMethod === 'BKASH')
         .reduce((acc, b) => acc + b.advancePayment, 0)
         .toFixed(2),
       bank: filteredBookings
-        .filter(b => b.paymentMethod === 'Bank')
-        .reduce((acc, b) => acc + b.advancePayment, 0)
-        .toFixed(2),
-      cash: filteredBookings
-        .filter(b => b.paymentMethod === 'Cash')
+        .filter(b => b.paymentMethod === 'BANK')
         .reduce((acc, b) => acc + b.advancePayment, 0)
         .toFixed(2),
       ftbCommission: filteredBookings
@@ -282,16 +270,14 @@ const CommissionPage = ({ hotelID }) => {
           "",
           `bKash: ${totals.bkash}`,
           `Bank: ${totals.bank}`,
-          `Cash: ${totals.cash}`,
           `FTB Commission: ${totals.ftbCommission}`,
           `Cash Commission: ${totals.cashCommission}`,
-          ""
         ],
       ],
       startY: finalY + 4,
       styles: {
         fillColor: [240, 240, 240],
-        fontSize: 7,
+        fontSize: 8,
         halign: "center",
         textColor: [0, 0, 0],
       },
@@ -312,8 +298,6 @@ const CommissionPage = ({ hotelID }) => {
       );
     doc.save(fileName);
   };
-
-  console.log('----',filteredBookings)
 
   return (
     <div style={{ padding: "20px" }}>
@@ -401,7 +385,7 @@ const CommissionPage = ({ hotelID }) => {
         </Spin>
       ) : (
         <div style={{ overflowX: "auto" }}>
-          <table border="1" style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px", minWidth: "1400px" }}>
+          <table border="1" style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px", minWidth: "1300px" }}>
             <thead>
               <tr>
                 <th style={{ border: "1px solid black", textAlign: "center", padding: "8px" }}>
@@ -431,14 +415,12 @@ const CommissionPage = ({ hotelID }) => {
                 <th style={{ border: "1px solid black", textAlign: "center", padding: "8px", backgroundColor: "#f6ffed" }}>
                   Bank
                 </th>
-                
                 <th style={{ border: "1px solid black", textAlign: "center", padding: "8px" }}>
                   FTB Commission
                 </th>
                 <th style={{ border: "1px solid black", textAlign: "center", padding: "8px" }}>
                   Cash Commission
                 </th>
-               
               </tr>
             </thead>
             <tbody>
@@ -472,7 +454,6 @@ const CommissionPage = ({ hotelID }) => {
                     <td style={{ border: "1px solid black", textAlign: "center", padding: "8px", backgroundColor: booking.paymentMethod === 'BANK' ? '#f6ffed' : 'transparent' }}>
                       {booking.paymentMethod === 'BANK' ? booking.advancePayment.toFixed(2) : '-'}
                     </td>
-                    
                     <td style={{ border: "1px solid black", textAlign: "center", padding: "8px" }}>
                       {booking.ftbCommission.toFixed(2)}
                     </td>
@@ -480,18 +461,17 @@ const CommissionPage = ({ hotelID }) => {
                       border: "1px solid black", 
                       textAlign: "center", 
                       padding: "8px",
-                      color: booking.cashCommission < 0 ? 'red' : 'black',
-                      fontWeight: booking.cashCommission < 0 ? 'bold' : 'normal'
+                      color: booking.cashCommission < 0 ? 'red' : 'green',
+                      fontWeight: booking.cashCommission < 0 ? 'bold' : 'bold'
                     }}>
                       {booking.cashCommission.toFixed(2)}
                     </td>
-                    
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan="13"
+                    colSpan="11"
                     style={{
                       textAlign: "center",
                       border: "1px solid black",
@@ -568,7 +548,6 @@ const CommissionPage = ({ hotelID }) => {
                       .reduce((sum, booking) => sum + booking.advancePayment, 0)
                       .toFixed(2)}
                   </td>
-                 
                   <td
                     style={{
                       border: "1px solid black",
@@ -596,7 +575,6 @@ const CommissionPage = ({ hotelID }) => {
                       0
                     ).toFixed(2)}
                   </td>
-                  
                 </tr>
               )}
             </tbody>
