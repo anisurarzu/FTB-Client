@@ -38,6 +38,7 @@ import ExpenseInfo from "@/component/Expense/ExpenseInfo";
 import DailyStatement from "@/component/DailyStatement";
 import PermissionManagement from "@/component/Permission/PermissionManagement";
 import BookingTable from "@/component/Booking/BookingTable";
+import Commission from "@/component/Booking/Commission";
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
@@ -79,6 +80,12 @@ const rolePermissions = {
       label: "Report Dashboard",
       icon: <InfoCircleOutlined />,
       component: (props) => <AllBookingInfo {...props} />,
+    },
+    {
+      key: "100",
+      label: "Commission",
+      icon: <InfoCircleOutlined />,
+      component: (props) => <Commission {...props} />,
     },
     {
       key: "100",
