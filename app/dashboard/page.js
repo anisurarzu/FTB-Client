@@ -66,7 +66,7 @@ const rolePermissions = {
       key: "6",
       label: "Booking Info",
       icon: <InfoCircleOutlined />,
-      component: (props) => <BookingInfo {...props} />,
+      component: (props) => <BookingTable {...props} />,
     },
     {
       key: "12",

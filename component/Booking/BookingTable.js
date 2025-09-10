@@ -255,6 +255,54 @@ const BookingTable = ({ hotelID }) => {
     pagination.current * pagination.pageSize
   );
 
+  const handleEdit = (record) => {
+    console.log("editeddata", record);
+    setEditingKey(record?._id);
+    setPrevData(record);
+    // formik.setValues(record);
+    fetchHotelCategories(record?.hotelID);
+    fetchRoomNumbers(record?.roomCategoryID);
+
+    const checkInDate = dayjs(record.checkInDate);
+    const checkOutDate = dayjs(record.checkOutDate);
+    if (record) {
+      formik.setValues({
+        ...formik.values,
+        bookedBy: record?.username,
+        isKitchen: record?.isKitchen,
+        kitchenTotalBill: record?.kitchenTotalBill,
+        extraBed: record?.extraBed,
+        extraBedTotalBill: record?.extraBedTotalBill,
+        bookedByID: record?.loginID,
+        updatedByID: userInfo ? userInfo?.loginID : "",
+        fullName: record.fullName,
+        nidPassport: record.nidPassport,
+        address: record.address,
+        phone: record.phone,
+        email: record.email,
+        hotelID: record.hotelID,
+        hotelName: record.hotelName,
+        roomCategoryName: record.roomCategoryName,
+        roomNumberID: record.roomNumberID,
+        roomNumberName: record?.roomNumberName,
+        roomPrice: record.roomPrice,
+        checkInDate: checkInDate,
+        checkOutDate: checkOutDate,
+        adults: record.adults,
+        children: record.children,
+        nights: record.nights,
+        totalBill: record.totalBill,
+        advancePayment: record.advancePayment,
+        duePayment: record.duePayment,
+        paymentMethod: record.paymentMethod,
+        transactionId: record.transactionId,
+        note: record.note,
+      });
+    }
+    setVisible(true);
+    setIsEditing(true);
+  };
+
   return (
     <div>
       {bookingPermissions.viewAccess ? (
