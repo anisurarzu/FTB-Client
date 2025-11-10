@@ -55,12 +55,12 @@ const BookingInfo = ({ hotelID }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
   const [currentBooking, setCurrentBooking] = useState(null);
-  const [checkInFilter, setCheckInFilter] = useState(null);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
   });
   const [searchText, setSearchText] = useState("");
+  const [checkInFilterDate, setCheckInFilterDate] = useState(null); // New state for check-in date filter
 
   const fetchRoomCategories = async () => {
     try {
@@ -723,16 +723,48 @@ const BookingInfo = ({ hotelID }) => {
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
     setSearchText(value);
-    const filteredData = bookings.filter(
-      (r) =>
-        r.bookingNo.toLowerCase().includes(value) ||
-        r.bookedByID.toLowerCase().includes(value) ||
-        r.fullName.toLowerCase().includes(value) ||
-        r.roomCategoryName.toLowerCase().includes(value) ||
-        r.roomNumberName.toLowerCase().includes(value) ||
-        r.hotelName.toLowerCase().includes(value) ||
-        r.phone.toLowerCase().includes(value)
-    );
+    applyFilters(value, checkInFilterDate);
+  };
+
+  // Handle check-in date filter change
+  const handleCheckInFilterChange = (date) => {
+    setCheckInFilterDate(date);
+    applyFilters(searchText, date);
+  };
+
+  // Clear check-in date filter
+  const clearCheckInFilter = () => {
+    setCheckInFilterDate(null);
+    applyFilters(searchText, null);
+  };
+
+  // Apply all filters
+  const applyFilters = (searchValue, checkInDate) => {
+    let filteredData = bookings;
+
+    // Apply text search filter
+    if (searchValue) {
+      filteredData = filteredData.filter(
+        (r) =>
+          r.bookingNo.toLowerCase().includes(searchValue) ||
+          r.bookedByID.toLowerCase().includes(searchValue) ||
+          r.fullName.toLowerCase().includes(searchValue) ||
+          r.roomCategoryName.toLowerCase().includes(searchValue) ||
+          r.roomNumberName.toLowerCase().includes(searchValue) ||
+          r.hotelName.toLowerCase().includes(searchValue) ||
+          r.phone.toLowerCase().includes(searchValue)
+      );
+    }
+
+    // Apply check-in date filter
+    if (checkInDate) {
+      const filterDate = dayjs(checkInDate).format("YYYY-MM-DD");
+      filteredData = filteredData.filter(
+        (booking) =>
+          dayjs(booking.checkInDate).format("YYYY-MM-DD") === filterDate
+      );
+    }
+
     setFilteredBookings(filteredData);
     setPagination({ ...pagination, current: 1 }); // Reset to page 1 after filtering
   };
@@ -914,48 +946,6 @@ const BookingInfo = ({ hotelID }) => {
     showModal(booking);
   };
 
-  const handleCheckInFilterChange = (date) => {
-    setCheckInFilter(date);
-    applyFilters(searchText, date);
-  };
-
-  // Clear check-in date filter
-  const clearCheckInFilter = () => {
-    setCheckInFilter(null);
-    applyFilters(searchText, null);
-  };
-
-  // Apply all filters (search text and check-in date)
-  const applyFilters = (searchValue, checkInDate) => {
-    let filteredData = bookings;
-
-    // Apply text search filter
-    if (searchValue) {
-      filteredData = filteredData.filter(
-        (r) =>
-          r.bookingNo.toLowerCase().includes(searchValue) ||
-          r.bookedByID.toLowerCase().includes(searchValue) ||
-          r.fullName.toLowerCase().includes(searchValue) ||
-          r.roomCategoryName.toLowerCase().includes(searchValue) ||
-          r.roomNumberName.toLowerCase().includes(searchValue) ||
-          r.hotelName.toLowerCase().includes(searchValue) ||
-          r.phone.toLowerCase().includes(searchValue)
-      );
-    }
-
-    // Apply check-in date filter
-    if (checkInDate) {
-      const filterDate = dayjs(checkInDate).format("YYYY-MM-DD");
-      filteredData = filteredData.filter((booking) => {
-        const bookingCheckIn = dayjs(booking.checkInDate).format("YYYY-MM-DD");
-        return bookingCheckIn === filterDate;
-      });
-    }
-
-    setFilteredBookings(filteredData);
-    setPagination({ ...pagination, current: 1 }); // Reset to page 1 after filtering
-  };
-
   return (
     <div>
       {bookingPermissions.viewAccess ? (
@@ -1001,16 +991,6 @@ const BookingInfo = ({ hotelID }) => {
                     ))}
                   </Select>
 
-                  <div className="flex flex-col">
-                    <DatePicker
-                      value={checkInFilter}
-                      onChange={handleCheckInFilterChange}
-                      placeholder="Filter by check-in date"
-                      style={{ width: 180 }}
-                      allowClear
-                      onClear={clearCheckInFilter}
-                    />
-                  </div>
                   {/* Global Search Input */}
                   <Input
                     placeholder="Search bookings..."
@@ -1018,6 +998,23 @@ const BookingInfo = ({ hotelID }) => {
                     onChange={handleSearch}
                     style={{ width: 300, marginBottom: 20 }}
                   />
+                </div>
+
+                {/* Check-in Date Filter */}
+                <div className="flex items-center mb-4">
+                  <span className="mr-2 font-medium">Check-in Date:</span>
+                  <DatePicker
+                    value={checkInFilterDate}
+                    onChange={handleCheckInFilterChange}
+                    format="YYYY-MM-DD"
+                    placeholder="Filter by check-in date"
+                    className="mr-2"
+                  />
+                  {checkInFilterDate && (
+                    <Button onClick={clearCheckInFilter} size="small">
+                      Clear
+                    </Button>
+                  )}
                 </div>
 
                 <div className="relative overflow-x-auto shadow-md">
