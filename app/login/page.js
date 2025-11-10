@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -80,6 +80,38 @@ const Login = () => {
       .required(t.required),
   });
 
+  const fetchPublicIP = useCallback(async () => {
+    try {
+      const response = await fetch("https://api64.ipify.org?format=json");
+      const data = await response.json();
+      setLocation((prev) => ({ ...prev, publicIP: data.ip }));
+    } catch (error) {
+      console.error("Error fetching public IP:", error);
+    }
+  }, []);
+
+  const getPrivateIP = useCallback(async () => {
+    try {
+      const peerConnection = new RTCPeerConnection({ iceServers: [] });
+      peerConnection.createDataChannel("");
+      peerConnection
+        .createOffer()
+        .then((offer) => peerConnection.setLocalDescription(offer));
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          const ipMatch = event.candidate.candidate.match(
+            /(?:\d{1,3}\.){3}\d{1,3}/
+          );
+          if (ipMatch) {
+            setLocation((prev) => ({ ...prev, privateIP: ipMatch[0] }));
+          }
+        }
+      };
+    } catch (error) {
+      console.error("Error getting private IP:", error);
+    }
+  }, []);
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -100,43 +132,11 @@ const Login = () => {
       );
     }
 
-    const fetchPublicIP = async () => {
-      try {
-        const response = await fetch("https://api64.ipify.org?format=json");
-        const data = await response.json();
-        setLocation((prev) => ({ ...prev, publicIP: data.ip }));
-      } catch (error) {
-        console.error("Error fetching public IP:", error);
-      }
-    };
-
-    const getPrivateIP = async () => {
-      try {
-        const peerConnection = new RTCPeerConnection({ iceServers: [] });
-        peerConnection.createDataChannel("");
-        peerConnection
-          .createOffer()
-          .then((offer) => peerConnection.setLocalDescription(offer));
-        peerConnection.onicecandidate = (event) => {
-          if (event.candidate) {
-            const ipMatch = event.candidate.candidate.match(
-              /(?:\d{1,3}\.){3}\d{1,3}/
-            );
-            if (ipMatch) {
-              setLocation((prev) => ({ ...prev, privateIP: ipMatch[0] }));
-            }
-          }
-        };
-      } catch (error) {
-        console.error("Error getting private IP:", error);
-      }
-    };
-
     fetchPublicIP();
     getPrivateIP();
-  }, []);
+  }, [fetchPublicIP, getPrivateIP]);
 
-  const fetchHotelInfoByIDs = async (hotelIDs) => {
+  const fetchHotelInfoByIDs = useCallback(async (hotelIDs) => {
     try {
       const response = await coreAxios.get("hotel");
       const allHotels = response.data || [];
@@ -147,7 +147,7 @@ const Login = () => {
     } catch (error) {
       message.error("Failed to load hotel data.");
     }
-  };
+  }, []);
 
   const handleSubmit = async (values, { setSubmitting }) => {
     setSubmitting(true);
@@ -223,6 +223,7 @@ const Login = () => {
                   width={96}
                   height={96}
                   className="w-24 h-24 object-contain rounded-lg"
+                  priority
                 />
               </div>
             </div>
@@ -283,6 +284,7 @@ const Login = () => {
                     width={64}
                     height={64}
                     className="w-16 h-16 object-contain rounded-lg"
+                    priority
                   />
                 </div>
               </div>
@@ -472,9 +474,11 @@ const Login = () => {
                         className="hotel-card"
                         onClick={() => handleHotelSelect(hotel.hotelID)}
                       >
-                        <img
+                        <Image
                           src={hotel.logo}
                           alt={hotel.hotelName}
+                          width={80}
+                          height={80}
                           className="hotel-logo"
                         />
                       </div>
