@@ -36,8 +36,8 @@ const Login = () => {
 
   const translations = {
     bn: {
-      title: "নেক্সা ইনভেন্টরিতে স্বাগতম",
-      subtitle: "আপনার সম্পূর্ণ ইনভেন্টরি ম্যানেজমেন্ট সমাধান",
+      title: "ফাস্ট ট্র্যাক বুকিংয়ে স্বাগতম",
+      subtitle: "আপনার সম্পূর্ণ বুকিং ম্যানেজমেন্ট সমাধান",
       userID: "ইউজার আইডি",
       password: "পাসওয়ার্ড",
       login: "লগইন করুন",
@@ -53,8 +53,8 @@ const Login = () => {
       logout: "লগআউট",
     },
     en: {
-      title: "Welcome to Nexa Inventory",
-      subtitle: "Your Complete Inventory Management Solution",
+      title: "Welcome to Fast Track Booking",
+      subtitle: "Your Complete Booking Management Solution",
       userID: "User ID",
       password: "Password",
       login: "Sign In",
@@ -204,19 +204,19 @@ const Login = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 flex items-center justify-center p-4 relative overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-          <div className="absolute top-40 right-10 w-72 h-72 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+          <div className="absolute top-40 right-10 w-72 h-72 bg-sky-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-cyan-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
         </div>
 
         <div className="w-full max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-center relative z-10">
           {/* Left Section - Branding */}
           <div className="hidden md:flex flex-col items-center justify-center p-8 space-y-6 slide-in-left">
             <div className="animate-float">
-              <div className="w-32 h-32 bg-gradient-to-br from-emerald-600 to-green-500 rounded-3xl shadow-2xl flex items-center justify-center transform rotate-6 hover:rotate-0 transition-transform duration-300">
+              <div className="w-32 h-32 bg-white rounded-3xl shadow-2xl flex items-center justify-center transform rotate-6 hover:rotate-0 transition-transform duration-300 border border-gray-200">
                 <Image
                   src="/images/new-logo.png"
                   alt="Logo"
@@ -229,7 +229,7 @@ const Login = () => {
             </div>
 
             <div className="text-center space-y-3">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-emerald-700 to-green-600 bg-clip-text text-transparent">
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-700 to-sky-600 bg-clip-text text-transparent">
                 Fast Track Booking
               </h1>
               <p className="text-xl text-gray-600 font-medium">{t.subtitle}</p>
@@ -238,15 +238,19 @@ const Login = () => {
             <div className="grid grid-cols-3 gap-4 mt-8">
               {[
                 {
-                  icon: "📦",
+                  icon: "📅",
                   label:
-                    lang === "bn" ? "স্টক ম্যানেজমেন্ট" : "Stock Management",
+                    lang === "bn" ? "বুকিং ম্যানেজমেন্ট" : "Booking Management",
                 },
                 {
-                  icon: "📊",
-                  label: lang === "bn" ? "রিয়েল-টাইম ডেটা" : "Real-time Data",
+                  icon: "⚡",
+                  label: lang === "bn" ? "দ্রুত বুকিং" : "Fast Booking",
                 },
-                { icon: "🔒", label: lang === "bn" ? "সুরক্ষিত" : "Secure" },
+                {
+                  icon: "🏨",
+                  label:
+                    lang === "bn" ? "হোটেল ব্যবস্থাপনা" : "Hotel Management",
+                },
               ].map((item, idx) => (
                 <div
                   key={idx}
@@ -263,12 +267,12 @@ const Login = () => {
 
           {/* Right Section - Login Form */}
           <div className="slide-in-right">
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-10 border border-emerald-100">
+            <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-10 border border-blue-100">
               {/* Language Toggle */}
               <div className="flex justify-end mb-6">
                 <button
                   onClick={() => setLang(lang === "bn" ? "en" : "bn")}
-                  className="flex items-center gap-2 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 rounded-full transition-colors text-emerald-700 font-medium"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors text-blue-700 font-medium"
                 >
                   <GlobalOutlined />
                   <span>{lang === "bn" ? "EN" : "BN"}</span>
@@ -277,7 +281,7 @@ const Login = () => {
 
               {/* Logo for Mobile */}
               <div className="md:hidden flex justify-center mb-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-emerald-600 to-green-500 rounded-2xl shadow-xl flex items-center justify-center">
+                <div className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center border border-gray-200">
                   <Image
                     src="/images/new-logo.png"
                     alt="Logo"
@@ -327,7 +331,7 @@ const Login = () => {
                         {t.userID}
                       </label>
                       <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600">
                           <UserOutlined className="text-lg" />
                         </div>
                         <Field
@@ -335,7 +339,7 @@ const Login = () => {
                           as="input"
                           type="text"
                           placeholder={t.loginIDPlaceholder}
-                          className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:bg-white transition-all text-gray-800 font-medium"
+                          className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all text-gray-800 font-medium"
                           onChange={(e) => {
                             handleChange(e);
                             setLoginError("");
@@ -356,7 +360,7 @@ const Login = () => {
                         {t.password}
                       </label>
                       <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600">
                           <LockOutlined className="text-lg" />
                         </div>
                         <Field
@@ -364,7 +368,7 @@ const Login = () => {
                           as="input"
                           type={showPassword ? "text" : "password"}
                           placeholder={t.passwordPlaceholder}
-                          className="w-full pl-12 pr-12 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:bg-white transition-all text-gray-800 font-medium"
+                          className="w-full pl-12 pr-12 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all text-gray-800 font-medium"
                           onChange={(e) => {
                             handleChange(e);
                             setLoginError("");
@@ -374,7 +378,7 @@ const Login = () => {
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 transition-colors"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                         >
                           {showPassword ? (
                             <EyeInvisibleOutlined className="text-lg" />
@@ -394,7 +398,7 @@ const Login = () => {
                     <button
                       type="submit"
                       disabled={buttonLoading}
-                      className="w-full bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-700 hover:to-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      className="w-full bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
                       {buttonLoading ? (
                         <div className="flex items-center justify-center gap-3">
@@ -435,7 +439,7 @@ const Login = () => {
           className="hotel-selection-modal"
           closable={false}
           bodyStyle={{
-            backgroundColor: "#8ABF55",
+            backgroundColor: "#3B82F6",
             borderRadius: "12px",
             padding: "16px",
             border: "2px solid white",
