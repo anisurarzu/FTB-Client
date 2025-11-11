@@ -5,13 +5,13 @@ import {
   PrinterOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Button, QRCode, Spin, Watermark, message } from "antd";
 import html2pdf from "html2pdf.js";
 import axios from "axios";
 import Image from "next/image";
 import coreAxios from "@/utils/axiosInstance";
-import moment from "moment";
+import moment from "moment"; // Add moment for date formatting
 
 const Invoice = ({ params }) => {
   const [loading, setLoading] = useState(false);
@@ -26,7 +26,57 @@ const Invoice = ({ params }) => {
   });
   const { id } = params;
 
-  const calculateTotals = useCallback((bookings) => {
+  const fetchInvoiceInfo = async () => {
+    try {
+      setLoading(true);
+      const response = await coreAxios.get(`/bookings/bookingNo/${id}`);
+      if (response?.status === 200) {
+        // Filter out items where statusID is 255
+        const filteredData = response?.data.filter(
+          (item) => item.statusID !== 255
+        );
+
+        calculateTotals(filteredData); // Calculate totals with filtered data
+        setData(filteredData); // Set state with filtered data
+        setLoading(false);
+      } else {
+        message.error("Failed to load data");
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      message.error("Error fetching data");
+      setLoading(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInvoiceInfo();
+  }, []);
+
+  const print = () => {
+    const printContent = document.getElementById("invoice-card").innerHTML;
+    const originalContent = document.body.innerHTML;
+    document.body.innerHTML = printContent;
+    window.print();
+    document.body.innerHTML = originalContent;
+  };
+
+  const downloadPDF = () => {
+    const element = document.getElementById("invoice-card");
+    const options = {
+      margin: 0.5,
+      filename: `Invoice-${data?.[0]?.bookingNo}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+    };
+    html2pdf().from(element).set(options).save();
+  };
+
+  const calculateTotals = (bookings) => {
     const totalAdvance = bookings.reduce(
       (sum, booking) => sum + (booking?.advancePayment || 0),
       0
@@ -57,56 +107,6 @@ const Invoice = ({ params }) => {
       extraBedTotalBill,
       finalTotal,
     });
-  }, []);
-
-  const fetchInvoiceInfo = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await coreAxios.get(`/bookings/bookingNo/${id}`);
-      if (response?.status === 200) {
-        // Filter out items where statusID is 255
-        const filteredData = response?.data.filter(
-          (item) => item.statusID !== 255
-        );
-
-        calculateTotals(filteredData); // Calculate totals with filtered data
-        setData(filteredData); // Set state with filtered data
-        setLoading(false);
-      } else {
-        message.error("Failed to load data");
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      message.error("Error fetching data");
-      setLoading(false);
-    } finally {
-      setLoading(false);
-    }
-  }, [id, calculateTotals]);
-
-  useEffect(() => {
-    fetchInvoiceInfo();
-  }, [fetchInvoiceInfo]);
-
-  const print = () => {
-    const printContent = document.getElementById("invoice-card").innerHTML;
-    const originalContent = document.body.innerHTML;
-    document.body.innerHTML = printContent;
-    window.print();
-    document.body.innerHTML = originalContent;
-  };
-
-  const downloadPDF = () => {
-    const element = document.getElementById("invoice-card");
-    const options = {
-      margin: 0.5,
-      filename: `Invoice-${data?.[0]?.bookingNo}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-    };
-    html2pdf().from(element).set(options).save();
   };
 
   return (
@@ -159,65 +159,51 @@ const Invoice = ({ params }) => {
           <div
             id="invoice-card"
             className="bg-white p-8 rounded-lg shadow-md border border-gray-300 w-full mt-4"
-            style={{ fontSize: "12px" }}
+            style={{ fontSize: "12px" }} // Make the overall text smaller
           >
             <div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="logo-container flex items-center justify-center">
                   {data?.[0]?.hotelID === 1 ? (
-                    <Image
+                    <img
                       src="/images/marmaid-logo.png"
                       alt="Logo"
-                      width={150}
-                      height={80}
                       style={{ width: "150px", height: "80px" }}
                     />
                   ) : data?.[0]?.hotelID === 2 ? (
-                    <Image
+                    <img
                       src="/images/goldenhil.png"
                       alt="Logo"
-                      width={150}
-                      height={80}
                       style={{ width: "150px", height: "80px" }}
                     />
                   ) : data?.[0]?.hotelID === 3 ? (
-                    <Image
+                    <img
                       src="/images/Shamudro-Bari-1.png"
                       alt="Logo"
-                      width={150}
-                      height={80}
                       style={{ width: "150px", height: "80px" }}
                     />
                   ) : data?.[0]?.hotelID === 4 ? (
-                    <Image
+                    <img
                       src="/images/Sopno.png"
                       alt="Logo"
-                      width={150}
-                      height={80}
                       style={{ width: "150px", height: "80px" }}
                     />
                   ) : data?.[0]?.hotelID === 6 ? (
-                    <Image
+                    <img
                       src="https://i.ibb.co.com/jZDnyS4V/beach-gardn.png"
                       alt="Logo"
-                      width={150}
-                      height={80}
                       style={{ width: "150px", height: "80px" }}
                     />
                   ) : data?.[0]?.hotelID === 7 ? (
-                    <Image
+                    <img
                       src="https://i.ibb.co/svznKpfF/Whats-App-Image-2025-07-01-at-22-11-50-dda6f6f0.jpg"
                       alt="Logo"
-                      width={150}
-                      height={120}
                       style={{ width: "150px", height: "120px" }}
                     />
                   ) : (
-                    <Image
+                    <img
                       src="/images/Shamudro-Bari-1.png"
                       alt="Logo"
-                      width={150}
-                      height={140}
                       style={{ width: "150px", height: "140px" }}
                     />
                   )}
@@ -241,8 +227,8 @@ const Invoice = ({ params }) => {
                   <div className="text-center">
                     <div className="mt-8 text-black text-left">
                       <p>
-                        Address: Block # A, Plot # 17, Kolatoli Main Road,
-                        Cox&apos;s Bazar 4700
+                        Address: Block # A, Plot # 17, Kolatoli Main Road, Cox’s
+                        Bazar 4700
                       </p>
                       <p>Front Desk no: 01818083949</p>
                       <p>Reservation no: 01898841012</p>
@@ -252,8 +238,7 @@ const Invoice = ({ params }) => {
                   <div className="text-center">
                     <div className="mt-8 text-black text-left">
                       <p>
-                        Address: Plot #65, Block# B, Sugandha Point, Kolatoli,
-                        Cox&apos;s Bazar
+                        {`Address: Plot #65, Block# B, Sugandha Point, Kolatoli, Cox's Bazar`}
                       </p>
                       <p>Front Desk no: 01313708031</p>
                       <p>Reservation no: 01898841013</p>
@@ -263,8 +248,7 @@ const Invoice = ({ params }) => {
                   <div className="text-center">
                     <div className="mt-8 text-black text-left">
                       <p>
-                        Address: Kolatoli Beach Road, Kolatoli Cox&apos;s
-                        Bazar-4700.
+                        {` Address: Kolatoli Beach Road, Kolatoli Cox's Bazar-4700.`}
                       </p>
                       <p>Front Desk no: 01898841012</p>
                       <p>Reservation no: 01321143586</p>
@@ -273,8 +257,8 @@ const Invoice = ({ params }) => {
                 ) : data?.[0]?.hotelID === 4 ? (
                   <div className="mt-8 text-black text-left">
                     <p>
-                      Address: Shopno Bilash Holiday Suites, Block # A, Plot #
-                      28, kolatoli Residential Area, Cox&apos;s Bazar
+                      {`Address: Shopno Bilash Holiday Suites, Block # A, Plot #
+                      28, kolatoli Residential Area, Cox's Bazar`}
                     </p>
                     <p>Front Desk no: 01711877621</p>
                     <p>Reservation no: 01898841013</p>
@@ -282,8 +266,7 @@ const Invoice = ({ params }) => {
                 ) : data?.[0]?.hotelID === 6 ? (
                   <div className="mt-8 text-black text-left">
                     <p>
-                      Address: Plot No- 199, Block # B, Saykat Bahumukhi Samabay
-                      Samity Ltd. Lighthouse, Kolatoli, Cox&apos;s Bazar
+                      {`Address: Plot No-	199, Block # B, Saykat Bahumukhi Samabay Samity Ltd. Lighthouse, Kolatoli, Cox’s Bazar`}
                     </p>
                     <p>Front Desk no: 01898841016</p>
                     <p>Reservation no: 01898841015</p>
@@ -291,8 +274,7 @@ const Invoice = ({ params }) => {
                 ) : data?.[0]?.hotelID === 7 ? (
                   <div className="mt-8 text-black text-left">
                     <p>
-                      Address: N.H.A Building No- 10, Hotel The Grand
-                      Sandy,Kolatoli, Cox&apos;s Bazar
+                      {`Address: N.H.A Building No- 10, Hotel The Grand Sandy,Kolatoli, Cox’s Bazar`}
                     </p>
                     <p>Front Desk no: 01827689324</p>
                     <p>Reservation no: 01898841017</p>
@@ -302,7 +284,7 @@ const Invoice = ({ params }) => {
                     <div className="mt-8 text-black text-left">
                       <p>
                         Address: N.H.A building No- 09, Samudra Bari, Kolatoli,
-                        Cox&apos;s Bazar
+                        Cox’s Bazar
                       </p>
                       <p>Front Desk no: 01886628295</p>
                       <p>Reservation no: 01886628296</p>
@@ -358,8 +340,8 @@ const Invoice = ({ params }) => {
               <div className="mt-8 text-black">
                 <p className="font-bold text-md">Booking Details:</p>
                 <table
-                  className="table-auto w-full border-collapse border border-gray-400 mt-4 text-left text-xs"
-                  style={{ fontSize: "10px" }}
+                  className="table-auto w-full border-collapse border border-gray-400 mt-4 text-left text-xs" // Smaller text
+                  style={{ fontSize: "10px" }} // Reduce text size within the table further
                 >
                   <thead>
                     <tr
@@ -423,6 +405,14 @@ const Invoice = ({ params }) => {
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.children || "N/A"}
                         </td>
+                        {/* <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.isKitchen ? "Yes" : "No"}
+                        </td>
+                        {data?.[0]?.hotelID === 4 && (
+                          <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                            {booking?.extraBed ? "Yes" : "No"}
+                          </td>
+                        )} */}
 
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {booking?.roomPrice || "N/A"}
@@ -443,7 +433,7 @@ const Invoice = ({ params }) => {
                   style={{ fontSize: "10px" }}
                 >
                   <thead>
-                    {data?.some((booking) => booking.isKitchen) && (
+                    {data?.some((booking) => booking.isKitchen) && ( // Check if isKitchen is true for any row
                       <tr className="bg-blue-700 text-white">
                         <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           Kitchen Facilities
@@ -453,7 +443,7 @@ const Invoice = ({ params }) => {
                         </th>
                       </tr>
                     )}
-                    {data?.some((booking) => booking.extraBed) && (
+                    {data?.some((booking) => booking.extraBed) && ( // Check if extraBed is true for any row
                       <tr className="bg-green-700 text-white">
                         <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           Extra Bed
@@ -468,11 +458,11 @@ const Invoice = ({ params }) => {
                     {data
                       ?.filter(
                         (booking) => booking.isKitchen || booking.extraBed
-                      )
+                      ) // Filter rows where either condition is true
                       .map((booking, index) => (
-                        <React.Fragment key={index}>
-                          {booking.isKitchen && (
-                            <tr>
+                        <>
+                          {booking.isKitchen && ( // Render only if isKitchen is true
+                            <tr key={`kitchen-${index}`}>
                               <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                                 Yes
                               </td>
@@ -481,8 +471,8 @@ const Invoice = ({ params }) => {
                               </td>
                             </tr>
                           )}
-                          {booking.extraBed && (
-                            <tr>
+                          {booking.extraBed && ( // Render only if extraBed is true
+                            <tr key={`extrabed-${index}`}>
                               <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                                 Yes
                               </td>
@@ -491,7 +481,7 @@ const Invoice = ({ params }) => {
                               </td>
                             </tr>
                           )}
-                        </React.Fragment>
+                        </>
                       ))}
                   </tbody>
                 </table>
@@ -530,8 +520,8 @@ const Invoice = ({ params }) => {
               </div>
               <p className="text-black">
                 Thank you so much for choosing {data?.[0]?.hotelName}. Hope you
-                will enjoy your stay with us. Best of luck for your Cox&apos;s
-                Bazar trip.
+                will enjoy your stay with us. Best of luck for your Cox’s Bazar
+                trip.
               </p>
             </div>
           </div>
