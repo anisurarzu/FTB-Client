@@ -64,7 +64,10 @@ const Invoice = ({ params }) => {
     document.body.innerHTML = originalContent;
   };
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
+    if (!document) return; // safety check for SSR
+
+    const html2pdf = (await import("html2pdf.js")).default; // dynamic import
     const element = document.getElementById("invoice-card");
     const options = {
       margin: 0.5,
@@ -180,7 +183,7 @@ const Invoice = ({ params }) => {
                     <img
                       src="/images/Shamudro-Bari-1.png"
                       alt="Logo"
-                      style={{ width: "150px", height: "80px" }}
+                      style={{ width: "150px", height: "50px" }}
                     />
                   ) : data?.[0]?.hotelID === 4 ? (
                     <img
@@ -514,7 +517,7 @@ const Invoice = ({ params }) => {
                     : data?.[0]?.hotelID === 3
                     ? "Check-in 2 PM & Check out - 12 PM "
                     : data?.[0]?.hotelID === 6
-                    ? "Check in - 11:30 PM & Check out - 11:00 AM"
+                    ? "Check in - 11:30 AM & Check out - 11:00 AM"
                     : "Check in - 12:30 PM & Check out - 11:00 AM"}
                 </p>
               </div>
