@@ -406,7 +406,7 @@ const DashboardContent = ({ sliders }) => {
         bodyStyle={{ padding: 0 }}
         headerStyle={{ padding: "16px" }}
         title={
-          <Image src="/images/logo.png" alt="Logo" width={120} height={30} />
+          <Image src="/images/new-logo.png" alt="Logo" width={120} height={30} />
         }
       >
         {renderMenuItems()}

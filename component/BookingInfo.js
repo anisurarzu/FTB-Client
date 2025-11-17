@@ -972,7 +972,7 @@ const BookingInfo = ({ hotelID }) => {
                       }}
                       className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white"
                     >
-                      Add New Booking
+                      Create New Booking
                     </Button>
                   )}
                   {/* Hotel Selection Dropdown */}

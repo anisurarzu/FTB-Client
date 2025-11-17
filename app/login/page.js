@@ -31,7 +31,7 @@ const Login = () => {
     publicIP: "",
     privateIP: "",
   });
-  const [lang, setLang] = useState("bn");
+  const [lang, setLang] = useState("en");
   const [showPassword, setShowPassword] = useState(false);
 
   const translations = {
