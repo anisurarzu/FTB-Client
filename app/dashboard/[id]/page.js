@@ -359,9 +359,6 @@ const Invoice = ({ params }) => {
                       } text-white`}
                     >
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                        SL
-                      </th>
-                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                         Room
                       </th>
                       <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
@@ -391,9 +388,6 @@ const Invoice = ({ params }) => {
                   <tbody>
                     {data?.map((booking, index) => (
                       <tr key={index}>
-                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
-                          {` ${index+1}`}
-                        </td>
                         <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
                           {` ${booking?.roomCategoryName || "N/A"}`}
                         </td>

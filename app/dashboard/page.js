@@ -56,7 +56,7 @@ const rolePermissions = {
       label: "Calendar",
       icon: <CalendarOutlined />,
       component: (props) => <Calender {...props} />,
-    },
+    }, 
     {
       key: "9",
       label: "Room Availability",
