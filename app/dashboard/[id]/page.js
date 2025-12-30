@@ -124,7 +124,7 @@ const Invoice = ({ params }) => {
           : data?.[0]?.hotelID === 4
           ? "Shopno Bilash Holiday Suites"
           : data?.[0]?.hotelID === 7
-          ? "The Grand Sandy"
+          ?data?.[0]?.hotelID === 8?"FTB Apartments": "The Grand Sandy":data?.[0]?.hotelID===8?"FTB Apartments"
           : "Samudra Bari 2024"
       }`}
     >
@@ -203,7 +203,11 @@ const Invoice = ({ params }) => {
                       alt="Logo"
                       style={{ width: "150px", height: "120px" }}
                     />
-                  ) : (
+                  ) : data?.[0]?.hotelID===8? <img
+                      src="https://i.ibb.co/HLhzgHgN/Whats-App-Image-2025-12-28-at-18-17-17-removebg-preview.png"
+                      alt="Logo"
+                      style={{ width: "150px", height: "120px" }}
+                    />: (
                     <img
                       src="/images/Shamudro-Bari-1.png"
                       alt="Logo"
