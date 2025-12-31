@@ -1,426 +1,551 @@
 "use client";
 
 import {
-  Layout,
-  Menu,
-  Button,
-  Spin,
-  Drawer,
-  Avatar,
-  Skeleton,
-  theme,
-} from "antd";
-import {
-  DashboardOutlined,
-  UsergroupAddOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  FileTextOutlined,
-  ApartmentOutlined,
-  UnorderedListOutlined,
-  MenuOutlined,
-  CalendarOutlined,
-  InfoCircleOutlined,
+  ArrowLeftOutlined,
+  PrinterOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
+import React, { useEffect, useState } from "react";
+import { Alert, Button, QRCode, Spin, Watermark, message } from "antd";
+import html2pdf from "html2pdf.js";
+import axios from "axios";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
-import DashboardHome from "@/component/DashboardHome";
-import AgentInformation from "@/component/AgentInformation";
-import HotelCategory from "@/component/HotelCategory";
-import HotelInformation from "@/component/HotelInformation";
-import HotelRoom from "@/component/HotelRoom";
-import BookingInfo from "@/component/BookingInfo";
-import Calender from "@/component/Calender";
-import RoomAvailabilityPage from "@/component/RoomSearchPage";
-import AllBookingInfo from "@/component/AllBookingInfo";
-import ExpenseInfo from "@/component/Expense/ExpenseInfo";
-import DailyStatement from "@/component/DailyStatement";
-import PermissionManagement from "@/component/Permission/PermissionManagement";
-import BookingTable from "@/component/Booking/BookingTable";
-import Commission from "@/component/Booking/Commission";
+import coreAxios from "@/utils/axiosInstance";
+import moment from "moment"; // Add moment for date formatting
 
-const { Header, Sider, Content } = Layout;
-const { useToken } = theme;
+const Invoice = ({ params }) => {
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([]);
+  const [totals, setTotals] = useState({
+    totalAdvance: 0,
+    extraBedTotalBill: 0,
+    kitchenTotalBill: 0,
+    totalDue: 0,
+    totalBill: 0,
+    finalTotal: 0,
+  });
+  const { id } = params;
 
-const rolePermissions = {
-  superadmin: [
-    {
-      key: "1",
-      label: "Dashboard",
-      icon: <DashboardOutlined />,
-      component: (props) => <DashboardHome {...props} />,
-    },
-    {
-      key: "7",
-      label: "Calendar",
-      icon: <CalendarOutlined />,
-      component: (props) => <Calender {...props} />,
-    }, 
-    {
-      key: "9",
-      label: "Room Availability",
-      icon: <DashboardOutlined />,
-      component: (props) => <RoomAvailabilityPage {...props} />,
-    },
-    {
-      key: "6",
-      label: "Booking Info",
-      icon: <InfoCircleOutlined />,
-      component: (props) => <BookingInfo {...props} />,
-    },
-    {
-      key: "12",
-      label: "Daily Statement",
-      icon: <InfoCircleOutlined />,
-      component: (props) => <DailyStatement {...props} />,
-    },
-    {
-      key: "10",
-      label: "Report Dashboard",
-      icon: <InfoCircleOutlined />,
-      component: (props) => <AllBookingInfo {...props} />,
-    },
-    {
-      key: "100",
-      label: "Commission",
-      icon: <InfoCircleOutlined />,
-      component: (props) => <Commission {...props} />,
-    },
-    {
-      key: "100",
-      label: "Expense",
-      icon: <InfoCircleOutlined />,
-      component: <ExpenseInfo />,
-    },
-    {
-      key: "5",
-      label: "Hotel Info",
-      icon: <FileTextOutlined />,
-      component: <HotelInformation />,
-    },
-    {
-      key: "2",
-      label: "Users",
-      icon: <UsergroupAddOutlined />,
-      component: <AgentInformation />,
-    },
-    {
-      key: "8",
-      label: "Settings",
-      icon: <SettingOutlined />,
-      component: <PermissionManagement />,
-    },
-  ],
-  agentadmin: [
-    {
-      key: "1",
-      label: "Dashboard",
-      icon: <DashboardOutlined />,
-      component: (props) => <DashboardHome {...props} />,
-    },
-    {
-      key: "7",
-      label: "Calendar",
-      icon: <CalendarOutlined />,
-      component: (props) => <Calender {...props} />,
-    },
-    {
-      key: "9",
-      label: "Room Availability",
-      icon: <DashboardOutlined />,
-      component: (props) => <RoomAvailabilityPage {...props} />,
-    },
-    {
-      key: "6",
-      label: "Booking Info",
-      icon: <InfoCircleOutlined />,
-      component: (props) => <BookingInfo {...props} />,
-    },
-  ],
-  hoteladmin: [
-    {
-      key: "1",
-      label: "Dashboard",
-      icon: <DashboardOutlined />,
-      component: (props) => <DashboardHome {...props} />,
-    },
-    {
-      key: "7",
-      label: "Calendar",
-      icon: <CalendarOutlined />,
-      component: (props) => <Calender {...props} />,
-    },
-    {
-      key: "9",
-      label: "Room Availability",
-      icon: <DashboardOutlined />,
-      component: (props) => <RoomAvailabilityPage {...props} />,
-    },
-    {
-      key: "6",
-      label: "Booking Info",
-      icon: <InfoCircleOutlined />,
-      component: (props) => <BookingInfo {...props} />,
-    },
-  ],
-  admin: [
-    {
-      key: "1",
-      label: "Dashboard",
-      icon: <DashboardOutlined />,
-      component: (props) => <DashboardHome {...props} />,
-    },
-    {
-      key: "9",
-      label: "Room Availability",
-      icon: <DashboardOutlined />,
-      component: (props) => <RoomAvailabilityPage {...props} />,
-    },
-    {
-      key: "7",
-      label: "Calendar",
-      icon: <CalendarOutlined />,
-      component: (props) => <Calender {...props} />,
-    },
-    {
-      key: "6",
-      label: "Booking Info",
-      icon: <SettingOutlined />,
-      component: (props) => <BookingInfo {...props} />,
-    },
-    {
-      key: "10",
-      label: "Report Dashboard",
-      icon: <InfoCircleOutlined />,
-      component: (props) => <AllBookingInfo {...props} />,
-    },
-    {
-      key: "5",
-      label: "Hotel Info",
-      icon: <FileTextOutlined />,
-      component: <HotelInformation />,
-    },
-    {
-      key: "2",
-      label: "Users",
-      icon: <UsergroupAddOutlined />,
-      component: <AgentInformation />,
-    },
-  ],
-};
+  const fetchInvoiceInfo = async () => {
+    try {
+      setLoading(true);
+      const response = await coreAxios.get(`/bookings/bookingNo/${id}`);
+      if (response?.status === 200) {
+        // Filter out items where statusID is 255
+        const filteredData = response?.data.filter(
+          (item) => item.statusID !== 255
+        );
 
-const DashboardContent = ({ sliders }) => {
-  const { token } = useToken();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [collapsed, setCollapsed] = useState(false);
-  const [selectedMenu, setSelectedMenu] = useState("1");
-  const [loading, setLoading] = useState(true);
-  const [visible, setVisible] = useState(false);
-  const [userInfo, setUserInfo] = useState(null);
-
-  // Get hotelID from URL
-  const hotelID = searchParams.get("hotelID");
+        calculateTotals(filteredData); // Calculate totals with filtered data
+        setData(filteredData); // Set state with filtered data
+        setLoading(false);
+      } else {
+        message.error("Failed to load data");
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      message.error("Error fetching data");
+      setLoading(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
+    fetchInvoiceInfo();
+  }, []);
 
-    const storedUserInfo = localStorage.getItem("userInfo");
-    if (storedUserInfo) {
-      setUserInfo(JSON.parse(storedUserInfo));
-    }
-
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, [router, selectedMenu]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userInfo");
-    router.push("/login");
+  const print = () => {
+    const printContent = document.getElementById("invoice-card").innerHTML;
+    const originalContent = document.body.innerHTML;
+    document.body.innerHTML = printContent;
+    window.print();
+    document.body.innerHTML = originalContent;
   };
 
-  const showDrawer = () => setVisible(true);
-  const onClose = () => setVisible(false);
+  const downloadPDF = async () => {
+    if (!document) return; // safety check for SSR
 
-  const renderContent = () => {
-    if (loading) {
-      return (
-        <div className="p-6">
-          <Skeleton active paragraph={{ rows: 8 }} />
-        </div>
-      );
-    }
-
-    const userRole = userInfo?.role?.value;
-    const allowedPages = rolePermissions[userRole] || [];
-    const selectedPage = allowedPages.find((page) => page.key === selectedMenu);
-
-    if (selectedPage) {
-      // Pass hotelID to components that need it
-      if (typeof selectedPage.component === "function") {
-        return selectedPage.component({ hotelID });
-      }
-      return selectedPage.component;
-    }
-
-    return <div>Access Denied</div>;
+    const html2pdf = (await import("html2pdf.js")).default; // dynamic import
+    const element = document.getElementById("invoice-card");
+    const options = {
+      margin: 0.5,
+      filename: `Invoice-${data?.[0]?.bookingNo}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+    };
+    html2pdf().from(element).set(options).save();
   };
 
-  const renderMenuItems = () => {
-    if (!userInfo) return null;
-
-    const userRole = userInfo?.role?.value;
-    const allowedPages = rolePermissions[userRole] || [];
-
-    return (
-      <Menu
-        theme="light"
-        mode="inline"
-        selectedKeys={[selectedMenu]}
-        onClick={(e) => setSelectedMenu(e.key)}
-        style={{ background: token.colorBgContainer }}
-        className="border-r-0"
-      >
-        {allowedPages.map((page) => (
-          <Menu.Item
-            key={page.key}
-            icon={page.icon}
-            style={{
-              margin: "4px 8px",
-              borderRadius: "6px",
-              padding: "8px 12px",
-              fontSize: "14px",
-            }}
-          >
-            {page.label}
-          </Menu.Item>
-        ))}
-      </Menu>
+  const calculateTotals = (bookings) => {
+    const totalAdvance = bookings.reduce(
+      (sum, booking) => sum + (booking?.advancePayment || 0),
+      0
     );
+    const totalDue = bookings.reduce(
+      (sum, booking) => sum + (booking?.duePayment || 0),
+      0
+    );
+    const totalBill = bookings.reduce(
+      (sum, booking) => sum + (booking?.totalBill || 0),
+      0
+    );
+    const kitchenTotalBill = bookings.reduce(
+      (sum, booking) => sum + (booking?.kitchenTotalBill || 0),
+      0
+    );
+    const extraBedTotalBill = bookings.reduce(
+      (sum, booking) => sum + (booking?.extraBedTotalBill || 0),
+      0
+    );
+    const finalTotal = totalBill + kitchenTotalBill + extraBedTotalBill;
+
+    setTotals({
+      totalAdvance,
+      totalDue,
+      totalBill,
+      kitchenTotalBill,
+      extraBedTotalBill,
+      finalTotal,
+    });
   };
 
   return (
-    <Layout className="min-h-screen bg-gray-50">
-      {/* Slim Sidebar - 200px width */}
-      <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={setCollapsed}
-        width={200}
-        breakpoint="lg"
-        collapsedWidth={80}
-        style={{
-          background: token.colorBgContainer,
-          boxShadow: "2px 0 8px rgba(29, 35, 41, 0.05)",
-          borderRight: `1px solid ${token.colorBorderSecondary}`,
-        }}
-        className="hidden lg:block"
-      >
-        <div className="flex items-center justify-center py-4 h-16">
-          <Image
-            src="/images/new-logo.png"
-            alt="Logo"
-            width={collapsed ? 40 : 120}
-            height={collapsed ? 20 : 30}
-            className="transition-all duration-200"
+    <Watermark
+      content={`${
+        data?.[0]?.hotelID === 1
+          ? "Mermaid 2024"
+          : data?.[0]?.hotelID === 2
+          ? "Hotel Golden Hill"
+          : data?.[0]?.hotelID === 3
+          ? "Sea Paradise"
+          : data?.[0]?.hotelID === 4
+          ? "Shopno Bilash Holiday Suites"
+          : data?.[0]?.hotelID === 7
+          ?data?.[0]?.hotelID === 8?"FTB Apartments": "The Grand Sandy":data?.[0]?.hotelID===8?"FTB Apartments"
+          : "Samudra Bari 2024"
+      }`}
+    >
+      {loading ? (
+        <Spin tip="Loading...">
+          <Alert
+            message="Alert message title"
+            description="Further details about the context of this alert."
+            type="info"
           />
-        </div>
-        {renderMenuItems()}
-      </Sider>
-
-      <Layout>
-        <Header
-          style={{
-            background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)",
-            padding: "0 24px",
-            height: "64px",
-            lineHeight: "64px",
-          }}
-          className="flex justify-between items-center shadow-sm"
-        >
-          <div className="flex items-center">
-            <Button
-              type="text"
-              icon={
-                <MenuOutlined style={{ color: "white", fontSize: "16px" }} />
-              }
-              onClick={showDrawer}
-              className="lg:hidden mr-2"
-            />
-            <h1 className="text-xl font-semibold text-white m-0">
-              Fast Track Booking
-            </h1>
+        </Spin>
+      ) : (
+        <div>
+          <div className="mx-28">
+            <div className="flex gap-8 w-full mt-8 mx-0">
+              <Button
+                type="primary"
+                onClick={downloadPDF}
+                className="p-mr-2"
+                icon={<DownloadOutlined />}
+              >
+                Download PDF
+              </Button>
+              <Button
+                type="primary"
+                onClick={print}
+                className="p-mb-3"
+                icon={<PrinterOutlined />}
+              >
+                Print
+              </Button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {userInfo && (
-              <div className="flex items-center gap-2">
-                <Avatar
-                  src={userInfo.image}
-                  alt={userInfo.username}
-                  size="default"
-                  style={{ backgroundColor: "#8B5CF6" }}
-                />
-                <span className="text-white hidden md:inline">
-                  {userInfo.username}
-                </span>
+          <div
+            id="invoice-card"
+            className="bg-white p-8 rounded-lg shadow-md border border-gray-300 w-full mt-4"
+            style={{ fontSize: "12px" }} // Make the overall text smaller
+          >
+            <div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="logo-container flex items-center justify-center">
+                  {data?.[0]?.hotelID === 1 ? (
+                    <img
+                      src="/images/marmaid-logo.png"
+                      alt="Logo"
+                      style={{ width: "150px", height: "80px" }}
+                    />
+                  ) : data?.[0]?.hotelID === 2 ? (
+                    <img
+                      src="/images/goldenhil.png"
+                      alt="Logo"
+                      style={{ width: "150px", height: "80px" }}
+                    />
+                  ) : data?.[0]?.hotelID === 3 ? (
+                    <img
+                      src="/images/Shamudro-Bari-1.png"
+                      alt="Logo"
+                      style={{ width: "150px", height: "50px" }}
+                    />
+                  ) : data?.[0]?.hotelID === 4 ? (
+                    <img
+                      src="/images/Sopno.png"
+                      alt="Logo"
+                      style={{ width: "150px", height: "80px" }}
+                    />
+                  ) : data?.[0]?.hotelID === 6 ? (
+                    <img
+                      src="https://i.ibb.co.com/jZDnyS4V/beach-gardn.png"
+                      alt="Logo"
+                      style={{ width: "150px", height: "80px" }}
+                    />
+                  ) : data?.[0]?.hotelID === 7 ? (
+                    <img
+                      src="https://i.ibb.co/svznKpfF/Whats-App-Image-2025-07-01-at-22-11-50-dda6f6f0.jpg"
+                      alt="Logo"
+                      style={{ width: "150px", height: "120px" }}
+                    />
+                  ) : data?.[0]?.hotelID===8? <img
+                      src="https://i.ibb.co/HLhzgHgN/Whats-App-Image-2025-12-28-at-18-17-17-removebg-preview.png"
+                      alt="Logo"
+                      style={{ width: "150px", height: "120px" }}
+                    />: (
+                    <img
+                      src="/images/Shamudro-Bari-1.png"
+                      alt="Logo"
+                      style={{ width: "150px", height: "140px" }}
+                    />
+                  )}
+                </div>
+                <div className="mt-8 text-center">
+                  <h4
+                    className={`uppercase ${
+                      data?.[0]?.hotelID === 1
+                        ? "text-blue-700"
+                        : data?.[0]?.hotelID === 4
+                        ? "text-[#2B388F]"
+                        : data?.[0]?.hotelID === 6
+                        ? "text-[#6C9944]"
+                        : "text-red-700"
+                    } font-semibold text-xl`}
+                  >
+                    {data?.[0]?.hotelName} INVOICE
+                  </h4>
+                </div>
+                {data?.[0]?.hotelID === 1 ? (
+                  <div className="text-center">
+                    <div className="mt-8 text-black text-left">
+                      <p>
+                        Address: Block # A, Plot # 17, Kolatoli Main Road, Cox’s
+                        Bazar 4700
+                      </p>
+                      <p>Front Desk no: 01818083949</p>
+                      <p>Reservation no: 01898841012</p>
+                    </div>
+                  </div>
+                ) : data?.[0]?.hotelID === 2 ? (
+                  <div className="text-center">
+                    <div className="mt-8 text-black text-left">
+                      <p>
+                        {`Address: Plot #65, Block# B, Sugandha Point, Kolatoli, Cox's Bazar`}
+                      </p>
+                      <p>Front Desk no: 01313708031</p>
+                      <p>Reservation no: 01898841013</p>
+                    </div>
+                  </div>
+                ) : data?.[0]?.hotelID === 3 ? (
+                  <div className="text-center">
+                    <div className="mt-8 text-black text-left">
+                      <p>
+                        {` Address: Kolatoli Beach Road, Kolatoli Cox's Bazar-4700.`}
+                      </p>
+                      <p>Front Desk no: 01898841012</p>
+                      <p>Reservation no: 01321143586</p>
+                    </div>
+                  </div>
+                ) : data?.[0]?.hotelID === 4 ? (
+                  <div className="mt-8 text-black text-left">
+                    <p>
+                      {`Address: Shopno Bilash Holiday Suites, Block # A, Plot #
+                      28, kolatoli Residential Area, Cox's Bazar`}
+                    </p>
+                    <p>Front Desk no: 01711877621</p>
+                    <p>Reservation no: 01898841013</p>
+                  </div>
+                ) : data?.[0]?.hotelID === 6 ? (
+                  <div className="mt-8 text-black text-left">
+                    <p>
+                      {`Address: Plot No-	199, Block # B, Saykat Bahumukhi Samabay Samity Ltd. Lighthouse, Kolatoli, Cox’s Bazar`}
+                    </p>
+                    <p>Front Desk no: 01898841016</p>
+                    <p>Reservation no: 01898841015</p>
+                  </div>
+                ) : data?.[0]?.hotelID === 7 ? (
+                  <div className="mt-8 text-black text-left">
+                    <p>
+                      {`Address: N.H.A Building No- 10, Hotel The Grand Sandy,Kolatoli, Cox’s Bazar`}
+                    </p>
+                    <p>Front Desk no: 01827689324</p>
+                    <p>Reservation no: 01898841017</p>
+                  </div>
+                ) :data?.[0]?.hotelID === 8?<div className="text-center">
+                    <div className="mt-8 text-black text-left">
+                      <p>
+                        Address: N.H.A Building 08, KutumBari Road
+Jagrik, Kolatoli, Cox's Bazar
+                      </p>
+                      <p>Front Desk no: 01898841021</p>
+                      <p>Reservation no: 01898841020 
+ </p>
+                    </div>
+                  </div>: (
+                  <div className="text-center">
+                    <div className="mt-8 text-black text-left">
+                      <p>
+                        Address: N.H.A building No- 09, Samudra Bari, Kolatoli,
+                        Cox’s Bazar
+                      </p>
+                      <p>Front Desk no: 01886628295</p>
+                      <p>Reservation no: 01886628296</p>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            <Button
-              type="text"
-              icon={<LogoutOutlined style={{ color: "white" }} />}
-              onClick={handleLogout}
-              className="flex items-center"
-            >
-              <span className="text-white hidden md:inline">Logout</span>
-            </Button>
+              <div className="flex justify-between">
+                <h3
+                  className={`font-bold ${
+                    data?.[0]?.hotelID === 1
+                      ? "text-blue-700"
+                      : data?.[0]?.hotelID === 4
+                      ? "text-[#2B388F]"
+                      : data?.[0]?.hotelID === 6
+                      ? "text-[#6C9944]"
+                      : "text-red-700"
+                  } `}
+                >
+                  Invoice Number: {data?.[0]?.bookingNo || "N/A"}
+                </h3>
+                <p
+                  className={`${
+                    data?.[0]?.hotelID === 1
+                      ? "text-blue-700"
+                      : data?.[0]?.hotelID === 4
+                      ? "text-[#2B388F]"
+                      : data?.[0]?.hotelID === 6
+                      ? "text-[#6C9944]"
+                      : "text-red-700"
+                  }  font-bold`}
+                >
+                  Booking Date:
+                  {moment(data?.[0]?.createTime).format("D MMM YYYY") ||
+                    "02 October 2024"}
+                </p>
+              </div>
+
+              <div className="mt-8 text-black">
+                <p className="font-bold text-md">Bill To:</p>
+                <p>Guest Name: {data?.[0]?.fullName || "Ahmed Niloy"}</p>
+                <p>Phone: {data?.[0]?.phone || "01625441918"}</p>
+                {data[0]?.email && (
+                  <p>Email: {data?.[0]?.email || "01625441918"}</p>
+                )}
+                <p>NID/Passport: {data?.[0]?.nidPassport || "3762373821"}</p>
+                <p>
+                  Address: {data?.[0]?.address || "Jinjira, Keranigong, Dhaka"}
+                </p>
+              </div>
+
+              {/* Table for Booking Details */}
+              <div className="mt-8 text-black">
+                <p className="font-bold text-md">Booking Details:</p>
+                <table
+                  className="table-auto w-full border-collapse border border-gray-400 mt-4 text-left text-xs" // Smaller text
+                  style={{ fontSize: "10px" }} // Reduce text size within the table further
+                >
+                  <thead>
+                    <tr
+                      className={`${
+                        data?.[0]?.hotelID === 1
+                          ? "bg-blue-700"
+                          : data?.[0]?.hotelID === 4
+                          ? "bg-[#2B388F]"
+                          : data?.[0]?.hotelID === 6
+                          ? "bg-[#6C9944]"
+                          : "bg-red-700"
+                      } text-white`}
+                    >
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        Room
+                      </th>
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        Check-in
+                      </th>
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        Check-out
+                      </th>
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        Nights
+                      </th>
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        Adults
+                      </th>
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        Children
+                      </th>
+
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        Bill (Per Night)
+                      </th>
+                      <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                        Bill
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data?.map((booking, index) => (
+                      <tr key={index}>
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {` ${booking?.roomCategoryName || "N/A"}`}
+                        </td>
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {moment(booking?.checkInDate).format("D MMM YYYY") ||
+                            "N/A"}
+                        </td>
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {moment(booking?.checkOutDate).format("D MMM YYYY") ||
+                            "N/A"}
+                        </td>
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.nights || "N/A"}
+                        </td>
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.adults || "N/A"}
+                        </td>
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.children || "N/A"}
+                        </td>
+                        {/* <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.isKitchen ? "Yes" : "No"}
+                        </td>
+                        {data?.[0]?.hotelID === 4 && (
+                          <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                            {booking?.extraBed ? "Yes" : "No"}
+                          </td>
+                        )} */}
+
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.roomPrice || "N/A"}
+                        </td>
+                        <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          {booking?.totalBill || "N/A"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-2 text-black">
+                <p className="font-bold text-md">Additional Details</p>
+                <table
+                  className="table-auto w-full border-collapse border border-gray-400 mt-4 text-left text-xs"
+                  style={{ fontSize: "10px" }}
+                >
+                  <thead>
+                    {data?.some((booking) => booking.isKitchen) && ( // Check if isKitchen is true for any row
+                      <tr className="bg-blue-700 text-white">
+                        <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          Kitchen Facilities
+                        </th>
+                        <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          Bill (Kitchen)
+                        </th>
+                      </tr>
+                    )}
+                    {data?.some((booking) => booking.extraBed) && ( // Check if extraBed is true for any row
+                      <tr className="bg-green-700 text-white">
+                        <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          Extra Bed
+                        </th>
+                        <th className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                          Bill (Extra Bed)
+                        </th>
+                      </tr>
+                    )}
+                  </thead>
+                  <tbody>
+                    {data
+                      ?.filter(
+                        (booking) => booking.isKitchen || booking.extraBed
+                      ) // Filter rows where either condition is true
+                      .map((booking, index) => (
+                        <>
+                          {booking.isKitchen && ( // Render only if isKitchen is true
+                            <tr key={`kitchen-${index}`}>
+                              <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                                Yes
+                              </td>
+                              <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                                {booking.kitchenTotalBill || "N/A"}
+                              </td>
+                            </tr>
+                          )}
+                          {booking.extraBed && ( // Render only if extraBed is true
+                            <tr key={`extrabed-${index}`}>
+                              <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                                Yes
+                              </td>
+                              <td className="border border-gray-400 px-2 pb-2 print:pb-0 print:py-1">
+                                {booking.extraBedTotalBill || "N/A"}
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <p className="font-bold text-md mt-2 text-black">
+                Note: {data?.[0]?.note}
+              </p>
+
+              <div className="mt-8 text-black">
+                <p className="font-bold text-md">Payment Information:</p>
+                <p>Total Bill: {totals?.totalBill} taka</p>
+                <p>Total Advance: {totals.totalAdvance} taka</p>
+                <p>Total Due: {totals.totalDue} taka</p>
+                <p>Payment Method: {data?.[0]?.paymentMethod} </p>
+                <p>Transaction ID: {data?.[0]?.transactionId} </p>
+              </div>
+
+              <div className="mt-8 text-black">
+                <p className="py-1">
+                  Booked by: {data?.[0]?.bookedByID || "N/A"}
+                </p>
+                <p className="py-1 font-bold">
+                  {data?.[0]?.hotelID === 1
+                    ? "Check in - 1.00 PM & Check out - 11:00 AM"
+                    : data?.[0]?.hotelID === 2
+                    ? "Check in - 1.00 PM & Check out - 11:00 AM"
+                    : data?.[0]?.hotelID === 4
+                    ? "11:30 AM & Check out - 11:00 AM "
+                    : data?.[0]?.hotelID === 3
+                    ? "Check-in 2 PM & Check out - 12 PM "
+                    : data?.[0]?.hotelID === 6
+                    ? "Check in - 11:30 AM & Check out - 11:00 AM":data?.[0]?.hotelID === 8?"Check in - 12:30 AM & Check out - 11:00 AM "
+                    : "Check in - 12:30 PM & Check out - 11:00 AM"}
+                </p>
+              </div>
+              <p className="text-black">
+                Thank you so much for choosing {data?.[0]?.hotelName}. Hope you
+                will enjoy your stay with us. Best of luck for your Cox’s Bazar
+                trip.
+              </p>
+            </div>
           </div>
-        </Header>
-
-        <Content
-          style={{
-            margin: "24px 16px",
-            padding: 24,
-            minHeight: 280,
-            background: token.colorBgContainer,
-            borderRadius: token.borderRadiusLG,
-            boxShadow: token.boxShadow,
-          }}
-        >
-          {renderContent()}
-        </Content>
-      </Layout>
-
-      {/* Mobile Drawer - Also 200px width */}
-      <Drawer
-        open={visible}
-        onClose={onClose}
-        placement="left"
-        width={200}
-        bodyStyle={{ padding: 0 }}
-        headerStyle={{ padding: "16px" }}
-        title={
-          <Image src="/images/new-logo.png" alt="Logo" width={120} height={30} />
-        }
-      >
-        {renderMenuItems()}
-      </Drawer>
-    </Layout>
+        </div>
+      )}
+    </Watermark>
   );
 };
 
-const Dashboard = ({ sliders }) => {
-  return (
-    <Suspense fallback={<div>Loading dashboard...</div>}>
-      <DashboardContent sliders={sliders} />
-    </Suspense>
-  );
-};
-
-export default Dashboard;
+export default Invoice;
