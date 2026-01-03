@@ -553,11 +553,8 @@ const Invoice = ({ params }) => {
                     : "Check in - 12:30 PM & Check out - 11:00 AM"}
                 </p>
               </div>
-              <p className="text-black">
-                Thank you so much for choosing {data?.[0]?.hotelName}. Hope you
-                will enjoy your stay with us. Best of luck for your Cox&rsquo;s
-                Bazar trip.
-                {/* Fixed: Changed ’ to &rsquo; */}
+             <p className="text-black">
+                This Invoice is system-generated and valid without signature.
               </p>
             </div>
           </div>
