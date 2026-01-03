@@ -537,7 +537,7 @@ Jagrik, Kolatoli, Cox's Bazar
               </div>
               <p className="text-black">
                 Thank you so much for choosing {data?.[0]?.hotelName}. Hope you
-                will enjoy your stay with us. Best of luck for your Cox’s Bazar
+                will enjoy your stay with us. Best of luck for your ${'Cox’s Bazar'}
                 trip.
               </p>
             </div>
