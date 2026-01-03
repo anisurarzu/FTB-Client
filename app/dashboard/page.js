@@ -203,7 +203,7 @@ const Invoice = ({ params }) => {
                       alt="Logo"
                       style={{ width: "150px", height: "120px" }}
                     />
-                  ) : data?.[0]?.hotelID===8? <img
+                  ) : data?.[0]?.hotelID === 8? <img
                       src="https://i.ibb.co/HLhzgHgN/Whats-App-Image-2025-12-28-at-18-17-17-removebg-preview.png"
                       alt="Logo"
                       style={{ width: "150px", height: "120px" }}
@@ -537,7 +537,7 @@ Jagrik, Kolatoli, Cox's Bazar
               </div>
               <p className="text-black">
                 Thank you so much for choosing {data?.[0]?.hotelName}. Hope you
-                will enjoy your stay with us. Best of luck for your ${'Cox’s Bazar'}
+                will enjoy your stay with us. Best of luck for your ${`Cox’s Bazar`}
                 trip.
               </p>
             </div>
