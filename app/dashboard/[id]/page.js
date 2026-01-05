@@ -5,11 +5,11 @@ import {
   PrinterOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
-import React, { useEffect, useState, useCallback } from "react"; // Added useCallback
+import React, { useEffect, useState } from "react";
 import { Alert, Button, QRCode, Spin, Watermark, message } from "antd";
-// Removed html2pdf import here since you're dynamically importing it
+import html2pdf from "html2pdf.js";
 import axios from "axios";
-import Image from "next/image"; // Already imported
+import Image from "next/image";
 import coreAxios from "@/utils/axiosInstance";
 import moment from "moment";
 
@@ -26,8 +26,7 @@ const Invoice = ({ params }) => {
   });
   const { id } = params;
 
-  // Wrap fetchInvoiceInfo in useCallback to avoid dependency issues
-  const fetchInvoiceInfo = useCallback(async () => {
+  const fetchInvoiceInfo = async () => {
     try {
       setLoading(true);
       const response = await coreAxios.get(`/bookings/bookingNo/${id}`);
@@ -39,20 +38,23 @@ const Invoice = ({ params }) => {
 
         calculateTotals(filteredData); // Calculate totals with filtered data
         setData(filteredData); // Set state with filtered data
+        setLoading(false);
       } else {
         message.error("Failed to load data");
+        setLoading(false);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
       message.error("Error fetching data");
+      setLoading(false);
     } finally {
       setLoading(false);
     }
-  }, [id]); // Add id as dependency
+  };
 
   useEffect(() => {
     fetchInvoiceInfo();
-  }, [fetchInvoiceInfo]); // Now includes fetchInvoiceInfo as dependency
+  }, []);
 
   const print = () => {
     const printContent = document.getElementById("invoice-card").innerHTML;
@@ -63,18 +65,88 @@ const Invoice = ({ params }) => {
   };
 
   const downloadPDF = async () => {
-    if (!document) return; // safety check for SSR
+    if (!document) return;
 
-    const html2pdf = (await import("html2pdf.js")).default; // dynamic import
+    const html2pdf = (await import("html2pdf.js")).default;
     const element = document.getElementById("invoice-card");
+    
+    // Create a clone of the element to avoid affecting the original DOM
+    const elementClone = element.cloneNode(true);
+    
+    // Fix for images - ensure they're fully loaded and properly styled
+    const images = elementClone.getElementsByTagName('img');
+    const imagePromises = [];
+    
+    for (let img of images) {
+      // Ensure images have proper dimensions
+      img.style.width = '150px';
+      img.style.height = 'auto';
+      img.style.maxHeight = '120px';
+      img.style.objectFit = 'contain';
+      img.style.display = 'block';
+      img.style.margin = '0 auto';
+      
+      // Create a promise for each image to load
+      if (!img.complete) {
+        const promise = new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+        imagePromises.push(promise);
+      }
+    }
+
+    // Wait for all images to load
+    await Promise.all(imagePromises);
+
     const options = {
-      margin: 0.5,
+      margin: [0.5, 0.5, 0.5, 0.5],
       filename: `Invoice-${data?.[0]?.bookingNo}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+      image: { 
+        type: 'jpeg', 
+        quality: 1.0,
+        compression: 'NONE'
+      },
+      html2canvas: { 
+        scale: 3,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        letterRendering: true,
+        allowTaint: true,
+        logging: false,
+        onclone: function(clonedDoc) {
+          // Ensure proper styling in cloned document
+          const clonedImages = clonedDoc.getElementsByTagName('img');
+          for (let img of clonedImages) {
+            img.style.width = '150px !important';
+            img.style.height = 'auto !important';
+            img.style.maxHeight = '120px !important';
+            img.style.objectFit = 'contain !important';
+            img.style.display = 'block !important';
+            img.style.margin = '0 auto !important';
+          }
+          
+          // Ensure logo container has enough space
+          const logoContainers = clonedDoc.getElementsByClassName('logo-container');
+          for (let container of logoContainers) {
+            container.style.minHeight = '120px';
+            container.style.padding = '10px 0';
+            container.style.display = 'flex';
+            container.style.alignItems = 'center';
+            container.style.justifyContent = 'center';
+          }
+        }
+      },
+      jsPDF: { 
+        unit: 'in', 
+        format: 'a4', 
+        orientation: 'portrait',
+        compress: false
+      },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
-    html2pdf().from(element).set(options).save();
+
+    html2pdf().set(options).from(elementClone).save();
   };
 
   const calculateTotals = (bookings) => {
@@ -110,6 +182,30 @@ const Invoice = ({ params }) => {
     });
   };
 
+  // Preload images for better PDF generation
+  useEffect(() => {
+    const preloadImages = () => {
+      const imageUrls = [
+        '/images/marmaid-logo.png',
+        '/images/goldenhil.png',
+        '/images/Shamudro-Bari-1.png',
+        '/images/Sopno.png',
+        'https://i.ibb.co.com/jZDnyS4V/beach-gardn.png',
+        'https://i.ibb.co/svznKpfF/Whats-App-Image-2025-07-01-at-22-11-50-dda6f6f0.jpg',
+        'https://i.ibb.co/HLhzgHgN/Whats-App-Image-2025-12-28-at-18-17-17-removebg-preview.png'
+      ];
+      
+      imageUrls.forEach(url => {
+        const img = new Image();
+        img.src = url;
+      });
+    };
+    
+    if (!loading && data.length > 0) {
+      preloadImages();
+    }
+  }, [loading, data]);
+
   return (
     <Watermark
       content={`${
@@ -122,9 +218,7 @@ const Invoice = ({ params }) => {
           : data?.[0]?.hotelID === 4
           ? "Shopno Bilash Holiday Suites"
           : data?.[0]?.hotelID === 7
-          ? data?.[0]?.hotelID === 8
-            ? "FTB Apartments"
-            : "The Grand Sandy"
+          ? data?.[0]?.hotelID === 8 ? "FTB Apartments" : "The Grand Sandy"
           : data?.[0]?.hotelID === 8
           ? "FTB Apartments"
           : "Samudra Bari 2024"
@@ -168,70 +262,97 @@ const Invoice = ({ params }) => {
           >
             <div>
               <div className="grid grid-cols-3 gap-4">
-                <div className="logo-container flex items-center justify-center">
+                <div className="logo-container flex items-center justify-center" style={{
+                  minHeight: '120px',
+                  padding: '10px 0'
+                }}>
                   {data?.[0]?.hotelID === 1 ? (
-                    <Image
+                    <img
                       src="/images/marmaid-logo.png"
                       alt="Logo"
-                      width={150}
-                      height={80}
-                      style={{ width: "150px", height: "80px" }}
+                      style={{ 
+                        width: "150px", 
+                        height: "auto",
+                        maxHeight: "80px",
+                        objectFit: "contain"
+                      }}
                     />
                   ) : data?.[0]?.hotelID === 2 ? (
-                    <Image
+                    <img
                       src="/images/goldenhil.png"
                       alt="Logo"
-                      width={150}
-                      height={80}
-                      style={{ width: "150px", height: "80px" }}
+                      style={{ 
+                        width: "150px", 
+                        height: "auto",
+                        maxHeight: "80px",
+                        objectFit: "contain"
+                      }}
                     />
                   ) : data?.[0]?.hotelID === 3 ? (
-                    <Image
+                    <img
                       src="/images/Shamudro-Bari-1.png"
                       alt="Logo"
-                      width={150}
-                      height={50}
-                      style={{ width: "150px", height: "50px" }}
+                      style={{ 
+                        width: "150px", 
+                        height: "auto",
+                        maxHeight: "50px",
+                        objectFit: "contain"
+                      }}
                     />
                   ) : data?.[0]?.hotelID === 4 ? (
-                    <Image
+                    <img
                       src="/images/Sopno.png"
                       alt="Logo"
-                      width={150}
-                      height={80}
-                      style={{ width: "150px", height: "80px" }}
+                      style={{ 
+                        width: "150px", 
+                        height: "auto",
+                        maxHeight: "80px",
+                        objectFit: "contain"
+                      }}
                     />
                   ) : data?.[0]?.hotelID === 6 ? (
-                    <Image
+                    <img
                       src="https://i.ibb.co.com/jZDnyS4V/beach-gardn.png"
                       alt="Logo"
-                      width={150}
-                      height={80}
-                      style={{ width: "150px", height: "80px" }}
+                      style={{ 
+                        width: "150px", 
+                        height: "auto",
+                        maxHeight: "80px",
+                        objectFit: "contain"
+                      }}
                     />
                   ) : data?.[0]?.hotelID === 7 ? (
-                    <Image
+                    <img
                       src="https://i.ibb.co/svznKpfF/Whats-App-Image-2025-07-01-at-22-11-50-dda6f6f0.jpg"
                       alt="Logo"
-                      width={150}
-                      height={120}
-                      style={{ width: "150px", height: "120px" }}
+                      style={{ 
+                        width: "150px", 
+                        height: "auto",
+                        maxHeight: "120px",
+                        objectFit: "contain"
+                      }}
                     />
                   ) : data?.[0]?.hotelID === 8 ? (
-                    <Image
+                    <img
                       src="https://i.ibb.co/HLhzgHgN/Whats-App-Image-2025-12-28-at-18-17-17-removebg-preview.png"
                       alt="Logo"
-                      width={150}
-                      height={120}
-                      style={{ width: "150px", height: "120px" }}
+                      style={{ 
+                        width: "150px", 
+                        height: "auto",
+                        maxHeight: "120px",
+                        objectFit: "contain"
+                      }}
                     />
                   ) : (
-                    <Image
+                    <img
                       src="/images/Shamudro-Bari-1.png"
                       alt="Logo"
-                      width={150}
-                      height={140}
-                      style={{ width: "150px", height: "140px" }}
+                      style={{ 
+                        width: "150px", 
+                        height: "auto",
+                        maxHeight: "140px",
+                        objectFit: "contain"
+                      }}
                     />
                   )}
                 </div>
@@ -254,7 +375,7 @@ const Invoice = ({ params }) => {
                   <div className="text-center">
                     <div className="mt-8 text-black text-left">
                       <p>
-                        Address: Block # A, Plot # 17, Kolatoli Main Road, Cox&apos;s
+                        Address: Block # A, Plot # 17, Kolatoli Main Road, Cox's
                         Bazar 4700
                       </p>
                       <p>Front Desk no: 01818083949</p>
@@ -293,17 +414,15 @@ const Invoice = ({ params }) => {
                 ) : data?.[0]?.hotelID === 6 ? (
                   <div className="mt-8 text-black text-left">
                     <p>
-                      {`Address: Plot No-	199, Block # B, Saykat Bahumukhi Samabay Samity Ltd. Lighthouse, Kolatoli, Cox&rsquo;s Bazar`}
+                      {`Address: Plot No-	199, Block # B, Saykat Bahumukhi Samabay Samity Ltd. Lighthouse, Kolatoli, Cox's Bazar`}
                     </p>
-                      {/* Fixed: Changed ’ to &rsquo; */}
                     <p>Front Desk no: 01898841016</p>
                     <p>Reservation no: 01898841015</p>
                   </div>
                 ) : data?.[0]?.hotelID === 7 ? (
                   <div className="mt-8 text-black text-left">
                     <p>
-                      {`Address: N.H.A Building No- 10, Hotel The Grand Sandy,Kolatoli,&nbsp;Cox&rsquo;s&nbsp;Bazar`}
-                      {/* Fixed: Added &nbsp; and &rsquo; */}
+                      {`Address: N.H.A Building No- 10, Hotel The Grand Sandy,Kolatoli, Cox's Bazar`}
                     </p>
                     <p>Front Desk no: 01827689324</p>
                     <p>Reservation no: 01898841017</p>
@@ -313,8 +432,7 @@ const Invoice = ({ params }) => {
                     <div className="mt-8 text-black text-left">
                       <p>
                         Address: N.H.A Building 08, KutumBari Road Jagrik,
-                        Kolatoli, Cox&apos;s Bazar
-                        {/* Fixed: Changed ' to &apos; */}
+                        Kolatoli, Cox's Bazar
                       </p>
                       <p>Front Desk no: 01898841021</p>
                       <p>Reservation no: 01898841020</p>
@@ -325,8 +443,7 @@ const Invoice = ({ params }) => {
                     <div className="mt-8 text-black text-left">
                       <p>
                         Address: N.H.A building No- 09, Samudra Bari, Kolatoli,
-                        Cox&rsquo;s Bazar
-                        {/* Fixed: Changed ’ to &rsquo; */}
+                        Cox's Bazar
                       </p>
                       <p>Front Desk no: 01886628295</p>
                       <p>Reservation no: 01886628296</p>
@@ -553,7 +670,7 @@ const Invoice = ({ params }) => {
                     : "Check in - 12:30 PM & Check out - 11:00 AM"}
                 </p>
               </div>
-             <p className="text-black">
+              <p className="text-black">
                 This Invoice is system-generated and valid without signature.
               </p>
             </div>
