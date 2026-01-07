@@ -124,6 +124,8 @@ const Invoice = ({ params }) => {
         return "https://i.ibb.co/svznKpfF/Whats-App-Image-2025-07-01-at-22-11-50-dda6f6f0.jpg";
       case 8:
         return "https://i.ibb.co/HLhzgHgN/Whats-App-Image-2025-12-28-at-18-17-17-removebg-preview.png";
+      case 9:
+        return "https://i.ibb.co/84DnFfQs/Whats-App-Image-2026-01-03-at-20-19-37-1.jpg";
       default:
         return "/images/Shamudro-Bari-1.png";
     }
@@ -157,7 +159,7 @@ const Invoice = ({ params }) => {
           ? "The Grand Sandy"
           : data?.[0]?.hotelID === 8
           ? "FTB Apartments"
-          : "Samudra Bari 2024"
+          : data?.[0]?.hotelID === 9?"The Grand Sandy (Sawary Apartments)": "Samudra Bari 2024"
       }`}
     >
       {loading ? (
@@ -290,6 +292,17 @@ const Invoice = ({ params }) => {
                       </p>
                       <p>Front Desk no: 01898841021</p>
                       <p>Reservation no: 01898841020</p>
+                    </div>
+                  </div>
+                ) : data?.[0]?.hotelID === 9 ? (
+                  <div className="text-center">
+                    <div className="mt-8 text-black text-left">
+                      <p>
+                        Address: N.H.A Building No- 10, Hotel The Grand Sandy (Sawary Apartments), Kolatoli, Cox&apos;s Bazar
+                        Cox&apos;s Bazar
+                      </p>
+                      <p>Front Desk no: 01601383584</p>
+                      <p>Reservation no: 01898841017</p>
                     </div>
                   </div>
                 ) : (
