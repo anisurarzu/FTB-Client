@@ -61,6 +61,8 @@ const BookingInfo = ({ hotelID }) => {
   });
   const [searchText, setSearchText] = useState("");
   const [checkInFilterDate, setCheckInFilterDate] = useState(null); // New state for check-in date filter
+  const [referenceBookingNo, setReferenceBookingNo] = useState(null); // Store reference booking number for merging
+  const [referenceBookingData, setReferenceBookingData] = useState(null); // Store reference booking data
 
   const fetchRoomCategories = async () => {
     try {
@@ -309,6 +311,8 @@ const BookingInfo = ({ hotelID }) => {
               checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
               key: uuidv4(), // Generate a unique key for this booking
               bookingID: updateBookingResponse?.data?.hotel?._id, // Correctly extracting the bookingId from response
+              // If merging with previous booking, use the same bookingNo
+              bookingNo: referenceBookingNo || undefined, // Use reference bookingNo if available
             };
 
             // First, create or update the booking in the booking collection
@@ -319,11 +323,21 @@ const BookingInfo = ({ hotelID }) => {
                 newBooking
               );
             } else {
-              response = await coreAxios.post("booking", newBooking);
+              // If merging, use the same bookingNo from reference
+              if (referenceBookingNo) {
+                // When merging, we still create a new booking entry but with the same bookingNo
+                response = await coreAxios.post("booking", newBooking);
+              } else {
+                response = await coreAxios.post("booking", newBooking);
+              }
             }
 
             if (response.status === 200) {
-              message.success("Booking created/updated successfully!");
+              message.success(
+                referenceBookingNo 
+                  ? `Booking merged successfully with ${referenceBookingNo}!` 
+                  : "Booking created/updated successfully!"
+              );
             } else {
               message.error("Failed to create/update booking.");
             }
@@ -334,54 +348,18 @@ const BookingInfo = ({ hotelID }) => {
             setEditingKey(null);
             setBookings([]);
             setFilteredBookings([]);
+            setReferenceBookingNo(null); // Clear reference booking after successful merge
+            setReferenceBookingData(null);
             message.success("Room booking status updated successfully!");
 
             // Refresh hotel and booking information
             fetchHotelInfo();
             fetchBookings();
-            if (updateBookingResponse.status === 200) {
-              const newBooking = {
-                ...values,
-                checkIn: dayjs(values.checkInDate).format("YYYY-MM-DD"),
-                checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
-                key: uuidv4(), // Generate a unique key for this booking
-                bookingID: updateBookingResponse?.data?.hotel?._id, // Correctly extracting the bookingId from response
-              };
-
-              // First, create or update the booking in the booking collection
-              let response;
-              if (isEditing) {
-                response = await coreAxios.put(
-                  `booking/${editingKey}`,
-                  newBooking
-                );
-              } else {
-                response = await coreAxios.post("booking", newBooking);
-              }
-
-              if (response.status === 200) {
-                message.success("Booking created/updated successfully!");
-              } else {
-                message.error("Failed to create/update booking.");
-              }
-
-              // Clean up after successful update
-              setVisible(false);
-              setIsEditing(false);
-              setEditingKey(null);
-              setBookings([]);
-              setFilteredBookings([]);
-              message.success("Room booking status updated successfully!");
-
-              // Refresh hotel and booking information
-              fetchHotelInfo();
-              fetchBookings();
-            } else {
-              message.error("Failed to update room booking status.");
-            }
           } else {
             message.error("Failed to update room booking status.");
           }
+        } else {
+          message.error("Failed to delete previous booking.");
         }
       } else {
         const updateBookingResponse = await coreAxios.put(
@@ -395,6 +373,8 @@ const BookingInfo = ({ hotelID }) => {
             checkOut: dayjs(values.checkOutDate).format("YYYY-MM-DD"),
             key: uuidv4(), // Generate a unique key for this booking
             bookingID: updateBookingResponse?.data?.hotel?._id, // Correctly extracting the bookingId from response
+            // If merging with previous booking, use the same bookingNo
+            bookingNo: referenceBookingNo || undefined, // Use reference bookingNo if available
           };
 
           // First, create or update the booking in the booking collection
@@ -402,11 +382,21 @@ const BookingInfo = ({ hotelID }) => {
           if (isEditing) {
             response = await coreAxios.put(`booking/${editingKey}`, newBooking);
           } else {
-            response = await coreAxios.post("booking", newBooking);
+            // If merging, use the same bookingNo from reference
+            if (referenceBookingNo) {
+              // When merging, we still create a new booking entry but with the same bookingNo
+              response = await coreAxios.post("booking", newBooking);
+            } else {
+              response = await coreAxios.post("booking", newBooking);
+            }
           }
 
           if (response.status === 200) {
-            message.success("Booking created/updated successfully!");
+            message.success(
+              referenceBookingNo 
+                ? `Booking merged successfully with ${referenceBookingNo}!` 
+                : "Booking created/updated successfully!"
+            );
           } else {
             message.error("Failed to create/update booking.");
           }
@@ -417,6 +407,8 @@ const BookingInfo = ({ hotelID }) => {
           setEditingKey(null);
           setBookings([]);
           setFilteredBookings([]);
+          setReferenceBookingNo(null); // Clear reference booking after successful merge
+          setReferenceBookingData(null);
           message.success("Room booking status updated successfully!");
 
           // Refresh hotel and booking information
@@ -796,37 +788,51 @@ const BookingInfo = ({ hotelID }) => {
     const { value } = e.target;
     if (value) {
       const bookings = await fetchBookingDetails(value);
-      const bookingDetails = bookings[0];
+      if (bookings && bookings.length > 0) {
+        const bookingDetails = bookings[0];
 
-      const checkInDate = dayjs(bookingDetails.checkInDate);
-      const checkOutDate = dayjs(bookingDetails.checkOutDate);
-      if (bookingDetails) {
-        formik.setValues({
-          ...formik.values,
-          fullName: bookingDetails.fullName,
-          nidPassport: bookingDetails.nidPassport,
-          address: bookingDetails.address,
-          phone: bookingDetails.phone,
-          email: bookingDetails.email,
-          hotelName: bookingDetails.hotelName,
-          hotelID: bookingDetails.hotelID,
-          roomCategoryName: bookingDetails.roomCategoryID,
-          roomNumberName: bookingDetails.roomNumberName,
-          roomPrice: bookingDetails.roomPrice,
-          // checkInDate: checkInDate,
-          // checkOutDate: checkOutDate,
-          adults: bookingDetails.adults,
-          children: bookingDetails.children,
-          nights: bookingDetails.nights,
-          totalBill: bookingDetails.totalBill,
-          advancePayment: bookingDetails.advancePayment,
-          duePayment: bookingDetails.duePayment,
-          paymentMethod: bookingDetails.paymentMethod,
-          transactionId: bookingDetails.transactionId,
-          // note: bookingDetails.note,
-        });
-        message.success("Booking details loaded successfully!");
+        // Store reference booking number and data for merging
+        setReferenceBookingNo(value);
+        setReferenceBookingData(bookings);
+
+        const checkInDate = dayjs(bookingDetails.checkInDate);
+        const checkOutDate = dayjs(bookingDetails.checkOutDate);
+        if (bookingDetails) {
+          formik.setValues({
+            ...formik.values,
+            fullName: bookingDetails.fullName,
+            nidPassport: bookingDetails.nidPassport,
+            address: bookingDetails.address,
+            phone: bookingDetails.phone,
+            email: bookingDetails.email,
+            hotelName: bookingDetails.hotelName,
+            hotelID: bookingDetails.hotelID,
+            roomCategoryName: bookingDetails.roomCategoryID,
+            roomNumberName: bookingDetails.roomNumberName,
+            roomPrice: bookingDetails.roomPrice,
+            // checkInDate: checkInDate,
+            // checkOutDate: checkOutDate,
+            adults: bookingDetails.adults,
+            children: bookingDetails.children,
+            nights: bookingDetails.nights,
+            totalBill: bookingDetails.totalBill,
+            advancePayment: bookingDetails.advancePayment,
+            duePayment: bookingDetails.duePayment,
+            paymentMethod: bookingDetails.paymentMethod,
+            transactionId: bookingDetails.transactionId,
+            // note: bookingDetails.note,
+          });
+          message.success(`Booking details loaded successfully! New booking will be merged with ${value}`);
+        }
+      } else {
+        message.error("Booking not found. Please check the booking number.");
+        setReferenceBookingNo(null);
+        setReferenceBookingData(null);
       }
+    } else {
+      // Clear reference if field is empty
+      setReferenceBookingNo(null);
+      setReferenceBookingData(null);
     }
   };
   console.log("hotelID", hotelInfo);
@@ -969,6 +975,8 @@ const BookingInfo = ({ hotelID }) => {
                         formik.resetForm();
                         setVisible(true);
                         setIsEditing(false);
+                        setReferenceBookingNo(null); // Clear reference when creating new booking
+                        setReferenceBookingData(null);
                       }}
                       className="mb-4 bg-[#8ABF55] hover:bg-[#7DA54E] text-white"
                     >
@@ -1298,13 +1306,26 @@ const BookingInfo = ({ hotelID }) => {
                   <Form onFinish={formik.handleSubmit} layout="vertical">
                     <div style={{ display: "flex", gap: "16px" }}>
                       <div style={{ flex: 1 }}>
-                        <Form.Item label="Prev Booking No." className="mb-2">
+                        <Form.Item label="Prev Booking No. (Merge)" className="mb-2">
                           <Input
                             name="reference"
                             value={formik.values.reference}
-                            onChange={formik.handleChange}
+                            onChange={(e) => {
+                              formik.handleChange(e);
+                              // Clear reference if user clears the field
+                              if (!e.target.value) {
+                                setReferenceBookingNo(null);
+                                setReferenceBookingData(null);
+                              }
+                            }}
                             onBlur={handleBlur} // Call API when the user leaves the input
+                            placeholder="Enter booking number to merge with"
                           />
+                          {referenceBookingNo && (
+                            <p className="text-xs text-green-600 mt-1">
+                              ✓ Will merge with booking: {referenceBookingNo}
+                            </p>
+                          )}
                         </Form.Item>
                       </div>
                       <div style={{ flex: 1 }}>
