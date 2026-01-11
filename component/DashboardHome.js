@@ -1,13 +1,5 @@
 import { useState, useEffect } from "react";
 import { Card, Col, Row, Typography, Select, message, Skeleton } from "antd";
-import {
-  UserOutlined,
-  TeamOutlined,
-  CalendarOutlined,
-  DollarOutlined,
-  ArrowUpOutlined,
-  ArrowDownOutlined,
-} from "@ant-design/icons";
 import coreAxios from "@/utils/axiosInstance";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
@@ -17,6 +9,14 @@ import NoPermissionBanner from "./Permission/NoPermissionBanner";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+
+// Unicode icon components
+const UserIcon = () => <span style={{ fontSize: '20px' }}>👤</span>;
+const TeamIcon = () => <span style={{ fontSize: '20px' }}>👥</span>;
+const CalendarIcon = () => <span style={{ fontSize: '20px' }}>📅</span>;
+const MoneyIcon = () => <span style={{ fontSize: '20px' }}>💰</span>;
+const ArrowUpIcon = () => <span style={{ fontSize: '16px' }}>↗️</span>;
+const ArrowDownIcon = () => <span style={{ fontSize: '16px' }}>↘️</span>;
 
 const DashboardHome = ({ hotelID }) => {
   const [bookings, setBookings] = useState([]);
@@ -211,58 +211,31 @@ const DashboardHome = ({ hotelID }) => {
   const getIconForStat = (label) => {
     switch (label) {
       case "Today's FTB Bookings":
-        return <UserOutlined style={{ fontSize: "20px" }} />;
+        return <UserIcon />;
       case "Today's All Bookings":
-        return <TeamOutlined style={{ fontSize: "20px" }} />;
+        return <TeamIcon />;
       case "30 Days FTB Bookings":
-        return <CalendarOutlined style={{ fontSize: "20px" }} />;
+        return <CalendarIcon />;
       case "30 Days All Bookings":
-        return <DollarOutlined style={{ fontSize: "20px" }} />;
+        return <MoneyIcon />;
       default:
-        return <DollarOutlined style={{ fontSize: "20px" }} />;
+        return <MoneyIcon />;
     }
   };
 
   const getColorForStat = (label) => {
     switch (label) {
       case "Today's FTB Bookings":
-        return "#6366F1"; // Indigo
+        return "#2563eb"; // Blue-600
       case "Today's All Bookings":
-        return "#10B981"; // Emerald
+        return "#1d4ed8"; // Blue-700
       case "30 Days FTB Bookings":
-        return "#F59E0B"; // Amber
+        return "#1e40af"; // Blue-800
       case "30 Days All Bookings":
-        return "#EF4444"; // Red
+        return "#1e3a8a"; // Blue-900
       default:
-        return "#8B5CF6"; // Violet
+        return "#2563eb"; // Blue-600
     }
-  };
-
-  const getCardBackground = (color) => {
-    return {
-      background: `linear-gradient(135deg, ${color} 0%, ${lightenColor(
-        color,
-        20
-      )} 100%)`,
-      color: "white",
-    };
-  };
-
-  const lightenColor = (color, percent) => {
-    // Simple color lightening function
-    const num = parseInt(color.replace("#", ""), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = (num >> 16) + amt;
-    const G = ((num >> 8) & 0x00ff) + amt;
-    const B = (num & 0x0000ff) + amt;
-    return `#${(
-      0x1000000 +
-      (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
-      (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
-      (B < 255 ? (B < 1 ? 0 : B) : 255)
-    )
-      .toString(16)
-      .slice(1)}`;
   };
 
   const calculateUserTotalBills = (userID) => {
@@ -338,26 +311,42 @@ const DashboardHome = ({ hotelID }) => {
     <div>
       {dashboardPermissions.viewAccess ? (
         <>
-          <div className="p-4 bg-gray-50 min-h-screen">
+          <div className="p-6 bg-blue-50 min-h-screen">
+            {/* Header Section */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-slate-800 mb-2">
+                Dashboard Overview
+              </h1>
+              <p className="text-slate-600">
+                Welcome back to Fast Track Booking - Monitor your hotel performance
+              </p>
+            </div>
+
+            {/* Hotel Selection */}
             <Formik
               initialValues={{ hotelID: selectedHotelID || 0 }}
               onSubmit={(values) => {}}
             >
               {({ setFieldValue, values }) => (
                 <Form>
-                  <div className="mb-6 bg-white p-4 rounded-lg shadow-sm">
+                  <div className="mb-6 bg-white p-4 rounded-xl shadow-sm border border-blue-200">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Select Hotel
+                    </label>
                     <Field name="hotelID">
                       {({ field }) => (
                         <Select
                           {...field}
-                          placeholder="Select a Hotel"
+                          placeholder="Choose a hotel to view analytics"
                           value={values.hotelID}
                           style={{ width: 300 }}
+                          size="large"
                           onChange={(value) => {
                             setSelectedHotelID(value);
                             setFieldValue("hotelID", value);
                             fetchBookingsByHotelID(value);
                           }}
+                          className="hotel-selector"
                         >
                           {hotelInfo.map((hotel) => (
                             <Option key={hotel.hotelID} value={hotel.hotelID}>
@@ -379,7 +368,7 @@ const DashboardHome = ({ hotelID }) => {
                     <Card
                       hoverable
                       bordered={false}
-                      className="rounded-xl overflow-hidden border-0 h-full"
+                      className="rounded-xl overflow-hidden border-0 h-full bg-white shadow-sm"
                     >
                       <Skeleton active paragraph={{ rows: 3 }} />
                     </Card>
@@ -388,25 +377,29 @@ const DashboardHome = ({ hotelID }) => {
               </Row>
             ) : (
               <div>
+                {/* Stats Cards */}
                 <Row gutter={[24, 24]}>
                   {[
                     {
                       label: "Today's FTB Bookings",
                       value: totalBillForTodayByFTB,
                       count: getBookingCount(filteredTodayBookingsFTB),
-                      icon: <UserOutlined />,
+                      icon: <UserIcon />,
+                      description: "Bookings via Fast Track Booking today"
                     },
                     {
                       label: "Today's All Bookings",
                       value: totalBillForTodayByEveryOne,
                       count: getBookingCount(filteredTodayBookingsByEveryOne),
-                      icon: <TeamOutlined />,
+                      icon: <TeamIcon />,
+                      description: "All bookings including front desk"
                     },
                     {
                       label: "30 Days FTB Bookings",
                       value: totalBillForLast30DaysByFTB,
                       count: getBookingCount(filteredLast30DaysBookingsByFTB),
-                      icon: <CalendarOutlined />,
+                      icon: <CalendarIcon />,
+                      description: "FTB bookings in last 30 days"
                     },
                     {
                       label: "30 Days All Bookings",
@@ -414,7 +407,8 @@ const DashboardHome = ({ hotelID }) => {
                       count: getBookingCount(
                         filteredLast30DaysBookingsByEveryOne
                       ),
-                      icon: <DollarOutlined />,
+                      icon: <MoneyIcon />,
+                      description: "All bookings in last 30 days"
                     },
                   ].map((item, idx) => {
                     const color = getColorForStat(item.label);
@@ -423,59 +417,75 @@ const DashboardHome = ({ hotelID }) => {
                         <Card
                           hoverable
                           bordered={false}
-                          className="rounded-xl overflow-hidden border-0 h-full shadow-sm"
-                          style={getCardBackground(color)}
-                          bodyStyle={{ padding: "20px" }}
+                          className="rounded-xl overflow-hidden border-0 h-full shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+                          style={{ 
+                            background: `linear-gradient(135deg, ${color} 0%, ${color}99 100%)`,
+                            border: `1px solid ${color}33`
+                          }}
+                          bodyStyle={{ padding: "24px" }}
                         >
                           <div className="flex items-start justify-between h-full">
-                            <div>
-                              <Text
-                                className="text-sm uppercase tracking-wider"
-                                style={{
-                                  fontFamily: "Inter, sans-serif",
-                                  fontWeight: 500,
-                                  color: "rgba(255,255,255,0.8)",
-                                }}
-                              >
-                                {item.label}
-                              </Text>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="p-2 rounded-lg bg-white/20">
+                                  {item.icon}
+                                </div>
+                                <Text
+                                  className="text-sm font-semibold uppercase tracking-wide"
+                                  style={{
+                                    color: "rgba(255,255,255,0.9)",
+                                    fontSize: "0.75rem",
+                                    letterSpacing: "0.05em"
+                                  }}
+                                >
+                                  {item.label}
+                                </Text>
+                              </div>
+                              
                               <Title
                                 level={2}
-                                className="mt-1 mb-0"
+                                className="mt-1 mb-2"
                                 style={{
-                                  fontFamily: "Poppins, sans-serif",
-                                  fontWeight: 600,
+                                  fontFamily: "Inter, sans-serif",
+                                  fontWeight: 700,
                                   fontSize: "1.75rem",
                                   color: "white",
+                                  lineHeight: "1.2"
                                 }}
                               >
                                 {typeof item.value === "number"
                                   ? `৳${item.value.toLocaleString()}`
                                   : item.value}
                               </Title>
-                              <div className="flex items-center mt-2">
-                                <Text
-                                  style={{
-                                    color: "rgba(255,255,255,0.9)",
-                                    fontFamily: "Inter, sans-serif",
-                                    fontSize: "0.875rem",
-                                  }}
-                                >
-                                  {item.count} bookings
-                                </Text>
+                              
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <Text
+                                    style={{
+                                      color: "rgba(255,255,255,0.8)",
+                                      fontFamily: "Inter, sans-serif",
+                                      fontSize: "0.875rem",
+                                      fontWeight: 500
+                                    }}
+                                  >
+                                    {item.count} bookings
+                                  </Text>
+                                  <div className="mt-1">
+                                    <Text
+                                      style={{
+                                        color: "rgba(255,255,255,0.7)",
+                                        fontFamily: "Inter, sans-serif",
+                                        fontSize: "0.75rem",
+                                      }}
+                                    >
+                                      {item.description}
+                                    </Text>
+                                  </div>
+                                </div>
+                                <div className="text-white opacity-80">
+                                  <ArrowUpIcon />
+                                </div>
                               </div>
-                            </div>
-                            <div
-                              className="p-3 rounded-lg flex items-center justify-center"
-                              style={{
-                                backgroundColor: "rgba(255,255,255,0.2)",
-                                color: "white",
-                                border: `1px solid rgba(255,255,255,0.3)`,
-                                width: "48px",
-                                height: "48px",
-                              }}
-                            >
-                              {getIconForStat(item.label)}
                             </div>
                           </div>
                         </Card>
@@ -484,16 +494,43 @@ const DashboardHome = ({ hotelID }) => {
                   })}
                 </Row>
 
-                <div className="mt-8 bg-white rounded-lg shadow-sm">
+                {/* User Booking Info Section */}
+                <div className="mt-8 bg-white rounded-xl shadow-sm border border-blue-200 overflow-hidden">
+                  <div className="p-6 border-b border-blue-200">
+                    <Title level={4} className="m-0 text-slate-800">
+                      User-wise Booking Overview
+                    </Title>
+                    <Text className="text-slate-600">
+                      Detailed breakdown of bookings by each user
+                    </Text>
+                  </div>
                   <UserBookingInfo
                     userTableData={userTableData}
-                    title={"User-wise Booking Overview"}
+                    title={""}
                     loading={loading}
                   />
                 </div>
               </div>
             )}
           </div>
+
+          <style jsx>{`
+            .hotel-selector .ant-select-selector {
+              border-radius: 8px !important;
+              border: 1px solid #d1d5db !important;
+              transition: all 0.3s ease !important;
+            }
+            
+            .hotel-selector .ant-select-selector:hover {
+              border-color: #3b82f6 !important;
+              box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+            }
+            
+            .hotel-selector .ant-select-selector:focus {
+              border-color: #3b82f6 !important;
+              box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+            }
+          `}</style>
         </>
       ) : (
         <>
